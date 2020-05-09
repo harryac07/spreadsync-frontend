@@ -3,7 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { render, fireEvent, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
-import Navigation from './Navigation';
+import Navigation from './WrapperWithNavigation';
 
 afterEach(cleanup);
 

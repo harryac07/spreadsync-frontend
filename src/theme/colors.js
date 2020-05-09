@@ -18,9 +18,15 @@ module.exports = {
   /* gray */
   gray: '#616161',
 
+  lightShade: '#ffffff',
+  darkShade: '#241F66',
+  baseBrand: '#7ED7DA',
+  firstAccent: '#5471B4',
+  secondAccent: '#3A3C67',
+
   /* PRIMARY */
   primary: '#241F66',
-  secondary: '#5471B4',
+  secondary: '#7ED7DA',
   error: '#f44336',
   warning: '#ff9800',
   info: '#2196f3',
