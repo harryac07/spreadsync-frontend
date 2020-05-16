@@ -6,6 +6,7 @@ import theme from './theme/muiTheme';
 
 import WrapperWithNavigation from 'components/WrapperWithNavigation';
 import Main from 'containers/Main';
+import Projects from 'containers/Projects';
 
 import './app.css';
 
@@ -19,7 +20,7 @@ const App = ({ store }) => {
               <div>
                 <Switch>
                   <Route path="/projects/:id">Project detail</Route>
-                  <Route path="/projects">Projects</Route>
+                  <Route path="/projects" component={Projects} />
                   <Route path="/integrations">Integrations</Route>
                   <Route path="/teams">Teams</Route>
                   <Route path="/logout">Logout. Delete session data and pushes to /login page</Route>
