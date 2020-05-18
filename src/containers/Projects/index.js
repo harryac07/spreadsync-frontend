@@ -27,6 +27,7 @@ class Test extends React.Component {
           {projects.map((project) => {
             const projectName = startCase(toLower(project.name));
             const { id } = project;
+            const { total_members } = project;
             const description = truncate(project.description, {
               length: 100,
             });
@@ -36,7 +37,7 @@ class Test extends React.Component {
                   <HeaderText display="inline-block">{projectName}</HeaderText>
                   <div className={classes.userGroup}>
                     <GroupIcon fontSize={'small'} className={classes.userGroupIcon} />
-                    <span className={classes.userCount}>20</span>
+                    <span className={classes.userCount}>{total_members}</span>
                   </div>
                   <Divider className={classes.divider} />
                   <div className={classes.projectBody}>
@@ -60,7 +61,7 @@ const mapStateToProps = (state) => {
 
 const styles = {
   projectWrapper: {
-    background: '#eee',
+    background: '#fff',
     border: 0,
     borderRadius: 3,
     color: '#000',
