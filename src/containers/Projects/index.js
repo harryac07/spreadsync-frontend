@@ -22,7 +22,7 @@ class Test extends React.Component {
     const { projects } = this.props.store;
     const { classes } = this.props;
     return (
-      <MainWrapper>
+      <div>
         <Grid container spacing={3}>
           {projects.map((project) => {
             const projectName = startCase(toLower(project.name));
@@ -48,7 +48,7 @@ class Test extends React.Component {
             );
           })}
         </Grid>
-      </MainWrapper>
+      </div>
     );
   }
 }

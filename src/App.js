@@ -6,7 +6,6 @@ import theme from './theme/muiTheme';
 
 import WrapperWithNavigation from 'components/WrapperWithNavigation';
 import Main from 'containers/Main';
-import Projects from 'containers/Projects';
 
 import './app.css';
 
@@ -16,22 +15,15 @@ const App = ({ store }) => {
       <div>
         <Provider store={store}>
           <Router>
-            <WrapperWithNavigation>
-              <div>
-                <Switch>
-                  <Route path="/projects/:id">Project detail</Route>
-                  <Route path="/projects" component={Projects} />
-                  <Route path="/integrations">Integrations</Route>
-                  <Route path="/teams">Teams</Route>
-                  <Route path="/logout">Logout. Delete session data and pushes to /login page</Route>
-                  <Route path="/login">Login. Push user to / page to fetch more user related data</Route>
-                  <Route path="/callback">Callback. This will be callback page for oauth2</Route>
-                  <Route path="/profile">Profile and Account</Route>
-                  <Route path="/setting">Setting</Route>
-                  <Route path="/" exact component={Main} />
-                </Switch>
-              </div>
-            </WrapperWithNavigation>
+            <Switch>
+              {/* Unprotected route */}
+              <Route path="/auth">Register or Login. Push user to / page to fetch more user related data</Route>
+              <Route path="/callback">Callback. This will be callback page for oauth2</Route>
+              <Route path="/logout">Logout. Clear session</Route>
+
+              {/* Protected route */}
+              <Route path="/" component={Main} />
+            </Switch>
           </Router>
         </Provider>
       </div>
