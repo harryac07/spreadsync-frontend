@@ -1,7 +1,8 @@
 import { all } from 'redux-saga/effects';
 import { appSaga } from '../containers/Main/saga';
 import { saga as projectSaga } from '../containers/Projects/saga';
+import { projectDetailSaga } from '../containers/ProjectDetail/saga';
 
 export default function* rootSaga() {
-  yield all([...appSaga, ...projectSaga]);
+  yield all([...appSaga, ...projectSaga, ...projectDetailSaga]);
 }

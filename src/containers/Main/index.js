@@ -6,6 +6,7 @@ import { checkUserAuth } from './action';
 import { MainWrapper } from 'components/common/MainWrapper';
 import WrapperWithNavigation from 'components/WrapperWithNavigation';
 import Projects from 'containers/Projects';
+import ProjectDetail from 'containers/ProjectDetail';
 
 class Main extends React.Component {
   constructor(props) {
@@ -21,9 +22,8 @@ class Main extends React.Component {
     */
     // const token = localStorage.getItem('token');
     // this.props.checkUserAuth(token);
-
     /* Until auth is ready, set logged in true */
-    this.props.history.push('/projects');
+    // this.props.history.push('/projects');
   }
   componentDidUpdate(prevProps, prevState) {
     // const { loggedIn } = this.props.app;
@@ -39,7 +39,7 @@ class Main extends React.Component {
       <WrapperWithNavigation>
         <MainWrapper>
           <Switch>
-            <Route path="/projects/:id">Project detail</Route>
+            <Route path="/projects/:id" component={ProjectDetail} />
             <Route path="/projects" component={Projects} />
             <Route path="/integrations">Integrations</Route>
             <Route path="/teams">Teams</Route>

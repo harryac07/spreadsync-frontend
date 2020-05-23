@@ -5,7 +5,6 @@ import { startCase, toLower, truncate } from 'lodash';
 import { Grid, Paper, Divider } from '@material-ui/core/';
 import { withStyles } from '@material-ui/core/styles';
 import GroupIcon from '@material-ui/icons/Group';
-import { MainWrapper } from 'components/common/MainWrapper';
 import { HeaderText } from './style';
 
 import { fetchProjects } from './action';
@@ -18,6 +17,10 @@ class Test extends React.Component {
   componentDidMount() {
     this.props.fetchProjects();
   }
+  redirectToProjectDetail = (e, id) => {
+    e.preventDefault();
+    this.props.history.push(`/projects/${id}/`);
+  };
   render() {
     const { projects } = this.props.store;
     const { classes } = this.props;
@@ -33,11 +36,13 @@ class Test extends React.Component {
             });
             return (
               <Grid item xs={4} sm={4} md={4} key={id}>
-                <Paper className={classes.projectWrapper}>
-                  <HeaderText display="inline-block">{projectName}</HeaderText>
-                  <div className={classes.userGroup}>
-                    <GroupIcon fontSize={'small'} className={classes.userGroupIcon} />
-                    <span className={classes.userCount}>{total_members}</span>
+                <Paper className={classes.projectWrapper} onClick={(e) => this.redirectToProjectDetail(e, id)}>
+                  <div className={classes.projectHeaderWrapper}>
+                    <HeaderText display="inline-block">{projectName}</HeaderText>
+                    <div className={classes.userGroup}>
+                      <GroupIcon fontSize={'small'} className={classes.userGroupIcon} />
+                      <span className={classes.userCount}>{total_members}</span>
+                    </div>
                   </div>
                   <Divider className={classes.divider} />
                   <div className={classes.projectBody}>
@@ -89,6 +94,10 @@ const styles = {
     top: -8,
     paddingLeft: 5,
     fontWeight: 500,
+  },
+  projectHeaderWrapper: {
+    cursor: 'pointer',
+    // padding: '10px',
   },
 };
 

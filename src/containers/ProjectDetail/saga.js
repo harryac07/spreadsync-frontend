@@ -1,0 +1,57 @@
+import { call, put, takeEvery } from 'redux-saga/effects';
+import axios from 'axios';
+import { API_URL } from 'env';
+
+import {
+  FETCH_PROJECT,
+  FETCH_PROJECT_SUCCEED,
+  FETCH_PROJECT_FAILED,
+  FETCH_ALL_JOBS,
+  FETCH_ALL_JOBS_SUCCEED,
+  FETCH_ALL_JOBS_FAILED,
+} from './constant';
+
+const fetchProject = (projectId) => {
+  return axios.get(`${API_URL}/projects/${projectId}/`).then((response) => {
+    return response.data;
+  });
+};
+export function* fetchProjectSaga(action) {
+  try {
+    const data = yield call(fetchProject, action.id);
+    yield put({
+      type: FETCH_PROJECT_SUCCEED,
+      payload: data,
+    });
+  } catch (error) {
+    yield put({
+      type: FETCH_PROJECT_FAILED,
+      error: 'Something went wrong!',
+    });
+  }
+}
+
+const fetchAllProjectJobs = (projectId) => {
+  return axios.get(`${API_URL}/projects/${projectId}/jobs/`).then((response) => {
+    return response.data;
+  });
+};
+export function* fetchAllProjectJobsSaga(action) {
+  try {
+    const data = yield call(fetchAllProjectJobs, action.id);
+    yield put({
+      type: FETCH_ALL_JOBS_SUCCEED,
+      payload: data,
+    });
+  } catch (error) {
+    yield put({
+      type: FETCH_ALL_JOBS_FAILED,
+      error: 'Something went wrong!',
+    });
+  }
+}
+
+export const projectDetailSaga = [
+  takeEvery(FETCH_PROJECT, fetchProjectSaga),
+  takeEvery(FETCH_ALL_JOBS, fetchAllProjectJobsSaga),
+];
