@@ -42,6 +42,11 @@ const CreateProjectModal = (props) => {
     if (name && description) {
       return false;
     }
+    handleError({
+      ...error,
+      name: name ? '' : 'Name is required',
+      description: description ? '' : 'Description is required',
+    });
     return true;
   };
 
