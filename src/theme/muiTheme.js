@@ -1,6 +1,14 @@
 import colors from './colors';
 import { createMuiTheme } from '@material-ui/core/styles';
 
+const breakpointValues = {
+  xs: 300,
+  sm: 576,
+  md: 768,
+  lg: 992,
+  xl: 1700,
+};
+
 const theme = createMuiTheme({
   palette: {
     common: {
@@ -74,5 +82,6 @@ const theme = createMuiTheme({
       },
     },
   },
+  breakpoints: { values: breakpointValues },
 });
 export default theme;

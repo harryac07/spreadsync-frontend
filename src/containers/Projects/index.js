@@ -35,13 +35,15 @@ class Test extends React.Component {
               length: 100,
             });
             return (
-              <Grid item xs={4} sm={4} md={4} key={id}>
+              <Grid item xs={12} sm={4} md={4} lg={4} xl={3} key={id}>
                 <Paper className={classes.projectWrapper} onClick={(e) => this.redirectToProjectDetail(e, id)}>
                   <div className={classes.projectHeaderWrapper}>
-                    <HeaderText display="inline-block">{projectName}</HeaderText>
+                    <HeaderText display="inline-block" className={classes.headerText}>
+                      {projectName}
+                    </HeaderText>
                     <div className={classes.userGroup}>
                       <GroupIcon fontSize={'small'} className={classes.userGroupIcon} />
-                      <span className={classes.userCount}>{total_members}</span>
+                      <span className={classes.userCount}>{total_members || 0}</span>
                     </div>
                   </div>
                   <Divider className={classes.divider} />
@@ -64,7 +66,7 @@ const mapStateToProps = (state) => {
   };
 };
 
-const styles = {
+const styles = (theme) => ({
   projectWrapper: {
     background: '#fff',
     border: 0,
@@ -73,16 +75,24 @@ const styles = {
     padding: '20px',
     margin: '0 auto',
     position: 'relative',
+    maxHeight: 300,
+    minHeight: 150,
+    [theme.breakpoints.up('xl')]: {
+      maxHeight: 350,
+      minHeight: 300,
+    },
   },
   projectBody: {
     minHeight: 150,
     fontSize: 14,
   },
+  headerText: {
+    width: '80%',
+  },
   userGroup: {
-    display: 'inline-block',
-    position: 'absolute',
-    right: 20,
-    paddingTop: 0,
+    width: '20%',
+    textAlign: 'right',
+    float: 'right',
   },
   divider: {
     margin: '10px auto',
@@ -97,9 +107,8 @@ const styles = {
   },
   projectHeaderWrapper: {
     cursor: 'pointer',
-    // padding: '10px',
   },
-};
+});
 
 export default connect(mapStateToProps, {
   fetchProjects,

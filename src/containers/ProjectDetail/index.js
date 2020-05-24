@@ -74,7 +74,7 @@ class ProjectDetail extends React.Component {
             <HeaderText display="inline-block">{projectName}</HeaderText>
             <div className={classes.userGroup}>
               <GroupIcon fontSize={'small'} />
-              <span className={classes.userCount}>{total_members}</span>
+              <span className={classes.userCount}>{total_members || 0}</span>
             </div>
           </div>
         </Paper>
