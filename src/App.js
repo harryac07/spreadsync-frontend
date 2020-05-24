@@ -3,11 +3,20 @@ import { Provider } from 'react-redux';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import theme from './theme/muiTheme';
+import { toast } from 'react-toastify';
 
-import WrapperWithNavigation from 'components/WrapperWithNavigation';
 import Main from 'containers/Main';
 
 import './app.css';
+import 'react-toastify/dist/ReactToastify.css';
+
+// configure react toastify
+toast.configure({
+  autoClose: 3000,
+  draggable: false,
+  hideProgressBar: true,
+  newestOnTop: true,
+});
 
 const App = ({ store }) => {
   return (

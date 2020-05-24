@@ -1,4 +1,4 @@
-import { FETCH_PROJECTS } from './constant';
+import { FETCH_PROJECTS, CREATE_PROJECT } from './constant';
 
 /**
  * fetchProjects
@@ -6,5 +6,16 @@ import { FETCH_PROJECTS } from './constant';
 export const fetchProjects = () => {
   return {
     type: FETCH_PROJECTS,
+  };
+};
+
+/**
+ * createProject
+ * @param {Object}payload - data to be created
+ */
+export const createProject = (payload) => {
+  return {
+    type: CREATE_PROJECT,
+    data: payload,
   };
 };

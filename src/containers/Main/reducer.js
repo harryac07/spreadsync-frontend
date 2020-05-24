@@ -2,6 +2,9 @@ import { CHECK_AUTH_REQUEST, CHECK_AUTH_REQUEST_SUCCEED, CHECK_AUTH_REQUEST_FAIL
 
 const initialState = {
   loggedIn: false,
+  error: {},
+  success: {},
+  loading: {},
 };
 const appReducer = (state = initialState, action) => {
   switch (action.type) {

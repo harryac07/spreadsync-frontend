@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
+import { toast } from 'react-toastify';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
@@ -8,12 +10,20 @@ import Grow from '@material-ui/core/Grow';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 import MenuList from '@material-ui/core/MenuList';
+import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
 
 import PersonIcon from '@material-ui/icons/Person';
-import NotificationsIcon from '@material-ui/icons/Notifications';
 import NotificationsNoneIcon from '@material-ui/icons/NotificationsNone';
 import InfoIcon from '@material-ui/icons/Info';
 import AddIcon from '@material-ui/icons/Add';
+import AssignmentIcon from '@material-ui/icons/Assignment';
+import SettingsIcon from '@material-ui/icons/Settings';
+import LogoutIcon from '@material-ui/icons/ExitToApp';
+
+import CreateProjectModal from './CreateProjectModal';
+
+import { createProject } from 'containers/Projects/action';
 
 class TopNavigation extends Component {
   constructor(props) {
@@ -21,6 +31,7 @@ class TopNavigation extends Component {
     this.state = {
       anchorEl: {},
       currentMenuOpen: null,
+      showCreateProjectModal: false,
     };
   }
   openMenu = (e, optionName) => {
@@ -48,7 +59,42 @@ class TopNavigation extends Component {
       },
     });
   };
+  toggleCreateProjectModal = (open = true) => {
+    this.setState({
+      showCreateProjectModal: open,
+    });
+  };
+  createProject = (payload) => {
+    this.props.createProject(payload);
+  };
+  renderCreateProjectModal = () => {
+    if (!this.state.showCreateProjectModal) {
+      return null;
+    }
+    return (
+      <CreateProjectModal handleSubmit={this.createProject} onModalClose={() => this.toggleCreateProjectModal(false)} />
+    );
+  };
+  componentDidUpdate(prevProps, prevState) {
+    const { store } = this.props;
+    const {
+      success: { CREATE_PROJECT: currentCreateProjectSuccess = false },
+      error: { CREATE_PROJECT: currentCreateProjectError = null },
+    } = store;
+    const {
+      success: { CREATE_PROJECT: prevCreateProjectSuccess = false },
+      error: { CREATE_PROJECT: prevCreateProjectError = null },
+    } = prevProps.store;
+    if (currentCreateProjectSuccess !== prevCreateProjectSuccess && currentCreateProjectSuccess) {
+      this.toggleCreateProjectModal(false);
+      toast.info(`Project created successfully.`);
+    }
+    if (currentCreateProjectError !== prevCreateProjectError && currentCreateProjectError) {
+      toast.error(`Error while creating a project. Please try again!`);
+    }
+  }
   renderMenuList = (currentMenuOpen) => {
+    const { classes } = this.props;
     switch (currentMenuOpen) {
       case 'profile':
         return (
@@ -59,17 +105,32 @@ class TopNavigation extends Component {
             transition
             disablePortal
             placement={'bottom-end'}
+            modifiers={{
+              flip: {
+                enabled: false,
+              },
+              preventOverflow: {
+                enabled: true,
+                boundariesElement: 'scrollParent',
+              },
+            }}
           >
             {({ TransitionProps, placement }) => (
               <Grow
                 {...TransitionProps}
                 style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'left bottom' }}
               >
-                <Paper>
+                <Paper className={classes.popperWrapper} elevation={4}>
                   <MenuList autoFocusItem={Boolean(this.state.anchorEl)}>
-                    <MenuItem onClick={(e) => this.closeOpenedMenu(e, 'profile')}>Profile</MenuItem>
-                    <MenuItem onClick={(e) => this.closeOpenedMenu(e, 'setting')}>Setting</MenuItem>
-                    <MenuItem onClick={(e) => this.closeOpenedMenu(e, 'logout')}>Logout</MenuItem>
+                    <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'profile')}>
+                      <PersonIcon fontSize={'small'} className={classes.popperIcon} /> Profile
+                    </MenuItem>
+                    <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'setting')}>
+                      <SettingsIcon fontSize={'small'} className={classes.popperIcon} /> Setting
+                    </MenuItem>
+                    <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'logout')}>
+                      <LogoutIcon fontSize={'small'} className={classes.popperIcon} /> Logout
+                    </MenuItem>
                   </MenuList>
                 </Paper>
               </Grow>
@@ -91,10 +152,76 @@ class TopNavigation extends Component {
                 {...TransitionProps}
                 style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'left bottom' }}
               >
-                <Paper>
+                <Paper className={classes.popperWrapper} elevation={4}>
                   <MenuList autoFocusItem={Boolean(this.state.anchorEl)}>
-                    <MenuItem onClick={this.closeOpenedMenu}>Notification 1</MenuItem>
-                    <MenuItem onClick={this.closeOpenedMenu}>Notification 2</MenuItem>
+                    <MenuItem className={classes.popperMenuItem} onClick={this.closeOpenedMenu}>
+                      Notification 1
+                    </MenuItem>
+                    <MenuItem className={classes.popperMenuItem} onClick={this.closeOpenedMenu}>
+                      Notification 2
+                    </MenuItem>
+                  </MenuList>
+                </Paper>
+              </Grow>
+            )}
+          </Popper>
+        );
+      case 'info':
+        return (
+          <Popper
+            open={Boolean(this.state.currentMenuOpen)}
+            anchorEl={this.state.anchorEl[currentMenuOpen]}
+            role={undefined}
+            transition
+            disablePortal
+            placement={'bottom-end'}
+          >
+            {({ TransitionProps, placement }) => (
+              <Grow
+                {...TransitionProps}
+                style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'left bottom' }}
+              >
+                <Paper className={classes.popperWrapper} elevation={4}>
+                  <MenuList autoFocusItem={Boolean(this.state.anchorEl)}>
+                    <MenuItem className={classes.popperMenuItem} onClick={this.closeOpenedMenu}>
+                      Notification 1
+                    </MenuItem>
+                    <MenuItem className={classes.popperMenuItem} onClick={this.closeOpenedMenu}>
+                      Notification 2
+                    </MenuItem>
+                  </MenuList>
+                </Paper>
+              </Grow>
+            )}
+          </Popper>
+        );
+      case 'add':
+        return (
+          <Popper
+            open={Boolean(this.state.currentMenuOpen)}
+            anchorEl={this.state.anchorEl[currentMenuOpen]}
+            role={undefined}
+            transition
+            disablePortal
+            placement={'bottom-end'}
+          >
+            {({ TransitionProps, placement }) => (
+              <Grow
+                {...TransitionProps}
+                style={{ transformOrigin: placement === 'bottom' ? 'center top' : 'left bottom' }}
+              >
+                <Paper className={classes.popperWrapper} elevation={4}>
+                  <MenuList autoFocusItem={Boolean(this.state.anchorEl)}>
+                    <MenuItem
+                      className={classes.popperMenuItem}
+                      onClick={(e) => {
+                        this.toggleCreateProjectModal();
+                        this.closeOpenedMenu(e);
+                      }}
+                    >
+                      <AssignmentIcon fontSize={'small'} className={classes.popperIcon} />
+                      Create project
+                    </MenuItem>
                   </MenuList>
                 </Paper>
               </Grow>
@@ -111,13 +238,16 @@ class TopNavigation extends Component {
     return (
       <ClickAwayListener onClickAway={this.closeOpenedMenu}>
         <Wrapper>
-          <PersonIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'profile')} />
+          <AddIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'add')} />
           <NotificationsNoneIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'notification')} />
           <InfoIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'info')} />
-          <AddIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'add')} />
+          <PersonIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'profile')} />
 
           {/* Render menu list */}
           {this.renderMenuList(currentMenuOpen)}
+
+          {/* Modals */}
+          {this.renderCreateProjectModal()}
         </Wrapper>
       </ClickAwayListener>
     );
@@ -133,10 +263,40 @@ const styles = (theme) => {
       width: 40,
       cursor: 'pointer',
     },
+    popperWrapper: {
+      marginTop: 10,
+      textAlign: 'center',
+      minWidth: 200,
+    },
+    popperMenuItem: {
+      fontSize: 16,
+    },
+    popperIcon: {
+      marginRight: 10,
+    },
+    popperTitle: {
+      display: 'inline-block',
+      textAlign: 'center',
+      fontSize: 'bold',
+      margin: '0 auto',
+      padding: '10px 10px 10px 10px',
+      width: '100%',
+      borderBottom: '1px solid #eee',
+    },
+    createProjectPaper: {
+      padding: 20,
+      minHeight: `100vh`,
+    },
   };
 };
 
-export default withStyles(styles)(TopNavigation);
+const mapStateToProps = (state) => {
+  return {
+    store: state.project,
+  };
+};
+
+export default connect(mapStateToProps, { createProject })(withStyles(styles)(TopNavigation));
 
 const Wrapper = styled.div`
   background-color: #fff;
