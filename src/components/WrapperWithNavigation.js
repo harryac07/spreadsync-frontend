@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { Link, withRouter } from 'react-router-dom';
 import styled from 'styled-components';
 import { toLower } from 'lodash';
@@ -13,11 +13,14 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  Hidden,
 } from '@material-ui/core';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import PeopleIcon from '@material-ui/icons/People';
 import BuildIcon from '@material-ui/icons/Build';
 import KeyboardArrowLeftIcon from '@material-ui/icons/KeyboardArrowLeft';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
 
 import Search from './Search';
 import TopNavigation from './TopNavigation';
@@ -41,11 +44,20 @@ const routesWithIcons = [
 ];
 const Navigition = (props) => {
   const classes = useStyles();
-  const [activeTab, handleTabChange] = useState(0);
 
-  const { children, location } = props;
+  /* Mobile responsive menu setup */
+  const { window } = props;
+  const theme = useTheme();
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
   /* Active tab setup */
+  const [activeTab, handleTabChange] = useState(0);
+  const { children, location } = props;
+
   const pathname = location.pathname.replace('/', '');
   let activeTabOnPageLoad = 0;
   if (pathname === 'projects') {
@@ -59,6 +71,55 @@ const Navigition = (props) => {
   }
   const activeTabFinal = activeTab > 0 ? activeTab : activeTabOnPageLoad;
 
+  const drawer = (
+    <div>
+      <div className={`${classes.toolbar} ${classes.centerDiv}`}>
+        <div className={`${classes.logoDiv}`}></div>
+      </div>
+      <Divider />
+      <List className={classes.leftNavList}>
+        {routesWithIcons.map((each, key) => {
+          if (toLower(each.name) !== toLower(pathname) && toLower(pathname).includes(toLower(each.name))) {
+            return (
+              <ListItem
+                selected={true}
+                button
+                key={each.name}
+                classes={{ selected: classes.active }}
+                onClick={() => props.history.goBack()}
+              >
+                <ListItemIcon style={{ color: key + 1 === activeTabFinal ? '#7ED7DA' : '#fff' }}>
+                  {each.icon}
+                </ListItemIcon>
+                <KeyboardArrowLeftIcon className={classes.backIcon} /> Back
+              </ListItem>
+            );
+          }
+          return (
+            <Link
+              key={each.name}
+              onClick={() => handleTabChange(key + 1)}
+              className={classes.menu_link}
+              to={`/${each.name.toLowerCase()}`}
+            >
+              <ListItem
+                selected={key + 1 === activeTabFinal}
+                button
+                key={each.name}
+                classes={{ selected: classes.active }}
+              >
+                <ListItemIcon style={{ color: key + 1 === activeTabFinal ? '#7ED7DA' : '#fff' }}>
+                  {each.icon}
+                </ListItemIcon>
+                <ListItemText primary={each.name} />
+              </ListItem>
+            </Link>
+          );
+        })}
+      </List>
+    </div>
+  );
+  const container = window !== undefined ? () => window().document.body : undefined;
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -66,7 +127,18 @@ const Navigition = (props) => {
       {/* Top Navigation */}
       <AppBar position="fixed" className={classes.appBar}>
         <Toolbar>
-          <Search size="small" />
+          <IconButton
+            color="primary"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            className={classes.menuButton}
+          >
+            <MenuIcon />
+          </IconButton>
+          <span className={classes.searchTop}>
+            <Search size="small" />
+          </span>
           <TopRightNav>
             <TopNavigation {...props} />
           </TopRightNav>
@@ -74,61 +146,40 @@ const Navigition = (props) => {
       </AppBar>
 
       {/* Left Navigation */}
-      <Drawer
-        className={classes.drawer}
-        variant="permanent"
-        classes={{
-          paper: classes.drawerPaper,
-        }}
-        anchor="left"
-      >
-        <div className={`${classes.toolbar} ${classes.centerDiv}`}>
-          <div className={`${classes.logoDiv}`}></div>
-        </div>
-        <Divider />
-        <List className={classes.leftNavList}>
-          {routesWithIcons.map((each, key) => {
-            if (toLower(each.name) !== toLower(pathname) && toLower(pathname).includes(toLower(each.name))) {
-              return (
-                <ListItem
-                  selected={true}
-                  button
-                  key={each.name}
-                  classes={{ selected: classes.active }}
-                  onClick={() => props.history.goBack()}
-                >
-                  <ListItemIcon style={{ color: key + 1 === activeTabFinal ? '#7ED7DA' : '#fff' }}>
-                    {each.icon}
-                  </ListItemIcon>
-                  <KeyboardArrowLeftIcon className={classes.backIcon} /> Back
-                </ListItem>
-              );
-            }
-            return (
-              <Link
-                key={each.name}
-                onClick={() => handleTabChange(key + 1)}
-                className={classes.menu_link}
-                to={`/${each.name.toLowerCase()}`}
-              >
-                <ListItem
-                  selected={key + 1 === activeTabFinal}
-                  button
-                  key={each.name}
-                  classes={{ selected: classes.active }}
-                >
-                  <ListItemIcon style={{ color: key + 1 === activeTabFinal ? '#7ED7DA' : '#fff' }}>
-                    {each.icon}
-                  </ListItemIcon>
-                  <ListItemText primary={each.name} />
-                </ListItem>
-              </Link>
-            );
-          })}
-        </List>
-      </Drawer>
+      <nav className={classes.drawer} aria-label="permanent-nav">
+        {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
+        <Hidden mdUp implementation="css">
+          <Drawer
+            classes={{
+              paper: classes.drawerPaper,
+            }}
+            anchor={theme.direction === 'rtl' ? 'right' : 'left'}
+            container={container}
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true,
+            }}
+          >
+            {drawer}
+          </Drawer>
+        </Hidden>
+        <Hidden smDown implementation="css">
+          <Drawer
+            classes={{
+              paper: classes.drawerPaper,
+            }}
+            anchor="left"
+            variant="permanent"
+            open
+          >
+            {drawer}
+          </Drawer>
+        </Hidden>
+      </nav>
 
-      {/* Container */}
+      {/* Main container body*/}
       <main className={classes.content}>
         <div className={classes.toolbar} />
         {children}
@@ -142,14 +193,31 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
   },
   appBar: {
-    width: `calc(100% - ${drawerWidth}px)`,
+    width: `100%`,
     marginLeft: drawerWidth,
     backgroundColor: '#fff',
-    padding: '5px',
+    [theme.breakpoints.up('md')]: {
+      width: `calc(100% - ${drawerWidth}px)`,
+      padding: '5px',
+    },
   },
   drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
+    [theme.breakpoints.up('md')]: {
+      width: drawerWidth,
+      flexShrink: 0,
+    },
+  },
+  menuButton: {
+    marginRight: theme.spacing(2),
+    [theme.breakpoints.up('md')]: {
+      display: 'none',
+    },
+  },
+  searchTop: {
+    display: 'none',
+    [theme.breakpoints.up('md')]: {
+      display: 'block',
+    },
   },
   drawerPaper: {
     width: drawerWidth,
@@ -176,6 +244,7 @@ const useStyles = makeStyles((theme) => ({
     flexGrow: 1,
     backgroundColor: '#eee',
     padding: theme.spacing(3),
+    width: '100%',
   },
   menu_link: {
     textDecoration: 'none',
