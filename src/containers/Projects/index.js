@@ -28,9 +28,11 @@ class Test extends React.Component {
       <div>
         <Grid container spacing={3}>
           {projects.map((project) => {
-            const projectName = startCase(toLower(project.name));
             const { id } = project;
             const { total_members } = project;
+            const projectName = truncate(startCase(toLower(project.name)), {
+              length: 30,
+            });
             const description = truncate(project.description, {
               length: 100,
             });
@@ -75,7 +77,7 @@ const styles = (theme) => ({
     padding: '20px',
     margin: '0 auto',
     position: 'relative',
-    maxHeight: 300,
+    maxHeight: 250,
     minHeight: 150,
     [theme.breakpoints.up('xl')]: {
       maxHeight: 350,

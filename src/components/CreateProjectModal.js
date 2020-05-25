@@ -95,6 +95,8 @@ const CreateProjectModal = (props) => {
                     error={error.description ? true : false}
                     onChange={handleChange}
                     className={classes.inviteMoreField}
+                    multiline={true}
+                    rows={6}
                   />
                 </Grid>
               </Grid>
