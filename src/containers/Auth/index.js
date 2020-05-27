@@ -20,7 +20,7 @@ class Auth extends React.Component {
     this.state = {};
   }
 
-  renderSignupView = (view = 'signup') => {
+  renderSignupView = () => {
     const { classes } = this.props;
     return (
       <React.Fragment>
@@ -48,7 +48,7 @@ class Auth extends React.Component {
     );
   };
 
-  renderLoginView = (view = 'login') => {
+  renderLoginView = () => {
     const { classes } = this.props;
     return (
       <React.Fragment>
@@ -93,7 +93,7 @@ class Auth extends React.Component {
               </div>
             </Grid>
             <Grid item xs={12} sm={12} md={6} className={classes.rightWrapper}>
-              {view === 'signup' ? this.renderSignupView(view) : this.renderLoginView(view)}
+              {view === 'signup' ? this.renderSignupView() : this.renderLoginView()}
             </Grid>
           </Grid>
         </Paper>
