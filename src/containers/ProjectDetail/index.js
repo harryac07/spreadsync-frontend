@@ -199,6 +199,7 @@ const styles = {
   },
   createButton: {
     display: 'inline-block',
+    textTransform: 'none',
   },
   noJobWrapper: {
     textAlign: 'left',
