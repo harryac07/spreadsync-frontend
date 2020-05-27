@@ -1,12 +1,23 @@
-import { TEST_REQUEST } from './constant';
+import { SIGNUP, LOGIN } from './constant';
 
 /**
- * test
- * @param {String}paramStr - some params
+ * signup
+ * @param {Object}reqPayload
  */
-export const test = (paramStr) => {
+export const signup = (reqPayload) => {
   return {
-    type: TEST_REQUEST,
-    data: paramStr,
+    type: SIGNUP,
+    data: reqPayload,
+  };
+};
+
+/**
+ * login
+ * @param {Object}reqPayload
+ */
+export const login = (reqPayload) => {
+  return {
+    type: LOGIN,
+    data: reqPayload,
   };
 };

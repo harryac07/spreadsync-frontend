@@ -22,7 +22,7 @@ export function* checkTestSaga(action) {
   } catch (error) {
     yield put({
       type: TEST_REQUEST_FAILED,
-      error: 'Something went wrong!',
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }

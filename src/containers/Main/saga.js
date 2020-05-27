@@ -23,7 +23,7 @@ export function* checkUserAuthenticationSaga(action) {
   } catch (error) {
     yield put({
       type: CHECK_AUTH_REQUEST_FAILED,
-      error: 'Something went wrong!',
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }

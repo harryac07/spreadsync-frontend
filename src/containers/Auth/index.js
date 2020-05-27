@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { toLower } from 'lodash';
 import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import { Paper, Grid, Divider, Button } from '@material-ui/core/';
@@ -9,7 +10,7 @@ import Background from '../../utils/signup_bg.svg';
 import logo from '../../utils/spreadsync_logo_black.png';
 import GoogleIcon from './icons/googleIcon';
 
-import { test } from './action';
+import { signup, login } from './action';
 import { HeaderText, ParaText } from './style';
 import SignupForm from './Components/SignupForm';
 import LoginForm from './Components/LoginForm';
@@ -19,14 +20,39 @@ class Auth extends React.Component {
     super(props);
     this.state = {};
   }
-
+  componentDidMount() {
+    const { path } = this.props.match;
+    const { location } = this.props;
+    const view = toLower(path.replace('/', ''));
+    const previousPath = location.state;
+    console.log('previousPath ', previousPath);
+    if (view === 'logout') {
+      this.handleLogout();
+    }
+  }
   handleSignup = (payload) => {
-    console.log(payload);
+    // Disptach action
+    this.props.signup(payload);
   };
 
   handleLogin = (payload) => {
-    console.log(payload);
+    // Disptach action
+    this.props.login(payload);
   };
+
+  handleLogout = () => {
+    localStorage.clear();
+    this.props.history.push('/login');
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    const { token } = this.props.auth.currentUser;
+    const { token: prevToken } = prevProps.auth.currentUser;
+    const t = localStorage.getItem('token');
+    if (token !== prevToken && token && t) {
+      this.props.history.push('/projects');
+    }
+  }
 
   renderSignupView = () => {
     const { classes } = this.props;
@@ -86,7 +112,10 @@ class Auth extends React.Component {
   render() {
     const { path } = this.props.match;
     const { classes } = this.props;
-    const view = path.replace('/', '');
+    const view = toLower(path.replace('/', ''));
+    if (view === 'logout') {
+      return <div />;
+    }
     return (
       <div className={classes.wrapper}>
         <Paper elevation={3} className={classes.paperWrapper}>
@@ -113,6 +142,7 @@ class Auth extends React.Component {
 const mapStateToProps = (state) => {
   return {
     app: state.app,
+    auth: state.auth,
   };
 };
 
@@ -162,7 +192,8 @@ const styles = {
   },
 };
 export default connect(mapStateToProps, {
-  test,
+  signup,
+  login,
 })(withStyles(styles)(Auth));
 
 const StyledLogo = styled.img`

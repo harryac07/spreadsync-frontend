@@ -12,10 +12,13 @@ import {
 } from './constant';
 
 const fetchProjects = () => {
-  console.log(`${API_URL}/projects/`);
-  return axios.get(`${API_URL}/projects/`).then((response) => {
-    return response.data;
-  });
+  return axios
+    .get(`${API_URL}/projects/`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      return response.data;
+    });
 };
 export function* fetchProjectsSaga(action) {
   try {
@@ -27,7 +30,7 @@ export function* fetchProjectsSaga(action) {
   } catch (error) {
     yield put({
       type: FETCH_PROJECTS_FAILED,
-      error: 'Something went wrong!',
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }
@@ -35,9 +38,7 @@ export function* fetchProjectsSaga(action) {
 export const createProject = (payload) => {
   return axios
     .post(`${API_URL}/projects/`, payload, {
-      headers: {
-        user_token: 'test-token',
-      },
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
     })
     .then((response) => {
       return response.data;
@@ -57,7 +58,7 @@ export function* createProjectSaga(action) {
   } catch (error) {
     yield put({
       type: CREATE_PROJECT_FAILED,
-      error: 'Something went wrong!',
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }

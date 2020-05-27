@@ -1,19 +1,49 @@
-import { TEST_REQUEST, TEST_REQUEST_SUCCEED, TEST_REQUEST_FAILED } from './constant';
+import { SIGNUP, SIGNUP_SUCCEED, SIGNUP_FAILED, LOGIN, LOGIN_SUCCEED, LOGIN_FAILED } from './constant';
 
-const initialState = {};
+const initialState = {
+  error: {},
+  success: {},
+  loading: {},
+  currentUser: [],
+};
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-    case TEST_REQUEST:
+    case SIGNUP:
       return {
         ...state,
+        error: { ...state.error, [SIGNUP]: undefined },
+        success: { ...state.success, [SIGNUP]: undefined },
       };
-    case TEST_REQUEST_SUCCEED:
+    case SIGNUP_SUCCEED:
       return {
         ...state,
+        error: { ...state.error, [SIGNUP]: undefined },
+        success: { ...state.success, [SIGNUP]: true },
       };
-    case TEST_REQUEST_FAILED:
+    case SIGNUP_FAILED:
       return {
         ...state,
+        error: { ...state.error, [SIGNUP]: action.error },
+        success: { ...state.success, [SIGNUP]: undefined },
+      };
+    case LOGIN:
+      return {
+        ...state,
+        error: { ...state.error, [LOGIN]: undefined },
+        success: { ...state.success, [LOGIN]: undefined },
+      };
+    case LOGIN_SUCCEED:
+      return {
+        ...state,
+        error: { ...state.error, [LOGIN]: undefined },
+        success: { ...state.success, [LOGIN]: true },
+        currentUser: action.payload,
+      };
+    case LOGIN_FAILED:
+      return {
+        ...state,
+        error: { ...state.error, [LOGIN]: action.error },
+        success: { ...state.success, [LOGIN]: undefined },
       };
     default:
       return state;

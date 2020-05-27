@@ -1,5 +1,7 @@
 import React from 'react';
 import { connect, Provider } from 'react-redux';
+import moment from 'moment';
+import jwt from 'jsonwebtoken';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { checkUserAuth } from './action';
 
@@ -16,23 +18,17 @@ class Main extends React.Component {
     };
   }
   componentDidMount() {
-    /* 
-        - We will check if user is successfully logged in  and push to /projects if everything is ok. 
-        - Force user to login page again otherwise
-    */
-    // const token = localStorage.getItem('token');
-    // this.props.checkUserAuth(token);
-    /* Until auth is ready, set logged in true */
-    // this.props.history.push('/projects');
-  }
-  componentDidUpdate(prevProps, prevState) {
-    // const { loggedIn } = this.props.app;
-    // console.log(prevProps.app.loggedIn, this.props.app.loggedIn);
-    // if (prevProps.app.loggedIn !== loggedIn && loggedIn) {
-    //   this.props.history.push('/projects');
-    // } else {
-    //   this.props.history.push('/auth');
-    // }
+    const token = localStorage.getItem('token');
+
+    const tokenPayload = jwt.decode(token) || {};
+    const { exp = 0, user = {} } = tokenPayload;
+
+    if (moment(exp * 1000).isSameOrBefore(moment().format()) || !user.id) {
+      this.props.history.push('/logout');
+      return;
+    }
+    localStorage.setItem('user_id', user.id);
+    this.props.history.push('/projects');
   }
   render() {
     return (

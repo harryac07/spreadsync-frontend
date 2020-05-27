@@ -12,9 +12,13 @@ import {
 } from './constant';
 
 const fetchProject = (projectId) => {
-  return axios.get(`${API_URL}/projects/${projectId}/`).then((response) => {
-    return response.data;
-  });
+  return axios
+    .get(`${API_URL}/projects/${projectId}/`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      return response.data;
+    });
 };
 export function* fetchProjectSaga(action) {
   try {
@@ -26,15 +30,19 @@ export function* fetchProjectSaga(action) {
   } catch (error) {
     yield put({
       type: FETCH_PROJECT_FAILED,
-      error: 'Something went wrong!',
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }
 
 const fetchAllProjectJobs = (projectId) => {
-  return axios.get(`${API_URL}/projects/${projectId}/jobs/`).then((response) => {
-    return response.data;
-  });
+  return axios
+    .get(`${API_URL}/projects/${projectId}/jobs/`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      return response.data;
+    });
 };
 export function* fetchAllProjectJobsSaga(action) {
   try {
@@ -46,7 +54,7 @@ export function* fetchAllProjectJobsSaga(action) {
   } catch (error) {
     yield put({
       type: FETCH_ALL_JOBS_FAILED,
-      error: 'Something went wrong!',
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }

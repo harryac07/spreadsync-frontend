@@ -30,7 +30,7 @@ const App = ({ store }) => {
               <Route path="/signup" component={Auth} view="signup" />
               <Route path="/login" component={Auth} view="login" />
               <Route path="/callback">Callback. This will be callback page for oauth2</Route>
-              <Route path="/logout">Logout. Clear session</Route>
+              <Route path="/logout" component={Auth} />
 
               {/* Protected route */}
               <Route path="/" component={Main} />
