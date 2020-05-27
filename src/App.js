@@ -6,6 +6,7 @@ import theme from './theme/muiTheme';
 import { toast } from 'react-toastify';
 
 import Main from 'containers/Main';
+import Auth from 'containers/Auth';
 
 import './app.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,7 +27,8 @@ const App = ({ store }) => {
           <Router>
             <Switch>
               {/* Unprotected route */}
-              <Route path="/auth">Register or Login. Push user to / page to fetch more user related data</Route>
+              <Route path="/signup" component={Auth} view="signup" />
+              <Route path="/login" component={Auth} view="login" />
               <Route path="/callback">Callback. This will be callback page for oauth2</Route>
               <Route path="/logout">Logout. Clear session</Route>
 
