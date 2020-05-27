@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { startCase, toLower } from 'lodash';
-import { Paper, Grid, Divider, Button } from '@material-ui/core/';
+import { Grid, Button } from '@material-ui/core/';
 import { makeStyles } from '@material-ui/core/styles';
-
+import { validateEmail } from 'utils';
 import Field from 'components/common/Field';
 
 const SignupForm = ({ handleSubmit }) => {
@@ -22,15 +22,18 @@ const SignupForm = ({ handleSubmit }) => {
     });
   };
   const isError = () => {
-    const { firstname, lastname, email, password, phone, company } = inputObj;
+    const { firstname, lastname, email, password } = inputObj;
     if (firstname && lastname && email && password) {
       return false;
     }
+    /* validate email error */
+    const emailError = validateEmail(email) ? '' : 'Email is not valid';
+
     handleError({
       ...error,
       firstname: firstname ? '' : 'Firstname is required',
       lastname: lastname ? '' : 'Lastname is required',
-      email: email ? '' : 'Email is required',
+      email: email ? emailError : 'Email is required',
       password: password ? '' : 'Password is required',
     });
     return true;
@@ -41,8 +44,6 @@ const SignupForm = ({ handleSubmit }) => {
     const errorExists = isError();
     if (!errorExists) {
       handleSubmit(payload);
-    } else {
-      console.log('All fields required');
     }
   };
 
@@ -79,6 +80,7 @@ const SignupForm = ({ handleSubmit }) => {
             error={error.email ? true : false}
             onChange={handleChange}
             type="email"
+            helperText={error.email && error.email.includes('valid') ? 'Please enter valid email!' : ''}
           />
         </Grid>
         <Grid item xs={12} sm={12} md={12}>

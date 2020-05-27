@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { startCase, toLower } from 'lodash';
 import { Grid, Button } from '@material-ui/core/';
 import { makeStyles } from '@material-ui/core/styles';
-
+import { validateEmail } from 'utils';
 import Field from 'components/common/Field';
 
 const LoginForm = ({ handleSubmit }) => {
@@ -23,12 +23,15 @@ const LoginForm = ({ handleSubmit }) => {
   };
   const isError = () => {
     const { email, password } = inputObj;
-    if (email && password) {
+    if (email && password && validateEmail(email)) {
       return false;
     }
+
+    /* validate email error */
+    const emailError = validateEmail(email) ? '' : 'Email is not valid';
     handleError({
       ...error,
-      email: email ? '' : 'Email is required',
+      email: email ? emailError : 'Email is required',
       password: password ? '' : 'Password is required',
     });
     return true;
@@ -39,8 +42,6 @@ const LoginForm = ({ handleSubmit }) => {
     const errorExists = isError();
     if (!errorExists) {
       handleSubmit(payload);
-    } else {
-      console.log('All fields required');
     }
   };
 
@@ -56,6 +57,7 @@ const LoginForm = ({ handleSubmit }) => {
             error={error.email ? true : false}
             onChange={handleChange}
             type="email"
+            helperText={error.email && error.email.includes('valid') ? 'Please enter valid email!' : ''}
           />
         </Grid>
         <Grid item xs={12} sm={12} md={12}>

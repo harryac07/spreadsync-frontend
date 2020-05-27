@@ -20,6 +20,14 @@ class Auth extends React.Component {
     this.state = {};
   }
 
+  handleSignup = (payload) => {
+    console.log(payload);
+  };
+
+  handleLogin = (payload) => {
+    console.log(payload);
+  };
+
   renderSignupView = () => {
     const { classes } = this.props;
     return (
@@ -31,7 +39,7 @@ class Auth extends React.Component {
             &#8226; No credit card required &#8226; Free forever
           </ParaText>
         </div>
-        <SignupForm />
+        <SignupForm handleSubmit={this.handleSignup} />
         <SignUpSocialMedia>
           <div className="line-with-text-center">
             <span>Or sign up with</span>
@@ -59,7 +67,7 @@ class Auth extends React.Component {
             &#8226; Welcome back
           </ParaText>
         </div>
-        <LoginForm />
+        <LoginForm handleSubmit={this.handleLogin} />
         <SignUpSocialMedia>
           <div className="line-with-text-center">
             <span>Or login with</span>
