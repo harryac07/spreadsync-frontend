@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import { Paper, Grid, Divider, Button } from '@material-ui/core/';
 
-import Background from '../../utils/signup_bg.svg';
+import Background from '../../utils/bgnewss.png';
 import logo from '../../utils/spreadsync_logo_black.png';
 import GoogleIcon from './icons/googleIcon';
 
@@ -50,7 +50,7 @@ class Auth extends React.Component {
     const { token: prevToken } = prevProps.auth.currentUser;
     const t = localStorage.getItem('token');
     if (token !== prevToken && token && t) {
-      this.props.history.push('/projects');
+      this.props.history.push('/');
     }
   }
 
@@ -168,7 +168,7 @@ const styles = {
   leftWrapper: {
     padding: 30,
     backgroundImage: `url('${Background}')`,
-    // backgroundSize: 'cover',
+    backgroundSize: 'cover',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',

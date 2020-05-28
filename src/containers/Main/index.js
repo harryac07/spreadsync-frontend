@@ -1,9 +1,9 @@
 import React from 'react';
-import { connect, Provider } from 'react-redux';
+import { connect } from 'react-redux';
 import moment from 'moment';
 import { startCase, toLower } from 'lodash';
 import jwt from 'jsonwebtoken';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { Switch, Route } from 'react-router-dom';
 import { checkUserAuth } from './action';
 
 import { Button, Paper, Divider } from '@material-ui/core/';
@@ -14,6 +14,7 @@ import Projects from 'containers/Projects';
 import ProjectDetail from 'containers/ProjectDetail';
 
 import logo from '../../utils/spreadsync_logo_black.png';
+import Background from '../../utils/bgnew.png';
 
 class Main extends React.Component {
   constructor(props) {
@@ -56,7 +57,7 @@ class Main extends React.Component {
         <div className={classes.accountSwitcherWrapper}>
           <Paper className={classes.paper} elevation={3}>
             <div className={classes.logoWrapper}>
-              <img className={classes.logo} src={logo} alt={'spreadsync logo'} height={50} />
+              <img className={classes.logo} src={logo} alt={'spreadsync logo'} height={70} />
             </div>
             <div className={classes.header}>Select Account</div>
             <Divider light className={classes.divider} />
@@ -132,10 +133,10 @@ const styles = (theme) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 30,
-    height: '90vh',
+    height: '100vh',
     overflow: 'scroll',
     textAlign: 'center',
+    backgroundImage: `url('${Background}')`,
   },
   paper: {
     padding: 20,

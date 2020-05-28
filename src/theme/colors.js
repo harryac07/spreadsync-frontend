@@ -25,7 +25,7 @@ module.exports = {
   secondAccent: '#3A3C67',
 
   /* PRIMARY */
-  primary: '#241F66',
+  primary: '#3A3C67',
   secondary: '#7ED7DA',
   error: '#f44336',
   warning: '#ff9800',

@@ -48,7 +48,6 @@ class TopNavigation extends Component {
     const { currentMenuOpen } = this.state;
 
     if (redirectUrl) {
-      console.log(this.props);
       this.props.history.push(`/${redirectUrl}`);
     }
 
@@ -266,7 +265,7 @@ const styles = (theme) => {
   return {
     icon: {
       margin: '5px 5px 0px 5px',
-      backgroundColor: '#3A3C67',
+      backgroundColor: theme.palette.primary.main,
       height: 40,
       width: 40,
       cursor: 'pointer',

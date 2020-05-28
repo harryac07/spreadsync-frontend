@@ -25,6 +25,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import Search from './Search';
 import TopNavigation from './TopNavigation';
 import Background from '../utils/spreadsync_logo_white.png';
+import backgroundImage from '../utils/ss_bg.png';
 
 const drawerWidth = 240;
 
@@ -221,7 +222,8 @@ const useStyles = makeStyles((theme) => ({
   },
   drawerPaper: {
     width: drawerWidth,
-    backgroundColor: '#3A3C67',
+    backgroundImage: `url('${backgroundImage}')`,
+    backgroundSize: 'cover',
   },
   // necessary for content to be below app bar
   toolbar: theme.mixins.toolbar,
