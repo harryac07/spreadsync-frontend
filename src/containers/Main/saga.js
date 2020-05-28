@@ -2,30 +2,30 @@ import { call, put, takeEvery } from 'redux-saga/effects';
 import axios from 'axios';
 import { API_URL } from 'env';
 
-import { CHECK_AUTH_REQUEST, CHECK_AUTH_REQUEST_SUCCEED, CHECK_AUTH_REQUEST_FAILED } from './constant';
+import { FETCH_ALL_USER_ACCOUNTS, FETCH_ALL_USER_ACCOUNTS_SUCCEED, FETCH_ALL_USER_ACCOUNTS_FAILED } from './constant';
 
-export const checkUserAuthentication = () => {
-  //   return axios.get(`${API_URL}/users/`).then((response) => {
-  axios.get(`https://jsonplaceholder.typicode.com/todos/1`).then((response) => {
-    // return response.data;
-    return {
-      username: 'test',
-    };
-  });
+export const fetchAllAccountsForUser = (userId) => {
+  return axios
+    .get(`${API_URL}/users/${userId}/accounts`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      return response.data;
+    });
 };
-export function* checkUserAuthenticationSaga(action) {
+export function* fetchAllAccountsForUserSaga(action) {
   try {
-    const data = yield call(checkUserAuthentication);
+    const data = yield call(fetchAllAccountsForUser, action.id);
     yield put({
-      type: CHECK_AUTH_REQUEST_SUCCEED,
+      type: FETCH_ALL_USER_ACCOUNTS_SUCCEED,
       payload: data,
     });
   } catch (error) {
     yield put({
-      type: CHECK_AUTH_REQUEST_FAILED,
+      type: FETCH_ALL_USER_ACCOUNTS_FAILED,
       error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }
 
-export const appSaga = [takeEvery(CHECK_AUTH_REQUEST, checkUserAuthenticationSaga)];
+export const appSaga = [takeEvery(FETCH_ALL_USER_ACCOUNTS, fetchAllAccountsForUserSaga)];

@@ -1,26 +1,28 @@
-import { CHECK_AUTH_REQUEST, CHECK_AUTH_REQUEST_SUCCEED, CHECK_AUTH_REQUEST_FAILED } from './constant';
+import { FETCH_ALL_USER_ACCOUNTS, FETCH_ALL_USER_ACCOUNTS_SUCCEED, FETCH_ALL_USER_ACCOUNTS_FAILED } from './constant';
 
 const initialState = {
-  loggedIn: false,
-  error: {},
-  success: {},
-  loading: {},
+  fetching: false,
+  selectedAccount: '',
+  accounts: [],
 };
 const appReducer = (state = initialState, action) => {
   switch (action.type) {
-    case CHECK_AUTH_REQUEST:
+    case FETCH_ALL_USER_ACCOUNTS:
       return {
         ...state,
+        fetching: true,
       };
-    case CHECK_AUTH_REQUEST_SUCCEED:
+    case FETCH_ALL_USER_ACCOUNTS_SUCCEED:
       return {
         ...state,
-        loggedIn: true,
+        fetching: true,
+        accounts: action.payload,
       };
-    case CHECK_AUTH_REQUEST_FAILED:
+    case FETCH_ALL_USER_ACCOUNTS_FAILED:
       return {
         ...state,
-        loggedIn: false,
+        fetching: true,
+        error: action.error,
       };
     default:
       return state;

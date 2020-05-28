@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import { toast } from 'react-toastify';
+import { startCase, toLower } from 'lodash';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
@@ -10,11 +11,11 @@ import Grow from '@material-ui/core/Grow';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 import MenuList from '@material-ui/core/MenuList';
-import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
 
 import PersonIcon from '@material-ui/icons/Person';
+import AccountCircle from '@material-ui/icons/AccountCircle';
 import NotificationsNoneIcon from '@material-ui/icons/NotificationsNone';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import InfoIcon from '@material-ui/icons/Info';
 import AddIcon from '@material-ui/icons/Add';
 import AssignmentIcon from '@material-ui/icons/Assignment';
@@ -24,6 +25,7 @@ import LogoutIcon from '@material-ui/icons/ExitToApp';
 import CreateProjectModal from './CreateProjectModal';
 
 import { createProject } from 'containers/Projects/action';
+import { fetchAllAccountsForUser } from 'containers/Main/action';
 
 class TopNavigation extends Component {
   constructor(props) {
@@ -77,7 +79,11 @@ class TopNavigation extends Component {
   switchAccount = () => {
     localStorage.removeItem('account_id');
     localStorage.removeItem('account_name');
-    this.props.history.push('/');
+    const userId = localStorage.getItem('user_id');
+    if (!localStorage.getItem('account_id')) {
+      this.props.fetchAllAccountsForUser(userId);
+      this.props.history.push('/');
+    }
   };
   componentDidUpdate(prevProps, prevState) {
     const { store } = this.props;
@@ -242,13 +248,22 @@ class TopNavigation extends Component {
   render() {
     const { classes } = this.props;
     const { currentMenuOpen } = this.state;
+    const accountName = startCase(localStorage.getItem('account_name') || '');
     return (
       <ClickAwayListener onClickAway={this.closeOpenedMenu}>
         <Wrapper>
           <AddIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'add')} />
           <NotificationsNoneIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'notification')} />
           <InfoIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'info')} />
-          <PersonIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'profile')} />
+          <SettingsIcon fontSize={'small'} className={classes.icon} />
+          <span className={classes.verticalBar} />
+          <div className={classes.accountMenuWrapper}>
+            <div onClick={(e) => this.openMenu(e, 'profile')} className={classes.accountMenu}>
+              <AccountCircle />
+              <span>&nbsp;{accountName}</span>
+              <ArrowDropDownIcon />
+            </div>
+          </div>
 
           {/* Render menu list */}
           {this.renderMenuList(currentMenuOpen)}
@@ -269,6 +284,25 @@ const styles = (theme) => {
       height: 40,
       width: 40,
       cursor: 'pointer',
+    },
+    accountMenuWrapper: {
+      display: 'inline-block',
+      marginRight: 10,
+    },
+    accountMenu: {
+      margin: '5px 5px 0px 5px',
+      height: 40,
+      color: theme.palette.primary.main,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      '& svg:first-child': {
+        fontSize: 40,
+      },
+      '& svg:last-child': {
+        fontSize: 30,
+      },
     },
     popperWrapper: {
       marginTop: 10,
@@ -294,6 +328,14 @@ const styles = (theme) => {
       padding: 20,
       minHeight: `100vh`,
     },
+    verticalBar: {
+      color: '#000',
+      height: 40,
+      width: 1,
+      marginLeft: 5,
+      display: 'inline-block',
+      borderRight: `1px solid #627284`,
+    },
   };
 };
 
@@ -303,7 +345,7 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, { createProject })(withStyles(styles)(TopNavigation));
+export default connect(mapStateToProps, { createProject, fetchAllAccountsForUser })(withStyles(styles)(TopNavigation));
 
 const Wrapper = styled.div`
   background-color: #fff;
