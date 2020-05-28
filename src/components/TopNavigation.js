@@ -75,6 +75,11 @@ class TopNavigation extends Component {
       <CreateProjectModal handleSubmit={this.createProject} onModalClose={() => this.toggleCreateProjectModal(false)} />
     );
   };
+  switchAccount = () => {
+    localStorage.removeItem('account_id');
+    localStorage.removeItem('account_name');
+    this.props.history.push('/');
+  };
   componentDidUpdate(prevProps, prevState) {
     const { store } = this.props;
     const {
@@ -127,6 +132,9 @@ class TopNavigation extends Component {
                     </MenuItem>
                     <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'setting')}>
                       <SettingsIcon fontSize={'small'} className={classes.popperIcon} /> Setting
+                    </MenuItem>
+                    <MenuItem className={classes.popperMenuItem} onClick={this.switchAccount}>
+                      <SettingsIcon fontSize={'small'} className={classes.popperIcon} /> Switch Account
                     </MenuItem>
                     <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'logout')}>
                       <LogoutIcon fontSize={'small'} className={classes.popperIcon} /> Logout
