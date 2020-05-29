@@ -22,10 +22,7 @@ class Auth extends React.Component {
   }
   componentDidMount() {
     const { path } = this.props.match;
-    const { location } = this.props;
     const view = toLower(path.replace('/', ''));
-    const previousPath = location.state;
-    console.log('previousPath ', previousPath);
     if (view === 'logout') {
       this.handleLogout();
     }
@@ -55,7 +52,10 @@ class Auth extends React.Component {
   }
 
   renderSignupView = () => {
-    const { classes } = this.props;
+    const { classes, auth } = this.props;
+    const {
+      error: { SIGNUP: signupError },
+    } = auth;
     return (
       <React.Fragment>
         <div className={classes.headerWrapper}>
@@ -64,6 +64,11 @@ class Auth extends React.Component {
           <ParaText center color="#627284">
             &#8226; No credit card required &#8226; Free forever
           </ParaText>
+          {signupError && signupError.message ? (
+            <ParaText center color="red">
+              {signupError.message}
+            </ParaText>
+          ) : null}
         </div>
         <SignupForm handleSubmit={this.handleSignup} />
         <SignUpSocialMedia>
@@ -83,7 +88,10 @@ class Auth extends React.Component {
   };
 
   renderLoginView = () => {
-    const { classes } = this.props;
+    const { classes, auth } = this.props;
+    const {
+      error: { LOGIN: loginError },
+    } = auth;
     return (
       <React.Fragment>
         <div className={classes.headerWrapper}>
@@ -92,6 +100,11 @@ class Auth extends React.Component {
           <ParaText center color="#627284">
             &#8226; Welcome back
           </ParaText>
+          {loginError && loginError.message ? (
+            <ParaText center color="red">
+              {loginError.message}
+            </ParaText>
+          ) : null}
         </div>
         <LoginForm handleSubmit={this.handleLogin} />
         <SignUpSocialMedia>
