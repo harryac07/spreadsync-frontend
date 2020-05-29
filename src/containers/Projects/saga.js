@@ -14,7 +14,10 @@ import {
 const fetchProjects = () => {
   return axios
     .get(`${API_URL}/projects/`, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+      headers: {
+        Authorization: `bearer ${localStorage.getItem('token')}`,
+        account_id: `${localStorage.getItem('account_id')}`,
+      },
     })
     .then((response) => {
       return response.data;
