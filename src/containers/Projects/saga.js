@@ -41,7 +41,10 @@ export function* fetchProjectsSaga(action) {
 export const createProject = (payload) => {
   return axios
     .post(`${API_URL}/projects/`, payload, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+      headers: {
+        Authorization: `bearer ${localStorage.getItem('token')}`,
+        account_id: `${localStorage.getItem('account_id')}`,
+      },
     })
     .then((response) => {
       return response.data;
