@@ -21,6 +21,7 @@ import AddIcon from '@material-ui/icons/Add';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import SettingsIcon from '@material-ui/icons/Settings';
 import LogoutIcon from '@material-ui/icons/ExitToApp';
+import SwapAccountIcon from '@material-ui/icons/SwapHoriz';
 
 import CreateProjectModal from './CreateProjectModal';
 
@@ -105,6 +106,7 @@ class TopNavigation extends Component {
   }
   renderMenuList = (currentMenuOpen) => {
     const { classes } = this.props;
+    const { accounts } = this.props.app;
     switch (currentMenuOpen) {
       case 'profile':
         return (
@@ -135,12 +137,11 @@ class TopNavigation extends Component {
                     <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'profile')}>
                       <PersonIcon fontSize={'small'} className={classes.popperIcon} /> Profile
                     </MenuItem>
-                    <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'setting')}>
-                      <SettingsIcon fontSize={'small'} className={classes.popperIcon} /> Setting
-                    </MenuItem>
-                    <MenuItem className={classes.popperMenuItem} onClick={this.switchAccount}>
-                      <SettingsIcon fontSize={'small'} className={classes.popperIcon} /> Switch Account
-                    </MenuItem>
+                    {accounts.length > 1 ? (
+                      <MenuItem className={classes.popperMenuItem} onClick={this.switchAccount}>
+                        <SwapAccountIcon fontSize={'small'} className={classes.popperIcon} /> Switch Account
+                      </MenuItem>
+                    ) : null}
                     <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'logout')}>
                       <LogoutIcon fontSize={'small'} className={classes.popperIcon} /> Logout
                     </MenuItem>
@@ -343,6 +344,7 @@ const styles = (theme) => {
 const mapStateToProps = (state) => {
   return {
     store: state.project,
+    app: state.app,
   };
 };
 

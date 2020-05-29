@@ -28,6 +28,7 @@ class Main extends React.Component {
   componentDidMount() {
     const token = localStorage.getItem('token');
     const selectedAccount = localStorage.getItem('account_id');
+    const { accounts } = this.props.app;
 
     const tokenPayload = jwt.decode(token) || {};
     const { exp = 0, user = {} } = tokenPayload;
@@ -38,8 +39,10 @@ class Main extends React.Component {
     }
     localStorage.setItem('user_id', user.id);
     if (selectedAccount) {
-      console.log('selected accounts ', selectedAccount);
       this.props.history.push('/projects');
+      if (accounts.length === 0) {
+        this.props.fetchAllAccountsForUser(user.id);
+      }
     } else {
       // Fetch all accounts for user
       this.props.fetchAllAccountsForUser(user.id);
@@ -64,6 +67,7 @@ class Main extends React.Component {
     const { classes, app } = this.props;
     const { accounts = [] } = app;
     const selectedAccount = localStorage.getItem('account_id');
+    console.log(accounts, selectedAccount);
 
     /* Render loader? */
     if (!selectedAccount && accounts.length === 0) {
@@ -81,7 +85,7 @@ class Main extends React.Component {
       );
     }
 
-    if (!selectedAccount) {
+    if (!selectedAccount && accounts.length > 1) {
       return (
         <div className={classes.accountSwitcherWrapper}>
           <Paper className={classes.paper} elevation={3}>
