@@ -15,6 +15,7 @@ import { signup, login } from './action';
 import { HeaderText, ParaText } from './style';
 import SignupForm from './Components/SignupForm';
 import LoginForm from './Components/LoginForm';
+import SelectAccountForm from './Components/SelectAccountForm';
 
 class Auth extends React.Component {
   constructor(props) {
@@ -22,6 +23,7 @@ class Auth extends React.Component {
     this.state = {
       signupStep: 1,
       queryToken: null,
+      accountName: '',
     };
   }
   componentDidMount() {
@@ -29,7 +31,7 @@ class Auth extends React.Component {
     const query = new URLSearchParams(this.props.location.search);
     const token = query.get('token');
     if (token) {
-      this.setState({ queryToken: token });
+      this.setState({ queryToken: token, signupStep: 2 });
     }
     const view = toLower(path.replace('/', ''));
     if (view === 'logout') {
@@ -37,15 +39,18 @@ class Auth extends React.Component {
     }
   }
   handleSignup = (payload) => {
-    const { queryToken } = this.state;
+    const { queryToken, accountName } = this.state;
     // Disptach action
     this.props.signup(
       {
         ...payload,
-        account_name: queryToken ? '' : `Account-${shortid.generate()}`,
+        account_name: queryToken ? '' : accountName,
       },
       this.props.history
     );
+  };
+  handleAccountNameSelect = ({ account_name }) => {
+    this.setState({ signupStep: 2, accountName: account_name });
   };
 
   handleLogin = (payload) => {
@@ -72,6 +77,7 @@ class Auth extends React.Component {
     const {
       error: { SIGNUP: signupError },
     } = auth;
+    const { signupStep } = this.state;
     return (
       <React.Fragment>
         <div className={classes.headerWrapper}>
@@ -86,7 +92,11 @@ class Auth extends React.Component {
             </ParaText>
           ) : null}
         </div>
-        <SignupForm handleSubmit={this.handleSignup} />
+        {signupStep === 1 ? (
+          <SelectAccountForm handleSubmit={this.handleAccountNameSelect} />
+        ) : (
+          <SignupForm handleSubmit={this.handleSignup} />
+        )}
         <SignUpSocialMedia>
           <div className="line-with-text-center">
             <span>Or sign up with</span>

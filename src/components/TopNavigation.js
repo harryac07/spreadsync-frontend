@@ -257,7 +257,7 @@ class TopNavigation extends Component {
           <AddIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'add')} />
           <NotificationsNoneIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'notification')} />
           <InfoIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'info')} />
-          <SettingsIcon fontSize={'small'} className={classes.icon} />
+          <SettingsIcon className={classes.icon} onClick={(e) => this.closeOpenedMenu(e, 'setting')} />
           <span className={classes.verticalBar} />
           <div className={classes.accountMenuWrapper}>
             <div onClick={(e) => this.openMenu(e, 'profile')} className={classes.accountMenu}>
