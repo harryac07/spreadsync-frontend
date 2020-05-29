@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { toLower } from 'lodash';
+import shortid from 'shortid';
 import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import { Paper, Grid, Divider, Button } from '@material-ui/core/';
@@ -18,18 +19,33 @@ import LoginForm from './Components/LoginForm';
 class Auth extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      signupStep: 1,
+      queryToken: null,
+    };
   }
   componentDidMount() {
     const { path } = this.props.match;
+    const query = new URLSearchParams(this.props.location.search);
+    const token = query.get('token');
+    if (token) {
+      this.setState({ queryToken: token });
+    }
     const view = toLower(path.replace('/', ''));
     if (view === 'logout') {
       this.handleLogout();
     }
   }
   handleSignup = (payload) => {
+    const { queryToken } = this.state;
     // Disptach action
-    this.props.signup(payload);
+    this.props.signup(
+      {
+        ...payload,
+        account_name: queryToken ? '' : `Account-${shortid.generate()}`,
+      },
+      this.props.history
+    );
   };
 
   handleLogin = (payload) => {
@@ -79,10 +95,10 @@ class Auth extends React.Component {
             <GoogleIcon />
             Google
           </Button>
-          <p>
-            Already have an account? <StyledLink to="/login">log in</StyledLink>
-          </p>
         </SignUpSocialMedia>
+        <p className={classes.textCenter}>
+          Already have an account? <StyledLink to="/login">log in</StyledLink>
+        </p>
       </React.Fragment>
     );
   };
@@ -202,6 +218,9 @@ const styles = {
     fontSize: 14,
     textTransform: 'none',
     margin: '20px auto !important',
+  },
+  textCenter: {
+    textAlign: 'center',
   },
 };
 export default connect(mapStateToProps, {

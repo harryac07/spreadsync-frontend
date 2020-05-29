@@ -3,11 +3,13 @@ import { SIGNUP, LOGIN } from './constant';
 /**
  * signup
  * @param {Object}reqPayload
+ * @param {Object}history - browser history object to push
  */
-export const signup = (reqPayload) => {
+export const signup = (reqPayload, history) => {
   return {
     type: SIGNUP,
     data: reqPayload,
+    history,
   };
 };
 

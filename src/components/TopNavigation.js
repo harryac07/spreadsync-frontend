@@ -248,7 +248,8 @@ class TopNavigation extends Component {
   render() {
     const { classes } = this.props;
     const { currentMenuOpen } = this.state;
-    const accountName = startCase(localStorage.getItem('account_name') || '');
+    const accountNameRaw = toLower(localStorage.getItem('account_name') || '');
+    const accountName = accountNameRaw.charAt(0).toUpperCase() + accountNameRaw.substr(1);
     return (
       <ClickAwayListener onClickAway={this.closeOpenedMenu}>
         <Wrapper>

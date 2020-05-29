@@ -16,6 +16,8 @@ export function* signupSaga(action) {
       type: SIGNUP_SUCCEED,
       payload: data,
     });
+    /* Redirect to /login page */
+    action.history.push('/login');
   } catch (error) {
     yield put({
       type: SIGNUP_FAILED,
