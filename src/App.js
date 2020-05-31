@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 
 import Main from 'containers/Main';
 import Auth from 'containers/Auth';
+import EmailConfirmation from 'containers/Auth/EmailConfirmation';
 
 import './app.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -29,7 +30,7 @@ const App = ({ store }) => {
               {/* Unprotected route */}
               <Route path="/signup" component={Auth} view="signup" />
               <Route path="/login" component={Auth} view="login" />
-              <Route path="/callback">Callback. This will be callback page for oauth2</Route>
+              <Route path="/confirmation" component={EmailConfirmation} />
               <Route path="/logout" component={Auth} />
 
               {/* Protected route */}

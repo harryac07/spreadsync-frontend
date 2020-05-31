@@ -1,4 +1,13 @@
-import { SIGNUP, SIGNUP_SUCCEED, SIGNUP_FAILED, LOGIN, LOGIN_SUCCEED, LOGIN_FAILED } from './constant';
+import {
+  SIGNUP,
+  SIGNUP_SUCCEED,
+  SIGNUP_FAILED,
+  LOGIN,
+  LOGIN_SUCCEED,
+  LOGIN_FAILED,
+  CONFIRM_EMAIL,
+  CONFIRM_EMAIL_FAILED,
+} from './constant';
 
 const initialState = {
   error: {},
@@ -44,6 +53,18 @@ const reducer = (state = initialState, action) => {
         ...state,
         error: { ...state.error, [LOGIN]: action.error },
         success: { ...state.success, [LOGIN]: undefined },
+      };
+    case CONFIRM_EMAIL:
+      return {
+        ...state,
+        error: { ...state.error, [CONFIRM_EMAIL]: undefined },
+        // success: { ...state.success, [CONFIRM_EMAIL]: undefined },
+      };
+    case CONFIRM_EMAIL_FAILED:
+      return {
+        ...state,
+        error: { ...state.error, [CONFIRM_EMAIL]: action.error },
+        // success: { ...state.success, [CONFIRM_EMAIL]: undefined },
       };
     default:
       return state;

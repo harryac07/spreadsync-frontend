@@ -67,7 +67,6 @@ class Main extends React.Component {
     const { classes, app } = this.props;
     const { accounts = [] } = app;
     const selectedAccount = localStorage.getItem('account_id');
-    console.log(accounts, selectedAccount);
 
     /* Render loader? */
     if (!selectedAccount && accounts.length === 0) {

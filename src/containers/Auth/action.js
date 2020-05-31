@@ -1,4 +1,4 @@
-import { SIGNUP, LOGIN } from './constant';
+import { SIGNUP, LOGIN, CONFIRM_EMAIL } from './constant';
 
 /**
  * signup
@@ -23,5 +23,16 @@ export const login = (reqPayload) => {
   return {
     type: LOGIN,
     data: reqPayload,
+  };
+};
+
+/**
+ * confirmEmail
+ * @param {String}email
+ */
+export const confirmEmail = (email) => {
+  return {
+    type: CONFIRM_EMAIL,
+    data: email,
   };
 };
