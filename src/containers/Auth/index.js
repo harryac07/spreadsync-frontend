@@ -91,9 +91,23 @@ class Auth extends React.Component {
     } = auth;
     const { signupStep, queryToken } = this.state;
     let tokenPayload = {};
+    let errorMessageFormatted = '';
 
     if (queryToken) {
       tokenPayload = jwt.decode(queryToken) || {};
+    }
+    if (signupError && signupError.message) {
+      if (signupError.message.includes('/signup')) {
+        errorMessageFormatted = signupError.message.replace('/signup', '');
+        errorMessageFormatted = (
+          <p>
+            {errorMessageFormatted}&nbsp;
+            <a href={`${window.location.origin}/signup/`}>sign up</a>
+          </p>
+        );
+      } else {
+        errorMessageFormatted = signupError.message;
+      }
     }
 
     return (
@@ -104,9 +118,9 @@ class Auth extends React.Component {
           <ParaText center color="#627284">
             &#8226; No credit card required &#8226; Free forever
           </ParaText>
-          {signupError && signupError.message ? (
+          {errorMessageFormatted ? (
             <AlertBox type="error" align="center">
-              {signupError.message}
+              {errorMessageFormatted}
             </AlertBox>
           ) : null}
           {signupSuccess ? <AlertBox>Registration successful! Please confirm your email.</AlertBox> : null}
