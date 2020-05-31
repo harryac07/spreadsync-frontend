@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { toLower } from 'lodash';
-import shortid from 'shortid';
+import jwt from 'jsonwebtoken';
 import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import { Paper, Grid, Divider, Button } from '@material-ui/core/';
@@ -16,6 +16,7 @@ import { HeaderText, ParaText } from './style';
 import SignupForm from './Components/SignupForm';
 import LoginForm from './Components/LoginForm';
 import SelectAccountForm from './Components/SelectAccountForm';
+import AlertBox from 'components/common/AlertBox';
 
 class Auth extends React.Component {
   constructor(props) {
@@ -31,7 +32,7 @@ class Auth extends React.Component {
     const query = new URLSearchParams(this.props.location.search);
     const token = query.get('token');
     if (token) {
-      this.setState({ queryToken: token, signupStep: 2 });
+      this.setState({ queryToken: token, signupStep: 1 });
     }
     const view = toLower(path.replace('/', ''));
     if (view === 'logout') {
@@ -46,7 +47,10 @@ class Auth extends React.Component {
         ...payload,
         account_name: queryToken ? '' : accountName,
       },
-      this.props.history
+      {
+        history: this.props.history,
+        token: queryToken,
+      }
     );
   };
   handleAccountNameSelect = ({ account_name }) => {
@@ -70,14 +74,28 @@ class Auth extends React.Component {
     if (token !== prevToken && token && t) {
       this.props.history.push('/');
     }
+
+    const { success: signupSuccess = {} } = this.props.auth;
+    const { success: prevSignupSuccess = {} } = prevProps.auth;
+
+    if (signupSuccess.SIGNUP !== prevSignupSuccess.SIGNUP && signupSuccess.SIGNUP) {
+      this.setState({ queryToken: null });
+    }
   }
 
   renderSignupView = () => {
     const { classes, auth } = this.props;
     const {
       error: { SIGNUP: signupError },
+      success: { SIGNUP: signupSuccess },
     } = auth;
-    const { signupStep } = this.state;
+    const { signupStep, queryToken } = this.state;
+    let tokenPayload = {};
+
+    if (queryToken) {
+      tokenPayload = jwt.decode(queryToken) || {};
+    }
+
     return (
       <React.Fragment>
         <div className={classes.headerWrapper}>
@@ -87,15 +105,16 @@ class Auth extends React.Component {
             &#8226; No credit card required &#8226; Free forever
           </ParaText>
           {signupError && signupError.message ? (
-            <ParaText center color="red">
+            <AlertBox type="error" align="center">
               {signupError.message}
-            </ParaText>
+            </AlertBox>
           ) : null}
+          {signupSuccess ? <AlertBox>Registration successful! Please confirm your email.</AlertBox> : null}
         </div>
         {signupStep === 1 ? (
           <SelectAccountForm handleSubmit={this.handleAccountNameSelect} />
         ) : (
-          <SignupForm handleSubmit={this.handleSignup} />
+          <SignupForm defaultEmail={tokenPayload.email} handleSubmit={this.handleSignup} />
         )}
         <SignUpSocialMedia>
           <div className="line-with-text-center">
@@ -127,9 +146,9 @@ class Auth extends React.Component {
             &#8226; Welcome back
           </ParaText>
           {loginError && loginError.message ? (
-            <ParaText center color="red">
+            <AlertBox align="center" type="error">
               {loginError.message}
-            </ParaText>
+            </AlertBox>
           ) : null}
         </div>
         <LoginForm handleSubmit={this.handleLogin} />
@@ -185,7 +204,7 @@ const mapStateToProps = (state) => {
   };
 };
 
-const styles = {
+const styles = (theme) => ({
   wrapper: {
     display: 'flex',
     alignItems: 'center',
@@ -203,6 +222,9 @@ const styles = {
   paperWrapper: {
     margin: '0px auto',
     width: '60%',
+    [theme.breakpoints.down('md')]: {
+      width: '100%',
+    },
   },
   leftWrapper: {
     padding: 30,
@@ -232,7 +254,7 @@ const styles = {
   textCenter: {
     textAlign: 'center',
   },
-};
+});
 export default connect(mapStateToProps, {
   signup,
   login,

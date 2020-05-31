@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { validateEmail } from 'utils';
 import Field from 'components/common/Field';
 
-const SignupForm = ({ handleSubmit }) => {
+const SignupForm = ({ handleSubmit, defaultEmail }) => {
   const classes = useStyles();
   const [inputObj, handleInputChange] = useState({});
   const [error, handleError] = useState({});
@@ -41,6 +41,9 @@ const SignupForm = ({ handleSubmit }) => {
 
   const submitForm = () => {
     const payload = inputObj;
+    if (defaultEmail) {
+      payload.email = defaultEmail;
+    }
     const errorExists = isError();
     if (!errorExists) {
       handleSubmit(payload);
@@ -80,6 +83,8 @@ const SignupForm = ({ handleSubmit }) => {
             error={error.email ? true : false}
             onChange={handleChange}
             type="email"
+            defaultValue={defaultEmail}
+            disabled={!!defaultEmail}
             helperText={error.email && error.email.includes('valid') ? 'Please enter valid email!' : ''}
           />
         </Grid>

@@ -20,6 +20,7 @@ const Field = (props) => {
     defaultValue = null,
     style = {},
     error = false,
+    disabled = false,
   } = props;
 
   return (
@@ -40,6 +41,7 @@ const Field = (props) => {
         variant={variant}
         className={className}
         error={error}
+        disabled={disabled}
       />
     </div>
   );
@@ -61,5 +63,6 @@ Field.propTypes = {
   defaultValue: Proptypes.any,
   style: Proptypes.object,
   error: Proptypes.bool,
+  disabled: Proptypes.bool,
 };
 export default Field;

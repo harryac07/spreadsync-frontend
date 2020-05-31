@@ -3,13 +3,15 @@ import { SIGNUP, LOGIN } from './constant';
 /**
  * signup
  * @param {Object}reqPayload
- * @param {Object}history - browser history object to push
+ * @param {Object}extraObj - extra data pass to saga
+ * @param {String}extraObj.token - invitation token if any
+ * @param {Object}extraObj.hisotry - browser extraObj object to push
  */
-export const signup = (reqPayload, history) => {
+export const signup = (reqPayload, extraObj) => {
   return {
     type: SIGNUP,
     data: reqPayload,
-    history,
+    extra: extraObj,
   };
 };
 
