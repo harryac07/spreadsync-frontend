@@ -45,7 +45,7 @@ class Auth extends React.Component {
     this.props.signup(
       {
         ...payload,
-        account_name: queryToken ? '' : accountName,
+        account_name: accountName,
       },
       {
         history: this.props.history,
