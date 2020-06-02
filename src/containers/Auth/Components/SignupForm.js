@@ -39,7 +39,8 @@ const SignupForm = ({ handleSubmit, defaultEmail }) => {
     return true;
   };
 
-  const submitForm = () => {
+  const submitForm = (e) => {
+    e.preventDefault();
     const payload = inputObj;
     if (defaultEmail) {
       payload.email = defaultEmail;
@@ -106,7 +107,14 @@ const SignupForm = ({ handleSubmit, defaultEmail }) => {
           <Field label={'Company'} placeholder="Company" name="company" onChange={handleChange} />
         </Grid>
       </Grid>
-      <Button className={classes.submitButton} fullWidth variant="contained" color="primary" onClick={submitForm}>
+      <Button
+        className={classes.submitButton}
+        fullWidth
+        variant="contained"
+        color="primary"
+        onClick={submitForm}
+        type="submit"
+      >
         Submit
       </Button>
     </form>

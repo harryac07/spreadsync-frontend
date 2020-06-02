@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { startCase, toLower } from 'lodash';
 import { Grid, Button } from '@material-ui/core/';
 import { makeStyles } from '@material-ui/core/styles';
 import Field from 'components/common/Field';
+import { API_URL } from 'env';
 
 const LoginForm = ({ handleSubmit }) => {
   const classes = useStyles();
@@ -21,12 +23,24 @@ const LoginForm = ({ handleSubmit }) => {
     });
   };
 
-  const isAccountNameAvailable = (accountName) => {
-    return true;
+  const isAccountNameAvailable = async (accountName) => {
+    try {
+      if (!accountName) {
+        return false;
+      }
+      const accountNameCheckResponse = await axios.get(`${API_URL}/accounts/find/${accountName}`);
+      const { data } = accountNameCheckResponse;
+      if (data.length === 0) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   };
-  const isError = () => {
+  const isError = async () => {
     const { account_name } = inputObj;
-    const validAccountName = isAccountNameAvailable(account_name);
+    const validAccountName = await isAccountNameAvailable(account_name);
     if (account_name && validAccountName) {
       return false;
     }
@@ -40,14 +54,15 @@ const LoginForm = ({ handleSubmit }) => {
     return true;
   };
 
-  const submitForm = () => {
+  const submitForm = (e) => {
+    e.preventDefault();
     const payload = inputObj;
-    const errorExists = isError();
-    if (!errorExists) {
-      handleSubmit(payload);
-    }
+    isError().then((isError) => {
+      if (!isError) {
+        handleSubmit(payload);
+      }
+    });
   };
-
   return (
     <form>
       <Grid container spacing={2}>
@@ -61,13 +76,18 @@ const LoginForm = ({ handleSubmit }) => {
             error={error.account_name ? true : false}
             onChange={handleChange}
             type="account_name"
-            helperText={
-              error.account_name && error.account_name.includes('valid') ? 'Please enter valid account name!' : ''
-            }
+            helperText={error.account_name && error.account_name.includes('taken already') ? error.account_name : ''}
           />
         </Grid>
       </Grid>
-      <Button className={classes.submitButton} fullWidth variant="contained" color="primary" onClick={submitForm}>
+      <Button
+        className={classes.submitButton}
+        fullWidth
+        variant="contained"
+        color="primary"
+        onClick={submitForm}
+        type="submit"
+      >
         Next
       </Button>
     </form>

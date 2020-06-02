@@ -37,7 +37,8 @@ const LoginForm = ({ handleSubmit }) => {
     return true;
   };
 
-  const submitForm = () => {
+  const submitForm = (e) => {
+    e.preventDefault();
     const payload = inputObj;
     const errorExists = isError();
     if (!errorExists) {
@@ -72,7 +73,14 @@ const LoginForm = ({ handleSubmit }) => {
           />
         </Grid>
       </Grid>
-      <Button className={classes.submitButton} fullWidth variant="contained" color="primary" onClick={submitForm}>
+      <Button
+        className={classes.submitButton}
+        fullWidth
+        variant="contained"
+        color="primary"
+        onClick={submitForm}
+        type="submit"
+      >
         Submit
       </Button>
     </form>
