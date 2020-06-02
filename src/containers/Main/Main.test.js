@@ -18,10 +18,9 @@ import { API_URL } from 'env';
 const mockStore = configureMockStore([createSagaMiddleware]);
 jest.mock('axios');
 
-describe('Should trigger fetch accounts action on component mount', () => {
+describe('Testing main components', () => {
   const history = createMemoryHistory();
 
-  const props = {};
   const state = {
     app: {
       fetching: false,
@@ -29,8 +28,7 @@ describe('Should trigger fetch accounts action on component mount', () => {
       accounts: [],
     },
   };
-  const store = mockStore(state);
-  const setup = () => {
+  const setup = (props = {}, store = mockStore(state)) => {
     return render(
       <Provider store={store}>
         <Router>
@@ -39,7 +37,7 @@ describe('Should trigger fetch accounts action on component mount', () => {
       </Provider>
     );
   };
-  it('Should dispatch login action', async () => {
+  it('Should dispatch FETCH_ALL_USER_ACCOUNTS action', async () => {
     const newState = reducer(state.app, {
       type: FETCH_ALL_USER_ACCOUNTS,
     });
@@ -81,7 +79,7 @@ describe('Should trigger fetch accounts action on component mount', () => {
         payload: fakeResData,
       })
       .hasFinalState({
-        fetching: true,
+        fetching: false,
         selectedAccount: '',
         accounts: fakeResData,
       })
@@ -90,5 +88,44 @@ describe('Should trigger fetch accounts action on component mount', () => {
     expect(axiosMock.get).toHaveBeenCalledWith(`${API_URL}/users/${userId}/accounts`, {
       headers: { Authorization: `bearer null` },
     });
+  });
+
+  it('Should render switch accounts view if user has multiple accounts', async () => {
+    const fakeResData = [
+      {
+        id: 'test-id-1234',
+        name: 'Spreadsync dev',
+        admin: 'a2e2d929-c748-4d5b-a4c2-64527795229e',
+        created_on: '2020-06-01T13:02:52.904Z',
+        updated_on: null,
+        user: 'a2e2d929-c748-4d5b-a4c2-userhari',
+      },
+      {
+        id: 'test-id-6789',
+        name: 'Spreadsync dev 1',
+        admin: 'a2e2d929-c748-4d5b-a4c2-64527795229e',
+        created_on: '2020-06-01T13:02:52.904Z',
+        updated_on: null,
+        user: 'a2e2d929-c748-4d5b-a4c2-userhari',
+      },
+    ];
+
+    const newState = reducer(state.app, {
+      type: FETCH_ALL_USER_ACCOUNTS_SUCCEED,
+      payload: fakeResData,
+    });
+    expect(newState.fetching).toEqual(false);
+    expect(newState.accounts).toEqual(fakeResData);
+    expect(newState.accounts).toHaveLength(2);
+
+    const { getAllByText } = setup({}, mockStore({ app: newState }));
+
+    const fetchingTexts = getAllByText(/Spreadsync dev/gi);
+    const buttons = screen.getAllByRole('button');
+    const imgLogoText = screen.getByAltText(/spreadsync logo/i);
+
+    expect(imgLogoText).toBeTruthy();
+    expect(fetchingTexts).toHaveLength(2);
+    expect(buttons).toHaveLength(2);
   });
 });

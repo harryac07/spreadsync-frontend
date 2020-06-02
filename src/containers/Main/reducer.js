@@ -15,13 +15,13 @@ const appReducer = (state = initialState, action) => {
     case FETCH_ALL_USER_ACCOUNTS_SUCCEED:
       return {
         ...state,
-        fetching: true,
+        fetching: false,
         accounts: action.payload,
       };
     case FETCH_ALL_USER_ACCOUNTS_FAILED:
       return {
         ...state,
-        fetching: true,
+        fetching: false,
         error: action.error,
       };
     default:
