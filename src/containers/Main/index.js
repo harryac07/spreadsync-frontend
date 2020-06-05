@@ -39,7 +39,7 @@ class Main extends React.Component {
     }
     localStorage.setItem('user_id', user.id);
     if (selectedAccount) {
-      this.props.history.push('/projects');
+      this.redirectToProjectPage();
       if (accounts.length === 0) {
         this.props.fetchAllAccountsForUser(user.id);
       }
@@ -48,19 +48,28 @@ class Main extends React.Component {
       this.props.fetchAllAccountsForUser(user.id);
     }
   }
+  redirectToProjectPage = () => {
+    const { pathname } = this.props.location;
+    if (pathname === '/') {
+      this.props.history.push('/projects');
+    }
+  };
   selectAccount = ({ id, name }) => {
     if (id) {
       localStorage.setItem('account_id', id);
       localStorage.setItem('account_name', name);
-      this.props.history.push('/projects');
     }
+  };
+  handleSwitchAccount = (each) => {
+    this.selectAccount(each);
+    this.redirectToProjectPage();
   };
   componentDidUpdate(prevProps) {
     const { accounts } = this.props.app;
     const { accounts: prevAccounts } = prevProps.app;
     /* Redirect to /projects if user is engage to only one account */
     if (accounts !== prevAccounts && accounts.length === 1) {
-      this.selectAccount(accounts[0]);
+      this.handleSwitchAccount(accounts[0]);
     }
   }
   render() {
@@ -100,7 +109,7 @@ class Main extends React.Component {
                   <Button
                     key={each.id}
                     fullWidth
-                    onClick={() => this.selectAccount(each)}
+                    onClick={() => this.handleSwitchAccount(each)}
                     variant="contained"
                     className={classes.button}
                     color="secondary"

@@ -244,8 +244,8 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     flexGrow: 1,
-    backgroundColor: '#eee',
-    padding: theme.spacing(3),
+    backgroundColor: '#f6f6f6',
+    padding: theme.spacing(4),
     width: '100%',
   },
   menu_link: {
