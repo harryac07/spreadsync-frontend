@@ -2,7 +2,8 @@ import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
 import { startCase, toLower } from 'lodash';
-import { Paper, Divider, Button } from '@material-ui/core/';
+import { Paper, Divider } from '@material-ui/core/';
+import Button from 'components/common/Button';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -39,49 +40,51 @@ class ProjectDetail extends React.Component {
     if (jobs.length === 0) {
       return (
         <div className={classes.noJobWrapper}>
-          <p>
-            No job has been created. &nbsp;
-            <Button
-              onClick={() => this.updateCurrentView('setting')}
-              className={classes.createButton}
-              color="secondary"
-              variant="contained"
-              size="small"
-            >
-              Create job
-            </Button>
-          </p>
+          <HeaderText className={classes.HeaderText} padding="15px">
+            Jobs
+          </HeaderText>
+          <Divider light className={classes.dividers} />
+          <div className={classes.content}>
+            <p>
+              No job has been created. &nbsp;
+              <Button onClick={() => this.updateCurrentView('setting')} color="secondary" variant="contained">
+                Create job
+              </Button>
+            </p>
+          </div>
         </div>
       );
     }
     return (
-      <Table className={classes.table} aria-label="simple table">
-        <TableHead>
-          <TableRow>
-            <TableCell>
-              Jobs
-              <span className={classes.jobLength}>({jobs.length})</span>
-            </TableCell>
-            <TableCell align="center">Description</TableCell>
-            <TableCell align="center">Type</TableCell>
-            <TableCell align="center">Created By</TableCell>
-            <TableCell align="center">Action</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {jobs.map((row) => (
-            <TableRow hover key={row.id}>
-              <TableCell component="th" scope="row">
-                {row.name}
+      <div className={classes.content}>
+        <Table className={classes.table} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                Jobs
+                <span className={classes.jobLength}>({jobs.length})</span>
               </TableCell>
-              <TableCell align="center">{row.description}</TableCell>
-              <TableCell align="center">{row.type}</TableCell>
-              <TableCell align="center">{row.user_email}</TableCell>
+              <TableCell align="center">Description</TableCell>
+              <TableCell align="center">Type</TableCell>
+              <TableCell align="center">Created By</TableCell>
               <TableCell align="center">Action</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {jobs.map((row) => (
+              <TableRow hover key={row.id}>
+                <TableCell component="th" scope="row">
+                  {row.name}
+                </TableCell>
+                <TableCell align="center">{row.description}</TableCell>
+                <TableCell align="center">{row.type}</TableCell>
+                <TableCell align="center">{row.user_email}</TableCell>
+                <TableCell align="center">Action</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     );
   };
   renderProjectSetting = () => {
@@ -109,17 +112,18 @@ class ProjectDetail extends React.Component {
     const { name, total_members, description } = project[0] || {};
     const projectName = startCase(toLower(name));
     return (
-      <Paper>
-        <div className={classes.projectWrapper}>
-          <div>
-            <HeaderText className={classes.HeaderText} display="inline-block">
-              {projectName}
-            </HeaderText>
-            <div className={classes.userGroup}>
-              <GroupIcon fontSize={'small'} />
-              <span className={classes.userCount}>{total_members || 0}</span>
-            </div>
+      <div className={classes.projectWrapper}>
+        <div className={classes.headerWrapper}>
+          <HeaderText className={classes.HeaderText} display="inline-block">
+            {projectName}
+          </HeaderText>
+          <div className={classes.userGroup}>
+            <GroupIcon fontSize={'small'} />
+            <span className={classes.userCount}>{total_members || 0}</span>
+          </div>
+          <div className={classes.rightColHeading}>
             <div className={classes.headerIconWrapper}>
+              <Button size="xs">Create job</Button>
               {currentView === 'job' ? (
                 <SettingsIcon color={'primary'} fontSize={'medium'} onClick={() => this.updateCurrentView('setting')} />
               ) : (
@@ -127,21 +131,12 @@ class ProjectDetail extends React.Component {
               )}
             </div>
           </div>
-          <Divider className={classes.divider} light />
         </div>
-
         {/* Setting or Jobs wrapper */}
-        {currentView === 'job' ? (
-          <div>
-            <div className={classes.projectDescription}>
-              <p>{description}</p>
-            </div>
-            {this.renderJobs()}
-          </div>
-        ) : (
-          this.renderProjectSetting()
-        )}
-      </Paper>
+        <Paper elevation={3} className={classes.contentWrapper}>
+          {currentView === 'job' ? <div>{this.renderJobs()}</div> : this.renderProjectSetting()}
+        </Paper>
+      </div>
     );
   }
 }
@@ -152,13 +147,11 @@ const mapStateToProps = (state) => {
   };
 };
 
-const styles = {
+const styles = (theme) => ({
   projectWrapper: {
-    background: '#fff',
     border: 0,
     borderRadius: 3,
     color: '#000',
-    padding: '15px',
     margin: '0 auto',
     position: 'relative',
     marginBottom: 0,
@@ -170,13 +163,30 @@ const styles = {
     verticalAlign: 'middle',
     marginLeft: 20,
   },
-  headerIconWrapper: {
+  headerWrapper: {
+    backgroundColor: '#fff',
+    padding: '12px 32px 5px 32px',
+    boxShadow: '0px 0px 1px 0px #888888',
+  },
+  rightColHeading: {
     display: 'inline-block',
     position: 'absolute',
     right: 20,
-    paddingTop: 0,
-    cursor: 'pointer',
+    '& button': {
+      display: 'inline-block',
+      height: 30,
+      fontSize: 13,
+      textTransform: 'none',
+      top: -14,
+      marginRight: 10,
+    },
+    '& svg': {
+      position: 'relative',
+      top: -3,
+      cursor: 'pointer',
+    },
   },
+  headerIconWrapper: {},
   userCount: {
     verticalAlign: 'middle',
     position: 'relative',
@@ -204,10 +214,15 @@ const styles = {
   noJobWrapper: {
     textAlign: 'left',
     margin: '0px auto',
-    padding: 30,
     backgroundColor: '#fff',
   },
-};
+  contentWrapper: {
+    margin: 32,
+  },
+  content: {
+    padding: 15,
+  },
+});
 
 export default connect(mapStateToProps, {
   fetchProjectById,
@@ -217,5 +232,8 @@ export default connect(mapStateToProps, {
 export const HeaderText = styled.div`
   font-weight: bold;
   font-size: 22px;
-  display: ${(props) => (props.display ? props.display : 'block')};
+  display: ${(props) => (props.display ? props.display : 'flex')};
+  align-items: center;
+  justify-content: flex-start;
+  padding: ${(props) => (props.padding ? props.padding : '0px')};
 `;

@@ -78,7 +78,7 @@ const theme = createMuiTheme({
     },
     MuiAppBar: {
       root: {
-        'box-shadow': '0px 0px 3px 0px #888888',
+        'box-shadow': '0px 0px 2px 0px #888888',
       },
     },
   },

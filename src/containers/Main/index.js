@@ -125,16 +125,28 @@ class Main extends React.Component {
     }
     return (
       <WrapperWithNavigation>
-        <MainWrapper>
-          <Switch>
-            <Route path="/projects/:id" component={ProjectDetail} />
-            <Route path="/projects" component={Projects} />
-            <Route path="/integrations">Integrations</Route>
-            <Route path="/teams">Teams</Route>
-            <Route path="/profile">Profile and Account</Route>
-            <Route path="/setting">Setting</Route>
-          </Switch>
-        </MainWrapper>
+        <Switch>
+          <Route
+            path="/projects/:id"
+            render={(props) => (
+              <MainWrapper nopadding>
+                <ProjectDetail {...props} />
+              </MainWrapper>
+            )}
+          />
+          <Route
+            path="/projects"
+            render={(props) => (
+              <MainWrapper>
+                <Projects {...props} />
+              </MainWrapper>
+            )}
+          />
+          <Route path="/integrations">Integrations</Route>
+          <Route path="/teams">Teams</Route>
+          <Route path="/profile">Profile and Account</Route>
+          <Route path="/setting">Setting</Route>
+        </Switch>
       </WrapperWithNavigation>
     );
   }
