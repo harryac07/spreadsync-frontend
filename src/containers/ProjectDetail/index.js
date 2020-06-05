@@ -40,10 +40,6 @@ class ProjectDetail extends React.Component {
     if (jobs.length === 0) {
       return (
         <div className={classes.noJobWrapper}>
-          <HeaderText className={classes.HeaderText} padding="15px">
-            Jobs
-          </HeaderText>
-          <Divider light className={classes.dividers} />
           <div className={classes.content}>
             <p>
               No job has been created. &nbsp;
@@ -61,13 +57,13 @@ class ProjectDetail extends React.Component {
           <TableHead>
             <TableRow>
               <TableCell>
-                Jobs
+                Job Name
                 <span className={classes.jobLength}>({jobs.length})</span>
               </TableCell>
               <TableCell align="center">Description</TableCell>
               <TableCell align="center">Type</TableCell>
               <TableCell align="center">Created By</TableCell>
-              <TableCell align="center">Action</TableCell>
+              <TableCell align="center"></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -134,6 +130,10 @@ class ProjectDetail extends React.Component {
         </div>
         {/* Setting or Jobs wrapper */}
         <Paper elevation={3} className={classes.contentWrapper}>
+          <HeaderText className={classes.HeaderText} padding="15px">
+            Jobs
+          </HeaderText>
+          <Divider light className={classes.dividers} />
           {currentView === 'job' ? <div>{this.renderJobs()}</div> : this.renderProjectSetting()}
         </Paper>
       </div>
@@ -221,6 +221,9 @@ const styles = (theme) => ({
   },
   content: {
     padding: 15,
+  },
+  table: {
+    border: '1px solid #eee',
   },
 });
 
