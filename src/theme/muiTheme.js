@@ -65,6 +65,7 @@ const theme = createMuiTheme({
         textTransform: 'uppercase',
         fontSize: 16,
         fontWeight: 500,
+        borderRadius: 'none',
       },
       containedSecondary: {
         color: '#fff',

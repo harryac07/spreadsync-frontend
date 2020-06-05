@@ -40,7 +40,7 @@ class ProjectDetail extends React.Component {
     if (jobs.length === 0) {
       return (
         <div className={classes.noJobWrapper}>
-          <div className={classes.content}>
+          <div>
             <p>
               No job has been created. &nbsp;
               <Button onClick={() => this.updateCurrentView('setting')} color="secondary" variant="contained">
@@ -52,7 +52,7 @@ class ProjectDetail extends React.Component {
       );
     }
     return (
-      <div className={classes.content}>
+      <div>
         <Table className={classes.table} aria-label="simple table">
           <TableHead>
             <TableRow>
@@ -99,6 +99,9 @@ class ProjectDetail extends React.Component {
       </div>
     );
   };
+  renderProjectMembers = () => {
+    return <div>Team</div>;
+  };
   render() {
     const { classes, projectDetail } = this.props;
 
@@ -119,7 +122,6 @@ class ProjectDetail extends React.Component {
           </div>
           <div className={classes.rightColHeading}>
             <div className={classes.headerIconWrapper}>
-              <Button size="xs">Create job</Button>
               {currentView === 'job' ? (
                 <SettingsIcon color={'primary'} fontSize={'medium'} onClick={() => this.updateCurrentView('setting')} />
               ) : (
@@ -128,14 +130,41 @@ class ProjectDetail extends React.Component {
             </div>
           </div>
         </div>
+
         {/* Setting or Jobs wrapper */}
-        <Paper elevation={3} className={classes.contentWrapper}>
-          <HeaderText className={classes.HeaderText} padding="15px">
-            Jobs
-          </HeaderText>
-          <Divider light className={classes.dividers} />
-          {currentView === 'job' ? <div>{this.renderJobs()}</div> : this.renderProjectSetting()}
-        </Paper>
+        {currentView === 'setting' ? (
+          <div>{this.renderProjectSetting()}</div>
+        ) : (
+          <React.Fragment>
+            {/* Jobs view */}
+            <Paper elevation={3} className={classes.contentWrapper}>
+              <HeaderText className={classes.HeaderText} padding="15px" display="inline-block">
+                Jobs
+                <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 48 }}>
+                  <Button size="xs">Create job</Button>
+                </div>
+              </HeaderText>
+              <Divider light className={classes.dividers} />
+
+              <div className={classes.content}>
+                <div>{this.renderJobs()}</div>
+              </div>
+            </Paper>
+
+            {/* Team members view */}
+            <Paper elevation={3} className={classes.contentWrapper}>
+              <HeaderText className={classes.HeaderText} padding="15px">
+                Team Members (5)
+                <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 48 }}>
+                  <Button size="xs">Invite user</Button>
+                </div>
+              </HeaderText>
+              <Divider light className={classes.dividers} />
+
+              <div className={classes.content}>{this.renderProjectMembers()}</div>
+            </Paper>
+          </React.Fragment>
+        )}
       </div>
     );
   }
@@ -171,7 +200,7 @@ const styles = (theme) => ({
   rightColHeading: {
     display: 'inline-block',
     position: 'absolute',
-    right: 20,
+    right: 28,
     '& button': {
       display: 'inline-block',
       height: 30,
