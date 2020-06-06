@@ -14,6 +14,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { fetchProjectById, fetchAllJobsForProject } from './action';
 
 import GroupIcon from '@material-ui/icons/Group';
+import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import SettingsIcon from '@material-ui/icons/Settings';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
@@ -41,12 +42,7 @@ class ProjectDetail extends React.Component {
       return (
         <div className={classes.noJobWrapper}>
           <div>
-            <p>
-              No job has been created. &nbsp;
-              <Button onClick={() => this.updateCurrentView('setting')} color="secondary" variant="contained">
-                Create job
-              </Button>
-            </p>
+            <p>Jobs not available.</p>
           </div>
         </div>
       );
@@ -56,10 +52,7 @@ class ProjectDetail extends React.Component {
         <Table className={classes.table} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell>
-                Job Name
-                <span className={classes.jobLength}>({jobs.length})</span>
-              </TableCell>
+              <TableCell>Job Name</TableCell>
               <TableCell align="center">Description</TableCell>
               <TableCell align="center">Type</TableCell>
               <TableCell align="center">Created By</TableCell>
@@ -100,12 +93,38 @@ class ProjectDetail extends React.Component {
     );
   };
   renderProjectMembers = () => {
-    return <div>Team</div>;
+    const { classes } = this.props;
+    return (
+      <div>
+        <Table className={classes.table} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell>User</TableCell>
+              <TableCell align="center">Admin</TableCell>
+              <TableCell align="center">Permission</TableCell>
+              <TableCell align="center"></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {[].map((row) => (
+              <TableRow hover key={row.id}>
+                <TableCell component="th" scope="row">
+                  {row.name}
+                </TableCell>
+                <TableCell align="center">{row.description}</TableCell>
+                <TableCell align="center">{row.type}</TableCell>
+                <TableCell align="center">Action</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
   };
   render() {
     const { classes, projectDetail } = this.props;
 
-    const { project } = projectDetail;
+    const { project, jobs = [] } = projectDetail;
     const { currentView } = this.state;
 
     const { name, total_members, description } = project[0] || {};
@@ -138,10 +157,12 @@ class ProjectDetail extends React.Component {
           <React.Fragment>
             {/* Jobs view */}
             <Paper elevation={3} className={classes.contentWrapper}>
-              <HeaderText className={classes.HeaderText} padding="15px" display="inline-block">
-                Jobs
-                <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 48 }}>
-                  <Button size="xs">Create job</Button>
+              <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
+                Jobs ({jobs.length})
+                <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
+                  <Button startIcon={<AddIcon className={classes.iconSmall} />} size="xs">
+                    Create job
+                  </Button>
                 </div>
               </HeaderText>
               <Divider light className={classes.dividers} />
@@ -153,10 +174,12 @@ class ProjectDetail extends React.Component {
 
             {/* Team members view */}
             <Paper elevation={3} className={classes.contentWrapper}>
-              <HeaderText className={classes.HeaderText} padding="15px">
+              <HeaderText className={classes.HeaderText} padding="20px" fontsize={'18px'}>
                 Team Members (5)
-                <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 48 }}>
-                  <Button size="xs">Invite user</Button>
+                <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
+                  <Button startIcon={<GroupAddIcon className={classes.iconSmall} color="white" />} size="xs">
+                    Invite user
+                  </Button>
                 </div>
               </HeaderText>
               <Divider light className={classes.dividers} />
@@ -215,7 +238,9 @@ const styles = (theme) => ({
       cursor: 'pointer',
     },
   },
-  headerIconWrapper: {},
+  iconSmall: {
+    height: 20,
+  },
   userCount: {
     verticalAlign: 'middle',
     position: 'relative',
@@ -229,9 +254,6 @@ const styles = (theme) => ({
     padding: 20,
     borderRadius: '10px',
     margin: '0px 20px 10px 20px',
-  },
-  jobLength: {
-    marginLeft: 10,
   },
   divider: {
     margin: '10px auto',
@@ -249,7 +271,7 @@ const styles = (theme) => ({
     margin: 32,
   },
   content: {
-    padding: 15,
+    padding: 20,
   },
   table: {
     border: '1px solid #eee',
@@ -263,7 +285,7 @@ export default connect(mapStateToProps, {
 
 export const HeaderText = styled.div`
   font-weight: bold;
-  font-size: 22px;
+  font-size: ${(props) => (props.fontsize ? props.fontsize : '22px')};
   display: ${(props) => (props.display ? props.display : 'flex')};
   align-items: center;
   justify-content: flex-start;
