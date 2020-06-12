@@ -1,10 +1,11 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
-import { startCase, toLower } from 'lodash';
+import { startCase, toLower, map } from 'lodash';
 import { Paper, Divider } from '@material-ui/core/';
 import Button from 'components/common/Button';
 import Table from '@material-ui/core/Table';
+import Grid from '@material-ui/core/Grid';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
@@ -19,11 +20,14 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 
+import CreateNewJobForm from './Components/CreateNewJobForm';
+
 class ProjectDetail extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentView: 'job', // job or setting
+      currentView: 'job', // job or setting or newjob
+      newJobInput: {},
     };
   }
   componentDidMount() {
@@ -33,6 +37,17 @@ class ProjectDetail extends React.Component {
   }
   updateCurrentView = (selectedView = 'job') => {
     this.setState({ currentView: selectedView });
+  };
+  createNewJob = (payload) => {
+    console.log(payload);
+  };
+  submitNewJobChange = (name, value) => {
+    this.setState({
+      newJobInput: {
+        ...this.state.newJobInput,
+        [name]: value,
+      },
+    });
   };
   renderJobs = () => {
     const { classes, projectDetail } = this.props;
@@ -125,10 +140,12 @@ class ProjectDetail extends React.Component {
     const { classes, projectDetail } = this.props;
 
     const { project, jobs = [] } = projectDetail;
-    const { currentView } = this.state;
+    const { currentView, newJobInput } = this.state;
 
     const { name, total_members, description } = project[0] || {};
     const projectName = startCase(toLower(name));
+
+    console.log(newJobInput);
     return (
       <div className={classes.projectWrapper}>
         <div className={classes.headerWrapper}>
@@ -150,17 +167,59 @@ class ProjectDetail extends React.Component {
           </div>
         </div>
 
-        {/* Setting or Jobs wrapper */}
-        {currentView === 'setting' ? (
-          <div>{this.renderProjectSetting()}</div>
-        ) : (
+        {/* Setting view */}
+        {currentView === 'setting' ? <div>{this.renderProjectSetting()}</div> : null}
+        {/* New job view */}
+        {currentView === 'newjob' ? (
+          <div>
+            <Paper elevation={3} className={classes.contentWrapper}>
+              <Grid container spacing={0}>
+                <Grid item xs={8} sm={8} md={8}>
+                  <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
+                    Add new job
+                  </HeaderText>
+                  <Divider light className={classes.dividers} />
+
+                  <div className={classes.content}>
+                    <div>
+                      <CreateNewJobForm submitChange={this.submitNewJobChange} handleSubmit={this.createNewJob} />
+                    </div>
+                  </div>
+                </Grid>
+                <Grid item xs={4} sm={4} md={4} className={classes.createJobRightbar}>
+                  <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
+                    Job Summary
+                  </HeaderText>
+                  <Divider light className={classes.dividers} />
+                  <NewJobRightbarWrapper>
+                    {map(newJobInput, (value, key) => {
+                      return (
+                        <div>
+                          <p className="key">{key}</p>
+                          <p className="value">{value}</p>
+                        </div>
+                      );
+                    })}
+                  </NewJobRightbarWrapper>
+                </Grid>
+              </Grid>
+            </Paper>
+          </div>
+        ) : null}
+
+        {/* Job list view */}
+        {currentView === 'job' ? (
           <React.Fragment>
             {/* Jobs view */}
             <Paper elevation={3} className={classes.contentWrapper}>
               <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
                 Jobs ({jobs.length})
                 <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
-                  <Button startIcon={<AddIcon className={classes.iconSmall} />} size="xs">
+                  <Button
+                    startIcon={<AddIcon className={classes.iconSmall} />}
+                    size="xs"
+                    onClick={() => this.updateCurrentView('newjob')}
+                  >
                     Create job
                   </Button>
                 </div>
@@ -187,7 +246,7 @@ class ProjectDetail extends React.Component {
               <div className={classes.content}>{this.renderProjectMembers()}</div>
             </Paper>
           </React.Fragment>
-        )}
+        ) : null}
       </div>
     );
   }
@@ -276,6 +335,10 @@ const styles = (theme) => ({
   table: {
     border: '1px solid #eee',
   },
+  createJobRightbar: {
+    backgroundColor: '#eee',
+    minHeight: '40vh',
+  },
 });
 
 export default connect(mapStateToProps, {
@@ -290,4 +353,22 @@ export const HeaderText = styled.div`
   align-items: center;
   justify-content: flex-start;
   padding: ${(props) => (props.padding ? props.padding : '0px')};
+`;
+
+export const NewJobRightbarWrapper = styled.div`
+  margin: 10px auto;
+  margin-bottom: 15px;
+  padding: 10px 30px;
+  line-height: normal;
+
+  div > p.key {
+    color: #000;
+    font-weight: bold;
+    margin: 15px 0px 0px 0px;
+  }
+  div > p.value {
+    color: #606060;
+    font-weight: normal;
+    margin: 0px;
+  }
 `;

@@ -126,6 +126,11 @@ class Main extends React.Component {
     return (
       <WrapperWithNavigation>
         <Switch>
+          <Route path="/projects/:id/job/new" render={(props) => <MainWrapper nopadding>New job</MainWrapper>} />
+          <Route
+            path="/projects/:id/job/:jobid"
+            render={(props) => <MainWrapper nopadding>Job detail view</MainWrapper>}
+          />
           <Route
             path="/projects/:id"
             render={(props) => (
