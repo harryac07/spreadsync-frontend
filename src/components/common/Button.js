@@ -12,20 +12,25 @@ const Button = (props) => {
     size = 'small',
     startIcon,
     display,
+    float = 'none',
+    fullWidth = false,
   } = props;
 
   return (
-    <StyledButton
-      onClick={onClick}
-      className={className}
-      color={color}
-      variant={variant}
-      size={size}
-      display={display}
-      startIcon={startIcon}
-    >
-      {children}
-    </StyledButton>
+    <ButtonWrapper float={float}>
+      <StyledButton
+        onClick={onClick}
+        className={className}
+        color={color}
+        variant={variant}
+        size={size}
+        display={display}
+        startIcon={startIcon}
+        fullWidth={fullWidth}
+      >
+        {children}
+      </StyledButton>
+    </ButtonWrapper>
   );
 };
 
@@ -37,4 +42,9 @@ const StyledButton = styled(MuiButton)`
   font-size: ${(props) => (props.size === 'xs' ? '14px' : 'inherit')};
   text-transform: ${(props) => (props.capital ? 'uppercase' : 'none')};
   line-height: ${(props) => (props.size === 'xs' ? '10px' : 'inherit')};
+`;
+
+const ButtonWrapper = styled.div`
+  display: block;
+  float: ${(props) => (props.float === 'right' ? 'right' : props.float === 'left' ? 'left' : 'none')};
 `;

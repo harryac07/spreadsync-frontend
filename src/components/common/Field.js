@@ -1,4 +1,5 @@
 import React from 'react';
+import styled from 'styled-components';
 import TextField from '@material-ui/core/TextField';
 const Proptypes = require('prop-types');
 
@@ -13,6 +14,7 @@ const Field = (props) => {
     onChange,
     rows = 1,
     size = 'small',
+    extrasmall = false,
     type = 'input',
     name = '',
     variant = 'outlined',
@@ -25,12 +27,12 @@ const Field = (props) => {
 
   return (
     <div style={style}>
-      <TextField
+      {label ? <TopLabel>{label}</TopLabel> : null}
+      <StyledTextField
         fullWidth={fullWidth}
         required={required}
         helperText={helperText}
         multiline={multiline}
-        label={label}
         name={name}
         placeholder={placeholder}
         rows={rows}
@@ -42,6 +44,7 @@ const Field = (props) => {
         className={className}
         error={error}
         disabled={disabled}
+        extrasmall={extrasmall.toString()}
       />
     </div>
   );
@@ -58,6 +61,7 @@ Field.propTypes = {
   onChange: Proptypes.func.isRequired,
   rows: Proptypes.number,
   size: Proptypes.string,
+  extrasmall: Proptypes.bool,
   type: Proptypes.string,
   variant: Proptypes.string,
   defaultValue: Proptypes.any,
@@ -66,3 +70,18 @@ Field.propTypes = {
   disabled: Proptypes.bool,
 };
 export default Field;
+
+const TopLabel = styled.div`
+  margin: 0px 0px 5px 0px;
+  padding: 0;
+  font-size: 16px;
+`;
+
+const StyledTextField = styled(TextField)`
+  div {
+    height: ${(props) => (props.extrasmall === 'true' ? '40px' : 'inherit')};
+  }
+  input {
+    font-size: ${(props) => (props.extrasmall === 'true' ? '18px' : 'none')};
+  }
+`;

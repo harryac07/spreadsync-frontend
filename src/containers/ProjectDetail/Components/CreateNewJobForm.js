@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { startCase, toLower } from 'lodash';
-import { Grid, Button } from '@material-ui/core/';
+import { Grid } from '@material-ui/core/';
 import { makeStyles } from '@material-ui/core/styles';
-import { validateEmail } from 'utils';
 import Field from 'components/common/Field';
 import Select from 'components/common/Select';
+import Button from 'components/common/Button';
+import CronGenerator from 'components/common/CronGenerator';
 
+// const options = {
+//   headers: [HEADER.MONTHLY, HEADER.WEEKLY, HEADER.MINUTES, HEADER.HOURLY, HEADER.DAILY],
+// };
 const CreateNewJobForm = ({ handleSubmit, submitChange }) => {
   const classes = useStyles();
-  const [inputObj, handleInputChange] = useState({});
+  const [inputObj, handleInputChange] = useState({
+    unit: 'hours',
+    value: 1,
+  });
   const [error, handleError] = useState({});
 
   const handleChange = (e) => {
@@ -24,8 +31,8 @@ const CreateNewJobForm = ({ handleSubmit, submitChange }) => {
     submitChange(name, value);
   };
   const isError = () => {
-    const { name, type, frequency, data_source, data_destination, description } = inputObj;
-    if (name && type && frequency && data_source && data_destination && description) {
+    const { name, type, unit, value, data_source, data_destination, description } = inputObj;
+    if (name && type && unit && Number(value) && data_source && data_destination && description) {
       return false;
     }
 
@@ -34,7 +41,8 @@ const CreateNewJobForm = ({ handleSubmit, submitChange }) => {
       ...error,
       name: name ? '' : 'Job name is required',
       type: type ? '' : 'Data type is required',
-      frequency: frequency ? '' : 'Data frequency is required',
+      unit: unit ? '' : 'Frequency unit is required',
+      value: Number(value) ? '' : 'Frequency value is required',
       data_source: data_source ? '' : 'Data source is required',
       data_destination: data_destination ? '' : 'Data destination is required',
       description: description ? '' : 'Job description is required',
@@ -62,12 +70,13 @@ const CreateNewJobForm = ({ handleSubmit, submitChange }) => {
             name="name"
             error={error.name ? true : false}
             onChange={handleChange}
+            size="small"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={6}>
           <Select
             required={true}
-            label={'Job Type'}
+            label={'Job type'}
             name="type"
             error={error.type ? true : false}
             options={[
@@ -81,20 +90,12 @@ const CreateNewJobForm = ({ handleSubmit, submitChange }) => {
             value={inputObj.type}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={6}>
-          <Select
-            required={true}
-            label={'Job schedule'}
-            name="frequency"
-            error={!!error.type}
-            options={[
-              { value: 'rate', label: 'Rate' },
-              { value: 'exact', label: 'Exact timestamp' },
-            ]}
+        <Grid item xs={12} sm={12} md={12}>
+          <CronGenerator
+            defaultUnit={inputObj.unit}
+            defaultValue={inputObj.value}
             onChange={handleChange}
-            size="small"
-            fullWidth={true}
-            value={inputObj.frequency}
+            error={{ unit: !!error.unit, value: !!error.value }}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={6}>
@@ -141,6 +142,7 @@ const CreateNewJobForm = ({ handleSubmit, submitChange }) => {
             onChange={handleChange}
             multiline
             rows={4}
+            size="small"
           />
         </Grid>
       </Grid>
@@ -151,8 +153,9 @@ const CreateNewJobForm = ({ handleSubmit, submitChange }) => {
         color="primary"
         onClick={submitForm}
         type="submit"
+        float={'right'}
       >
-        Submit
+        Next
       </Button>
     </form>
   );

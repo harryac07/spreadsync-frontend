@@ -12,9 +12,11 @@ const Select = (props) => {
     fullWidth = true,
     required = false,
     size = 'small',
+    extrasmall = false,
     error = false,
 
     label = '',
+    placeholder = '',
     multiple = false,
     onChange,
     name = '',
@@ -30,9 +32,12 @@ const Select = (props) => {
 
   return (
     <div style={style}>
+      {label && !placeholder ? <TopLabel>{label}</TopLabel> : null}
       <StyledFormControl required={required} fullWidth={fullWidth} error={error} size={size}>
-        {label && !value ? <StyledInputLabel id="demo-simple-select-outlined-label">{label}</StyledInputLabel> : null}
-        <MuiSelect
+        {(label || placeholder) && !value ? (
+          <StyledInputLabel id="demo-simple-select-outlined-label">{label || placeholder}</StyledInputLabel>
+        ) : null}
+        <StyledSelect
           labelId="demo-simple-select-outlined-label-label"
           id="demo-simple-select-outlined-label"
           multiple={multiple}
@@ -42,9 +47,9 @@ const Select = (props) => {
           variant={variant}
           value={value}
           onChange={onChange}
-          label={label}
           size={size}
-          input={<OutlinedInput />}
+          extrasmall={extrasmall.toString()}
+          input={<StyledOutlinedInput />}
         >
           {options.map((option) => {
             return (
@@ -53,7 +58,7 @@ const Select = (props) => {
               </MenuItem>
             );
           })}
-        </MuiSelect>
+        </StyledSelect>
       </StyledFormControl>
     </div>
   );
@@ -85,9 +90,22 @@ const StyledInputLabel = styled(InputLabel)`
   top: -8px;
 `;
 const StyledFormControl = styled(FormControl)`
-  padding: 0px;
   svg {
     position: absolute;
-    top: 8px;
+    top: inherit;
+    right: 0;
   }
+`;
+const TopLabel = styled.div`
+  margin: 0px 0px 5px 0px;
+  padding: 0;
+  font-size: 16px;
+`;
+
+const StyledSelect = styled(MuiSelect)`
+  height: ${(props) => (props.extrasmall === 'true' ? '40px' : 'inherit')};
+`;
+
+const StyledOutlinedInput = styled(OutlinedInput)`
+  font-size: ${(props) => (props.extrasmall === 'true' ? '18px !important' : 'none')};
 `;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import styled from 'styled-components';
-import { startCase, toLower, map } from 'lodash';
+import { startCase, toLower, map, isEmpty } from 'lodash';
 import { Paper, Divider } from '@material-ui/core/';
 import Button from 'components/common/Button';
 import Table from '@material-ui/core/Table';
@@ -19,6 +19,7 @@ import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import SettingsIcon from '@material-ui/icons/Settings';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
+import MoodIcon from '@material-ui/icons/Mood';
 
 import CreateNewJobForm from './Components/CreateNewJobForm';
 
@@ -145,7 +146,6 @@ class ProjectDetail extends React.Component {
     const { name, total_members, description } = project[0] || {};
     const projectName = startCase(toLower(name));
 
-    console.log(newJobInput);
     return (
       <div className={classes.projectWrapper}>
         <div className={classes.headerWrapper}>
@@ -192,10 +192,23 @@ class ProjectDetail extends React.Component {
                   </HeaderText>
                   <Divider light className={classes.dividers} />
                   <NewJobRightbarWrapper>
+                    {isEmpty(newJobInput) ? (
+                      <p style={{ fontSize: 18 }}>
+                        Start by filling the information.
+                        <span style={{ color: '#241F66', fontSize: 22 }}>&#9756;</span>
+                      </p>
+                    ) : null}
                     {map(newJobInput, (value, key) => {
+                      if (key === 'value' || key === 'unit') {
+                        key = 'Frequency ' + key;
+                      }
+                      let formattedKey = key
+                        ? key.replace('_', ' ').charAt(0).toUpperCase() + key.replace('_', ' ').substr(1).toLowerCase()
+                        : '';
+
                       return (
                         <div>
-                          <p className="key">{key}</p>
+                          <p className="key">{formattedKey}</p>
                           <p className="value">{value}</p>
                         </div>
                       );
