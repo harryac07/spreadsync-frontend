@@ -6,12 +6,14 @@ import Field from 'components/common/Field';
 import Select from 'components/common/Select';
 import Button from 'components/common/Button';
 import CronGenerator from 'components/common/CronGenerator';
+import DataConnector from './AddDataSourcesAndTarget';
 
 // const options = {
 //   headers: [HEADER.MONTHLY, HEADER.WEEKLY, HEADER.MINUTES, HEADER.HOURLY, HEADER.DAILY],
 // };
 const CreateNewJobForm = ({ handleSubmit, submitChange }) => {
   const classes = useStyles();
+  const [step, handleStepChange] = useState(1);
   const [inputObj, handleInputChange] = useState({
     unit: 'hours',
     value: 1,
@@ -55,110 +57,127 @@ const CreateNewJobForm = ({ handleSubmit, submitChange }) => {
     const payload = inputObj;
     const errorExists = isError();
     if (!errorExists) {
-      handleSubmit(payload);
+      // handleSubmit(payload);
+      if (step === 1) {
+        handleStepChange(2);
+      } else {
+        console.log('Final Payload ', step);
+      }
     }
   };
 
-  return (
-    <form>
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={6}>
-          <Field
-            required={true}
-            label={'Name'}
-            placeholder="Job name"
-            name="name"
-            error={error.name ? true : false}
-            onChange={handleChange}
-            size="small"
-          />
+  const renderStep1Form = () => {
+    return (
+      <form>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={6}>
+            <Field
+              required={true}
+              label={'Name'}
+              placeholder="Job name"
+              name="name"
+              error={error.name ? true : false}
+              onChange={handleChange}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={6}>
+            <Select
+              required={true}
+              label={'Job type'}
+              name="type"
+              error={error.type ? true : false}
+              options={[
+                { key: 'test', value: 'test', label: 'test' },
+                { key: 'test1', value: 'test1', label: 'test1' },
+                { key: 'test2', value: 'test2', label: 'test2' },
+              ]}
+              onChange={handleChange}
+              size="small"
+              fullWidth={true}
+              value={inputObj.type}
+            />
+          </Grid>
+          <Grid item xs={12} sm={12} md={12}>
+            <CronGenerator
+              defaultUnit={inputObj.unit}
+              defaultValue={inputObj.value}
+              onChange={handleChange}
+              error={{ unit: !!error.unit, value: !!error.value }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={6}>
+            <Select
+              required={true}
+              label={'Data source'}
+              name="data_source"
+              error={!!error.data_source}
+              options={[
+                { value: 'database', label: 'Sql Database' },
+                { value: 'api', label: 'API endpoint' },
+                { value: 'crm', label: 'CRM' },
+              ]}
+              onChange={handleChange}
+              size="small"
+              fullWidth={true}
+              value={inputObj.data_source}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={6}>
+            <Select
+              required={true}
+              label={'Data destination'}
+              name="data_destination"
+              error={!!error.data_destination}
+              options={[
+                { value: 'spreadsheet', label: 'Spreadsheet' },
+                { value: 'slack', label: 'Slack' },
+                { value: 'email', label: 'Email' },
+              ]}
+              onChange={handleChange}
+              size="small"
+              fullWidth={true}
+              value={inputObj.data_destination}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={6}>
+            <Field
+              required={true}
+              label={'Description'}
+              placeholder="Job description"
+              name="description"
+              error={!!error.description}
+              onChange={handleChange}
+              multiline
+              rows={4}
+              size="small"
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={6} md={6}>
-          <Select
-            required={true}
-            label={'Job type'}
-            name="type"
-            error={error.type ? true : false}
-            options={[
-              { key: 'test', value: 'test', label: 'test' },
-              { key: 'test1', value: 'test1', label: 'test1' },
-              { key: 'test2', value: 'test2', label: 'test2' },
-            ]}
-            onChange={handleChange}
-            size="small"
-            fullWidth={true}
-            value={inputObj.type}
-          />
-        </Grid>
-        <Grid item xs={12} sm={12} md={12}>
-          <CronGenerator
-            defaultUnit={inputObj.unit}
-            defaultValue={inputObj.value}
-            onChange={handleChange}
-            error={{ unit: !!error.unit, value: !!error.value }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={6}>
-          <Select
-            required={true}
-            label={'Data source'}
-            name="data_source"
-            error={!!error.data_source}
-            options={[
-              { value: 'database', label: 'Sql Database' },
-              { value: 'api', label: 'API endpoint' },
-              { value: 'crm', label: 'CRM' },
-            ]}
-            onChange={handleChange}
-            size="small"
-            fullWidth={true}
-            value={inputObj.data_source}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={6}>
-          <Select
-            required={true}
-            label={'Data destination'}
-            name="data_destination"
-            error={!!error.data_destination}
-            options={[
-              { value: 'spreadsheet', label: 'Spreadsheet' },
-              { value: 'slack', label: 'Slack' },
-              { value: 'email', label: 'Email' },
-            ]}
-            onChange={handleChange}
-            size="small"
-            fullWidth={true}
-            value={inputObj.data_destination}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={6}>
-          <Field
-            required={true}
-            label={'Description'}
-            placeholder="Job description"
-            name="description"
-            error={!!error.description}
-            onChange={handleChange}
-            multiline
-            rows={4}
-            size="small"
-          />
-        </Grid>
-      </Grid>
-      <Button
-        className={classes.submitButton}
-        fullWidth
-        variant="contained"
-        color="primary"
-        onClick={submitForm}
-        type="submit"
-        float={'right'}
-      >
-        Next
-      </Button>
-    </form>
-  );
+        <Button
+          className={classes.submitButton}
+          fullWidth
+          variant="contained"
+          color="primary"
+          onClick={submitForm}
+          type="submit"
+          float={'right'}
+        >
+          Next
+        </Button>
+      </form>
+    );
+  };
+
+  const renderDataConnector = () => {
+    return (
+      <div>
+        <DataConnector />
+      </div>
+    );
+  };
+
+  return <div>{step === 1 ? renderStep1Form() : renderDataConnector()}</div>;
 };
 
 const useStyles = makeStyles((theme) => ({
