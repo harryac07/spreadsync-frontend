@@ -148,7 +148,9 @@ class Main extends React.Component {
             )}
           />
           <Route path="/integrations">Integrations</Route>
-          <Route path="/teams">Teams</Route>
+          <Route path="/teams">
+            <MainWrapper>Teams</MainWrapper>
+          </Route>
           <Route path="/profile">Profile and Account</Route>
           <Route path="/setting">Setting</Route>
         </Switch>

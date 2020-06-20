@@ -47,7 +47,6 @@ class TopNavigation extends Component {
     });
   };
   closeOpenedMenu = (e, redirectUrl = '') => {
-    e.preventDefault();
     const { currentMenuOpen } = this.state;
 
     if (redirectUrl) {
