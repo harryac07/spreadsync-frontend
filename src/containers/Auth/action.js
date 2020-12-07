@@ -19,10 +19,11 @@ export const signup = (reqPayload, extraObj) => {
  * login
  * @param {Object}reqPayload
  */
-export const login = (reqPayload) => {
+export const login = (reqPayload, auth = 'username/password') => {
   return {
     type: LOGIN,
     data: reqPayload,
+    auth: auth,
   };
 };
 

@@ -27,6 +27,9 @@ const theme = createMuiTheme({
       primary: colors.black,
       secondary: colors.gray,
     },
+    error: {
+      main: colors.error,
+    },
     action: {
       disabled: colors.grayLight3,
       disabledBackground: colors.grayLight4,

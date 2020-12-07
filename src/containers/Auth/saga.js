@@ -45,14 +45,19 @@ export function* signupSaga(action) {
   }
 }
 
-const login = (payload) => {
-  return axios.post(`${API_URL}/auth/login`, payload).then((response) => {
+const login = ({ data, auth }) => {
+  if (auth === 'google') {
+    return axios.post(`${API_URL}/auth/login/google`, data).then((response) => {
+      return response.data;
+    });
+  }
+  return axios.post(`${API_URL}/auth/login`, data).then((response) => {
     return response.data;
   });
 };
 export function* loginSaga(action) {
   try {
-    const data = yield call(login, action.data);
+    const data = yield call(login, action);
     localStorage.setItem('token', data.token);
     yield put({
       type: LOGIN_SUCCEED,

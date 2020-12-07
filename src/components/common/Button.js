@@ -14,10 +14,11 @@ const Button = (props) => {
     display,
     float = 'none',
     fullWidth = false,
+    rootStyle,
   } = props;
 
   return (
-    <ButtonWrapper float={float}>
+    <ButtonWrapper float={float} style={rootStyle}>
       <StyledButton
         onClick={onClick}
         className={className}

@@ -21,6 +21,8 @@ import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import MoodIcon from '@material-ui/icons/Mood';
 
+import CreateNewJobForm from './Components/CreateNewJobForm';
+
 class ProjectDetail extends React.Component {
   constructor(props) {
     super(props);
@@ -136,14 +138,13 @@ class ProjectDetail extends React.Component {
     );
   };
   render() {
-    const { classes, projectDetail, history } = this.props;
+    const { classes, projectDetail } = this.props;
 
     const { project, jobs = [] } = projectDetail;
     const { currentView, newJobInput } = this.state;
 
     const { name, total_members, description } = project[0] || {};
     const projectName = startCase(toLower(name));
-    const { id } = this.props.match.params;
 
     return (
       <div className={classes.projectWrapper}>
@@ -168,6 +169,56 @@ class ProjectDetail extends React.Component {
 
         {/* Setting view */}
         {currentView === 'setting' ? <div>{this.renderProjectSetting()}</div> : null}
+        {/* New job view */}
+        {currentView === 'newjob' ? (
+          <div>
+            <Paper elevation={3} className={classes.contentWrapper}>
+              <Grid container spacing={0}>
+                <Grid item xs={8} sm={8} md={8}>
+                  <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
+                    Add new job
+                  </HeaderText>
+                  <Divider light className={classes.dividers} />
+
+                  <div className={classes.content}>
+                    <div>
+                      <CreateNewJobForm submitChange={this.submitNewJobChange} handleSubmit={this.createNewJob} />
+                    </div>
+                  </div>
+                </Grid>
+                <Grid item xs={4} sm={4} md={4} className={classes.createJobRightbar}>
+                  <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
+                    Job Summary
+                  </HeaderText>
+                  <Divider light className={classes.dividers} />
+                  <NewJobRightbarWrapper>
+                    {isEmpty(newJobInput) ? (
+                      <p style={{ fontSize: 18 }}>
+                        Start by filling the information.
+                        <span style={{ color: '#241F66', fontSize: 22 }}>&#9756;</span>
+                      </p>
+                    ) : null}
+                    {map(newJobInput, (value, key) => {
+                      if (key === 'value' || key === 'unit') {
+                        key = 'Frequency ' + key;
+                      }
+                      let formattedKey = key
+                        ? key.replace('_', ' ').charAt(0).toUpperCase() + key.replace('_', ' ').substr(1).toLowerCase()
+                        : '';
+
+                      return (
+                        <div>
+                          <p className="key">{formattedKey}</p>
+                          <p className="value">{value}</p>
+                        </div>
+                      );
+                    })}
+                  </NewJobRightbarWrapper>
+                </Grid>
+              </Grid>
+            </Paper>
+          </div>
+        ) : null}
 
         {/* Job list view */}
         {currentView === 'job' ? (
@@ -180,11 +231,7 @@ class ProjectDetail extends React.Component {
                   <Button
                     startIcon={<AddIcon className={classes.iconSmall} />}
                     size="xs"
-                    onClick={() => {
-                      localStorage.setItem('current_project', this.props.match.params.id);
-                      localStorage.removeItem('new_job_object');
-                      history.push(`job/new`);
-                    }}
+                    onClick={() => this.updateCurrentView('newjob')}
                   >
                     Create job
                   </Button>

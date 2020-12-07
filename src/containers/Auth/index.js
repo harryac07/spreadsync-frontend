@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { toLower } from 'lodash';
 import jwt from 'jsonwebtoken';
+import { GoogleLogin } from 'react-google-login';
 import styled from 'styled-components';
 import { withStyles } from '@material-ui/core/styles';
 import { Paper, Grid, Divider, Button } from '@material-ui/core/';
@@ -17,6 +18,8 @@ import SignupForm from './Components/SignupForm';
 import LoginForm from './Components/LoginForm';
 import SelectAccountForm from './Components/SelectAccountForm';
 import AlertBox from 'components/common/AlertBox';
+
+import { GOOGLE_CLIENT_ID } from 'env';
 
 class Auth extends React.Component {
   constructor(props) {
@@ -65,6 +68,10 @@ class Auth extends React.Component {
   handleLogout = () => {
     localStorage.clear();
     this.props.history.push('/login');
+  };
+
+  handleLoginWithGoogle = ({ code }) => {
+    this.props.login({ authCode: code, auth: 'google' }, 'google');
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -170,10 +177,15 @@ class Auth extends React.Component {
           <div className="line-with-text-center">
             <span>Or login with</span>
           </div>
-          <Button variant="contained" className={classes.buttonSocial}>
-            <GoogleIcon />
-            Google
-          </Button>
+          <GoogleLogin
+            clientId={GOOGLE_CLIENT_ID}
+            buttonText="Google"
+            onSuccess={this.handleLoginWithGoogle}
+            onFailure={(responseGoogle) => console.log('Google auth error: ', responseGoogle)}
+            cookiePolicy={'single_host_origin'}
+            responseType="code"
+            accessType="offline"
+          />
           <p>
             Don't have an account yet? <StyledLink to="/signup">sign up</StyledLink>
           </p>
