@@ -27,18 +27,18 @@ class Test extends React.Component {
     return (
       <div>
         <Grid container spacing={3}>
-          {projects.map((project) => {
+          {projects.map(project => {
             const { id } = project;
             const { total_members } = project;
             const projectName = truncate(startCase(toLower(project.name)), {
-              length: 30,
+              length: 30
             });
             const description = truncate(project.description, {
-              length: 100,
+              length: 100
             });
             return (
               <Grid item xs={12} sm={4} md={4} lg={4} xl={3} key={id}>
-                <Paper className={classes.projectWrapper} onClick={(e) => this.redirectToProjectDetail(e, id)}>
+                <Paper className={classes.projectWrapper} onClick={e => this.redirectToProjectDetail(e, id)}>
                   <div className={classes.projectHeaderWrapper}>
                     <HeaderText display="inline-block" className={classes.headerText}>
                       {projectName}
@@ -62,13 +62,13 @@ class Test extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = state => {
   return {
-    store: state.project,
+    store: state.project
   };
 };
 
-const styles = (theme) => ({
+const styles = theme => ({
   projectWrapper: {
     background: '#fff',
     border: 0,
@@ -81,23 +81,23 @@ const styles = (theme) => ({
     minHeight: 150,
     [theme.breakpoints.up('xl')]: {
       maxHeight: 350,
-      minHeight: 300,
-    },
+      minHeight: 300
+    }
   },
   projectBody: {
     minHeight: 150,
-    fontSize: 14,
+    fontSize: 14
   },
   headerText: {
-    width: '80%',
+    width: '80%'
   },
   userGroup: {
     width: '20%',
     textAlign: 'right',
-    float: 'right',
+    float: 'right'
   },
   divider: {
-    margin: '10px auto',
+    margin: '10px auto'
   },
   userGroupIcon: {},
   userCount: {
@@ -105,13 +105,13 @@ const styles = (theme) => ({
     position: 'relative',
     top: -8,
     paddingLeft: 5,
-    fontWeight: 500,
+    fontWeight: 500
   },
   projectHeaderWrapper: {
-    cursor: 'pointer',
-  },
+    cursor: 'pointer'
+  }
 });
 
 export default connect(mapStateToProps, {
-  fetchProjects,
+  fetchProjects
 })(withStyles(styles)(Test));
