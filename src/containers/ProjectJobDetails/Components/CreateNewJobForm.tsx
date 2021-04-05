@@ -7,17 +7,18 @@ import Button from 'components/common/Button';
 import { Grid } from '@material-ui/core';
 
 import CronGenerator from 'components/common/CronGenerator';
-import useProjectJobsHooks, { NewJobPayloadProps } from '../hooks/useProjectJobsHooks';
+import { NewJobPayloadProps } from '../hooks/useProjectJobsHooks';
 
 interface Props {
   updateStep: (value: number) => void;
   projectId: string;
+  defaultData?: any;
+  createNewJob: (data) => void;
 }
 type FormProps = Omit<NewJobPayloadProps, 'project'>;
 
-const CreateNewJobForm: React.FC<Props> = ({ updateStep, projectId }) => {
+const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId, createNewJob }) => {
   const classes = useStyles();
-  const [{ newJobPayload }, { createNewJob }] = useProjectJobsHooks();
 
   const [error, setError] = useState({} as FormProps);
   const [inputObj, setInputObj] = useState({
@@ -25,14 +26,11 @@ const CreateNewJobForm: React.FC<Props> = ({ updateStep, projectId }) => {
     value: 1
   } as FormProps);
   useEffect(() => {
-    if (!isEmpty(newJobPayload)) {
-      const obj = newJobPayload;
-      setInputObj({
-        ...inputObj,
-        ...obj
-      });
+    if (!isEmpty(defaultData)) {
+      setInputObj(defaultData);
     }
-  }, []);
+  }, [defaultData]);
+
   const handleInputChange = data => {
     setInputObj({
       ...inputObj,
@@ -52,8 +50,8 @@ const CreateNewJobForm: React.FC<Props> = ({ updateStep, projectId }) => {
     });
   };
   const isError = () => {
-    const { name, type, unit, value, data_source, data_destination, description } = inputObj;
-    if (name && type && unit && Number(value) && data_source && data_destination && description) {
+    const { name, type, unit, value, data_source, data_target, description } = inputObj;
+    if (name && type && unit && Number(value) && data_source && data_target && description) {
       return false;
     }
 
@@ -64,7 +62,7 @@ const CreateNewJobForm: React.FC<Props> = ({ updateStep, projectId }) => {
       unit: unit ? '' : 'Frequency unit is required',
       value: Number(value) ? '' : 'Frequency value is required',
       data_source: data_source ? '' : 'Data source is required',
-      data_destination: data_destination ? '' : 'Data destination is required',
+      data_target: data_target ? '' : 'Data target is required',
       description: description ? '' : 'Job description is required'
     });
     return true;
@@ -86,10 +84,11 @@ const CreateNewJobForm: React.FC<Props> = ({ updateStep, projectId }) => {
           <Field
             required={true}
             label={'Name'}
-            placeholder="Job name"
+            placeholder="Job Name"
             name="name"
-            error={error.name ? true : false}
+            error={!!error.name}
             onChange={handleChange}
+            multiline
             size="small"
             defaultValue={inputObj.name}
           />
@@ -134,8 +133,8 @@ const CreateNewJobForm: React.FC<Props> = ({ updateStep, projectId }) => {
           <Select
             required={true}
             label={'Data destination'}
-            name="data_destination"
-            error={!!error.data_destination}
+            name="data_target"
+            error={!!error.data_target}
             options={[
               { value: 'spreadsheet', label: 'Spreadsheet' },
               { value: 'slack', label: 'Slack' },
@@ -144,15 +143,15 @@ const CreateNewJobForm: React.FC<Props> = ({ updateStep, projectId }) => {
             onChange={handleChange}
             size="small"
             fullWidth={true}
-            value={inputObj.data_destination}
+            value={inputObj.data_target}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={6}>
           <CronGenerator
+            key={inputObj.unit + inputObj.value}
             defaultUnit={inputObj.unit}
             defaultValue={inputObj.value}
             onChange={handleChange}
-            // error={{ unit: !!error.unit, value: !!error.value }}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={6}>

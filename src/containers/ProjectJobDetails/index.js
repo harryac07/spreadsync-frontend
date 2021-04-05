@@ -7,42 +7,46 @@ import { makeStyles } from '@material-ui/core/styles';
 import { fetchProjectById } from 'containers/ProjectDetail/action';
 import CreateNewJobForm from './Components/CreateNewJobForm';
 import GroupIcon from '@material-ui/icons/Group';
+import useProjectJobsHooks from './hooks/useProjectJobsHooks';
 
 import DataSourceConnector from './Components/AddDataSource';
 import DataTargetConnector from './Components/AddDataTarget';
 
 const steps = [
   {
-    label: 'Create a job',
+    label: 'Job detail',
+    createNewJobLabel: 'Create a job',
     id: 0
   },
   {
-    label: 'Connect data source',
+    label: 'Data source',
+    createNewJobLabel: 'Connect data source',
     id: 1
   },
   {
-    label: 'Connect data target',
+    label: 'Data target',
+    createNewJobLabel: 'Connect data target',
     id: 2
   }
 ];
 
 const CreateNewJob = props => {
-  const { projectDetail } = useSelector(state => {
-    return {
-      projectDetail: state.projectDetail
-    };
-  });
+  const { id: projectId, jobid: jobId } = props?.match?.params ?? {};
+
+  const [{ currentJob, currentJobDataSource, currentProject }, { createDataSource }] = useProjectJobsHooks(
+    projectId,
+    jobId
+  );
 
   const [activeStep, setActiveStep] = useState(0);
   const [navigableStepMax, setNavigableStepMax] = useState(1);
   const dispatch = useDispatch();
   const classes = useStyles();
+  const isCreatingNewJob = props?.match?.path?.includes('/job/new');
 
   useEffect(() => {
-    const { project = [] } = projectDetail;
-    if (project.length === 0) {
-      const { id } = props.match.params;
-      dispatch(fetchProjectById(id));
+    if (isEmpty(currentProject)) {
+      dispatch(fetchProjectById(projectId));
     }
   }, []);
 
@@ -58,8 +62,7 @@ const CreateNewJob = props => {
     handleNavigableStepChange(step);
   };
 
-  const { project = [], jobs = [] } = projectDetail;
-  const { id, name, total_members, description } = project[0] || {};
+  const { id, name, total_members, description } = currentProject || {};
   const projectName = startCase(toLower(name)) || 'Loading...';
 
   return (
@@ -81,13 +84,13 @@ const CreateNewJob = props => {
           <Grid container spacing={0}>
             <Grid item xs={12}>
               <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px 30px" display="inline-block">
-                Add new job
+                {isCreatingNewJob ? 'Add new job' : currentJob.name}
               </HeaderText>
               <Divider light className={classes.dividers} />
 
               <div className={classes.content}>
                 <Stepper activeStep={activeStep} style={{ padding: '20px 0px', width: '60%', marginBottom: 10 }}>
-                  {steps.map(({ label, id }, index) => (
+                  {steps.map(({ label, id, createNewJobLabel }, index) => (
                     <Step
                       key={label}
                       onClick={e => {
@@ -97,15 +100,23 @@ const CreateNewJob = props => {
                         }
                       }}
                     >
-                      <StepLabel style={{ marginLeft: index === 0 ? -8 : 'inherit' }}>{label}</StepLabel>
+                      <StepLabel style={{ marginLeft: index === 0 ? -8 : 'inherit' }}>
+                        {isCreatingNewJob ? createNewJobLabel : label}
+                      </StepLabel>
                     </Step>
                   ))}
                 </Stepper>
                 <div style={{ border: '1px solid #eee', padding: 30 }}>
-                  {activeStep === 0 && <CreateNewJobForm projectId={id} updateStep={handleUpdateStep} />}
+                  {activeStep === 0 && (
+                    <CreateNewJobForm projectId={id} updateStep={handleUpdateStep} defaultData={currentJob} />
+                  )}
 
                   {activeStep === 1 && (
-                    <DataSourceConnector data_source={'database'} handleSubmit={data => console.log(data)} />
+                    <DataSourceConnector
+                      data_source={'database'}
+                      defaultData={currentJobDataSource}
+                      handleSubmit={data => console.log(data)}
+                    />
                   )}
 
                   {activeStep === 2 && (

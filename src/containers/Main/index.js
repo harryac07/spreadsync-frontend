@@ -13,7 +13,7 @@ import { MainWrapper } from 'components/common/MainWrapper';
 import WrapperWithNavigation from 'components/WrapperWithNavigation';
 import Projects from 'containers/Projects';
 import ProjectDetail from 'containers/ProjectDetail';
-import CreateNewJob from 'containers/ProjectJobs';
+import JobDetails from 'containers/ProjectJobDetails';
 // import AuthCallback from 'containers/AuthCallback';
 
 import logo from '../../utils/spreadsync_logo_black.png';
@@ -132,13 +132,17 @@ class Main extends React.Component {
             path="/projects/:id/job/new"
             render={props => (
               <MainWrapper nopadding>
-                <CreateNewJob {...props} />
+                <JobDetails {...props} />
               </MainWrapper>
             )}
           />
           <Route
             path="/projects/:id/job/:jobid"
-            render={props => <MainWrapper nopadding>Job detail view</MainWrapper>}
+            render={props => (
+              <MainWrapper nopadding>
+                <JobDetails {...props} />
+              </MainWrapper>
+            )}
           />
           <Route
             path="/projects/:id"

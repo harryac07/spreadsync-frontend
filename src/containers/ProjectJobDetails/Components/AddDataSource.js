@@ -5,8 +5,6 @@ import Modal from 'components/common/ModalWithButton';
 import useProjectJobsHooks from '../hooks/useProjectJobsHooks';
 
 const DataConnector = props => {
-  const [{ newDataSourcePayload }, { createDataSource }] = useProjectJobsHooks();
-
   const [isModelOpen, handleModelOpen] = useState(false);
   const { data_source, handleSubmit } = props;
 
