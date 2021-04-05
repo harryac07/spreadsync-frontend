@@ -18,26 +18,26 @@ class CreateNewJobForm extends React.Component {
       navigableStepMax: 1,
       inputObj: {
         database: 'PostgreSQL',
-        database_extra: '',
+        database_extra: 'ssl'
       },
-      error: {},
+      error: {}
     };
   }
-  handleInputChange = (data) => {
+  handleInputChange = data => {
     this.setState({ inputObj: data });
   };
-  handleError = (data) => {
+  handleError = data => {
     this.setState({ error: data });
   };
-  handleChange = (e) => {
+  handleChange = e => {
     const { name, value } = e.target;
     this.handleInputChange({
       ...this.state.inputObj,
-      [name]: value,
+      [name]: value
     });
     this.handleError({
       ...this.state.error,
-      [name]: !value ? `${startCase(toLower(name))} is required` : '',
+      [name]: !value ? `${startCase(toLower(name))} is required` : ''
     });
   };
   isError = () => {
@@ -52,7 +52,7 @@ class CreateNewJobForm extends React.Component {
       ssh_host,
       ssh_username,
       ssh_password,
-      ssh_key,
+      ssh_key
     } = this.state.inputObj;
     if (database && host && port && name && user && password) {
       if (!database_extra) {
@@ -77,12 +77,12 @@ class CreateNewJobForm extends React.Component {
         database_extra === 'ssl' || !database_extra ? '' : ssh_username ? '' : 'Database ssh_username is required',
       ssh_password:
         database_extra === 'ssl' || !database_extra ? '' : ssh_password ? '' : 'Database ssh_password is required',
-      ssh_key: database_extra === 'ssl' || !database_extra ? '' : ssh_key ? '' : 'Database ssh_key is required',
+      ssh_key: database_extra === 'ssl' || !database_extra ? '' : ssh_key ? '' : 'Database ssh_key is required'
     });
     return true;
   };
 
-  submitForm = (e) => {
+  submitForm = e => {
     e.preventDefault();
     const payload = this.state.inputObj;
     const { handleSubmit } = this.props;
@@ -166,6 +166,7 @@ class CreateNewJobForm extends React.Component {
   render() {
     const { classes, cancelSubmit } = this.props;
     const { error, inputObj } = this.state;
+    console.log(inputObj, error);
     return (
       <div>
         <form>
@@ -179,7 +180,7 @@ class CreateNewJobForm extends React.Component {
                 options={[
                   { key: 'PostgreSQL', value: 'PostgreSQL', label: 'PostgreSQL' },
                   { key: 'MySQL', value: 'MySQL', label: 'MySQL' },
-                  { key: 'SQL Server', value: 'SQL Server', label: 'SQL Server' },
+                  { key: 'SQL Server', value: 'SQL Server', label: 'SQL Server' }
                 ]}
                 onChange={this.handleChange}
                 size="small"
@@ -286,71 +287,64 @@ class CreateNewJobForm extends React.Component {
 
           {inputObj.database_extra === 'ssh' ? this.renderSSHForm() : null}
 
-          <div className={classes.buttonWrapper}>
-            <Button
-              rootStyle={{ display: 'inline-block', marginRight: 10 }}
-              className={classes.cancelButton}
-              fullWidth
-              color="error"
-              onClick={() => cancelSubmit(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              rootStyle={{ display: 'inline-block' }}
-              className={classes.submitButton}
-              fullWidth
-              variant="contained"
-              color="primary"
-              onClick={this.submitForm}
-              type="submit"
-            >
-              Save
-            </Button>
-          </div>
+          <Grid container justify="flex-end" style={{ marginTop: 20 }}>
+            <Grid item xs="auto">
+              <Button
+                rootStyle={{ display: 'inline-block' }}
+                className={classes.submitButton}
+                variant="contained"
+                color="primary"
+                onClick={this.submitForm}
+                type="submit"
+              >
+                Save and continue
+              </Button>
+            </Grid>
+          </Grid>
         </form>
       </div>
     );
   }
 }
 
-const styles = (theme) => ({
+const styles = theme => ({
   header: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: 'bold'
   },
   inviteMoreUserButton: {
     fontSize: 12,
     paddingTop: 6,
-    marginBottom: 10,
+    marginBottom: 10
   },
   inviteMoreField: {
-    marginBottom: 10,
+    marginBottom: 10
   },
   submitButton: {
-    display: 'inline-block',
+    display: 'inline-block'
   },
   cancelButton: {
-    display: 'inline-block',
+    display: 'inline-block'
   },
   buttonWrapper: {
     float: 'right',
     display: 'inline-block',
+    margin: '20px 0px'
   },
   selectedCountSpan: {
-    fontWeight: 500,
+    fontWeight: 500
   },
   step: {
-    cursor: 'pointer',
+    cursor: 'pointer'
   },
   radio: {
-    padding: '9px 9px 9px 0px',
+    padding: '9px 9px 9px 0px'
   },
   radioLabel: {
     margin: '0px 15px 5px 0px',
     padding: 0,
-    fontSize: 16,
-  },
+    fontSize: 16
+  }
 });
 
 export default withStyles(styles)(CreateNewJobForm);

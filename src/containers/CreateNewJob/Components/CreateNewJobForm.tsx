@@ -170,17 +170,20 @@ const CreateNewJobForm: React.FC<Props> = ({ updateStep, projectId }) => {
           />
         </Grid>
       </Grid>
-      <Button
-        className={classes.submitButton}
-        fullWidth
-        variant="contained"
-        color="primary"
-        onClick={submitForm}
-        type="submit"
-        float={'right'}
-      >
-        Save and continue
-      </Button>
+      <Grid container justify="flex-end">
+        <Grid item xs="auto">
+          <Button
+            className={classes.submitButton}
+            variant="contained"
+            color="primary"
+            onClick={submitForm}
+            type="submit"
+            // float={'right'}
+          >
+            Save and continue
+          </Button>
+        </Grid>
+      </Grid>
     </form>
   );
 };

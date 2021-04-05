@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import Button from 'components/common/Button';
 import DatabaseForm from './DatabaseSourceForm';
 import Modal from 'components/common/ModalWithButton';
+import useProjectJobsHooks from '../hooks/useProjectJobsHooks';
 
-const DataConnector = (props) => {
+const DataConnector = props => {
+  const [{ newDataSourcePayload }, { createDataSource }] = useProjectJobsHooks();
+
   const [isModelOpen, handleModelOpen] = useState(false);
   const { data_source, handleSubmit } = props;
 
@@ -26,17 +29,17 @@ const DataConnector = (props) => {
 
   return (
     <div>
-      {data_source === 'database' ? renderDatabaseSource() : null}
-      {isModelOpen && data_source === 'database' ? (
-        <Modal autoClose={false} modalTitle={'Create Project'} modalWidth={'40%'}>
-          <DatabaseForm
-            cancelSubmit={(data) => {
-              handleModelOpen(data);
-            }}
-            handleSubmit={handleSubmit}
-          />
-        </Modal>
-      ) : null}
+      {/* {data_source === 'database' ? renderDatabaseSource() : null} */}
+      {data_source === 'database' ? (
+        // <Modal autoClose={false} modalTitle={'Create Project'} modalWidth={'40%'}>
+        <DatabaseForm
+          cancelSubmit={data => {
+            handleModelOpen(data);
+          }}
+          handleSubmit={handleSubmit}
+        />
+      ) : // </Modal>
+      null}
     </div>
   );
 };

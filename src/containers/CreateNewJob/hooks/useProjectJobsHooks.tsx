@@ -31,12 +31,12 @@ export default function useProjectJobsHooks(project: string = '') {
   // const [newJobPayload, setNewJobPayload] = useState({});
 
   const createNewJob = async (reqPayload: NewJobPayloadProps) => {
-    setNewJobPayload(reqPayload);
     console.log('creating new job ', reqPayload);
     try {
       const response = await axios.post(`${API_URL}/jobs/`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
+      setNewJobPayload(response.data[0]);
       storeDispatch(createJobSucceed(response.data));
     } catch (e) {
       console.log('createNewJobError ', e.response.data);

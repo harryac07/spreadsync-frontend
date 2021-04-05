@@ -33,7 +33,7 @@ const CreateNewJob = props => {
     };
   });
 
-  const [activeStep, setActiveStep] = useState(1);
+  const [activeStep, setActiveStep] = useState(0);
   const [navigableStepMax, setNavigableStepMax] = useState(1);
   const dispatch = useDispatch();
   const classes = useStyles();
@@ -80,14 +80,14 @@ const CreateNewJob = props => {
         <Paper elevation={3} className={classes.contentWrapper}>
           <Grid container spacing={0}>
             <Grid item xs={12}>
-              <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
+              <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px 30px" display="inline-block">
                 Add new job
               </HeaderText>
               <Divider light className={classes.dividers} />
 
               <div className={classes.content}>
-                <Stepper activeStep={activeStep} alternativeLabel>
-                  {steps.map(({ label, id }) => (
+                <Stepper activeStep={activeStep} style={{ padding: '20px 0px', width: '60%', marginBottom: 10 }}>
+                  {steps.map(({ label, id }, index) => (
                     <Step
                       key={label}
                       onClick={e => {
@@ -97,19 +97,21 @@ const CreateNewJob = props => {
                         }
                       }}
                     >
-                      <StepLabel>{label}</StepLabel>
+                      <StepLabel style={{ marginLeft: index === 0 ? -8 : 'inherit' }}>{label}</StepLabel>
                     </Step>
                   ))}
                 </Stepper>
-                {activeStep === 0 && <CreateNewJobForm projectId={id} updateStep={handleUpdateStep} />}
+                <div style={{ border: '1px solid #eee', padding: 30 }}>
+                  {activeStep === 0 && <CreateNewJobForm projectId={id} updateStep={handleUpdateStep} />}
 
-                {activeStep === 1 && (
-                  <DataSourceConnector data_source={'database'} handleSubmit={data => console.log(data)} />
-                )}
+                  {activeStep === 1 && (
+                    <DataSourceConnector data_source={'database'} handleSubmit={data => console.log(data)} />
+                  )}
 
-                {activeStep === 2 && (
-                  <DataTargetConnector data_source={'spreadsheet'} handleSubmit={data => console.log(data)} />
-                )}
+                  {activeStep === 2 && (
+                    <DataTargetConnector data_source={'spreadsheet'} handleSubmit={data => console.log(data)} />
+                  )}
+                </div>
               </div>
             </Grid>
           </Grid>
@@ -191,6 +193,9 @@ const useStyles = makeStyles(() => ({
     margin: 32
   },
   content: {
+    padding: '20px 30px'
+  },
+  formWrapper: {
     padding: 20
   },
   table: {
