@@ -13,7 +13,7 @@ import { MainWrapper } from 'components/common/MainWrapper';
 import WrapperWithNavigation from 'components/WrapperWithNavigation';
 import Projects from 'containers/Projects';
 import ProjectDetail from 'containers/ProjectDetail';
-import CreateNewJob from 'containers/CreateNewJob';
+import CreateNewJob from 'containers/ProjectJobs';
 // import AuthCallback from 'containers/AuthCallback';
 
 import logo from '../../utils/spreadsync_logo_black.png';
@@ -24,7 +24,7 @@ class Main extends React.Component {
     super(props);
     this.state = {
       loggedIn: false,
-      selectedAccount: '',
+      selectedAccount: ''
     };
   }
   componentDidMount() {
@@ -62,7 +62,7 @@ class Main extends React.Component {
       localStorage.setItem('account_name', name);
     }
   };
-  handleSwitchAccount = (each) => {
+  handleSwitchAccount = each => {
     this.selectAccount(each);
     this.redirectToProjectPage();
   };
@@ -105,7 +105,7 @@ class Main extends React.Component {
             <div className={classes.header}>Select Account</div>
             <Divider light className={classes.divider} />
             <div>
-              {accounts.map((each) => {
+              {accounts.map(each => {
                 const accountName = startCase(toLower(each.name));
                 return (
                   <Button
@@ -130,7 +130,7 @@ class Main extends React.Component {
         <Switch>
           <Route
             path="/projects/:id/job/new"
-            render={(props) => (
+            render={props => (
               <MainWrapper nopadding>
                 <CreateNewJob {...props} />
               </MainWrapper>
@@ -138,11 +138,11 @@ class Main extends React.Component {
           />
           <Route
             path="/projects/:id/job/:jobid"
-            render={(props) => <MainWrapper nopadding>Job detail view</MainWrapper>}
+            render={props => <MainWrapper nopadding>Job detail view</MainWrapper>}
           />
           <Route
             path="/projects/:id"
-            render={(props) => (
+            render={props => (
               <MainWrapper nopadding>
                 <ProjectDetail {...props} />
               </MainWrapper>
@@ -150,7 +150,7 @@ class Main extends React.Component {
           />
           <Route
             path="/projects"
-            render={(props) => (
+            render={props => (
               <MainWrapper>
                 <Projects {...props} />
               </MainWrapper>
@@ -168,20 +168,20 @@ class Main extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = state => {
   return {
-    app: state.app,
+    app: state.app
   };
 };
 
-const styles = (theme) => ({
+const styles = theme => ({
   button: {
     backgroundColor: '#eee',
     // color: '#627284',
     color: theme.palette.primary.main,
     margin: '15px auto',
     textTransform: 'none',
-    display: 'block',
+    display: 'block'
   },
   accountSwitcherWrapper: {
     display: 'flex',
@@ -190,7 +190,7 @@ const styles = (theme) => ({
     height: '100vh',
     overflow: 'scroll',
     textAlign: 'center',
-    backgroundImage: `url('${Background}')`,
+    backgroundImage: `url('${Background}')`
   },
   paper: {
     padding: 20,
@@ -198,22 +198,22 @@ const styles = (theme) => ({
     textAlign: 'center',
     margin: '0px auto',
     [theme.breakpoints.down('md')]: {
-      width: '50%',
+      width: '50%'
     },
     [theme.breakpoints.down('sm')]: {
-      width: '70%',
-    },
+      width: '70%'
+    }
   },
   header: {
     fontWeight: 'bold',
     fontSize: 22,
-    color: theme.palette.primary.main,
+    color: theme.palette.primary.main
   },
   divider: {
-    margin: '20px auto',
+    margin: '20px auto'
   },
   logoWrapper: {
-    margin: 10,
+    margin: 10
   },
   logo: {
     userDrag: 'none',
@@ -221,12 +221,12 @@ const styles = (theme) => ({
     MozUserSelect: 'none',
     WebkitUserDrag: 'none',
     WebkitUserSelect: 'none',
-    MsUserSelect: 'none',
-  },
+    MsUserSelect: 'none'
+  }
 });
 
 export default connect(mapStateToProps, {
-  fetchAllAccountsForUser,
+  fetchAllAccountsForUser
 })(withStyles(styles)(Main));
 
 const LoadingProject = styled.p`

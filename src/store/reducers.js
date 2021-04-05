@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux';
 import appReducer from 'containers/Main/reducer';
 import projectReducer from 'containers/Projects/reducer';
-import jobReducer from 'containers/CreateNewJob/reducer';
+import jobReducer from 'containers/ProjectJobDetails/reducer';
 import projectDetailReducer from 'containers/ProjectDetail/reducer';
 import authReducer from 'containers/Auth/reducer';
 
