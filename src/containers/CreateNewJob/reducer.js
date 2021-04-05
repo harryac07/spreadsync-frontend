@@ -1,43 +1,25 @@
-import {
-  FETCH_PROJECT,
-  FETCH_PROJECT_SUCCEED,
-  FETCH_PROJECT_FAILED,
-  FETCH_ALL_JOBS_SUCCEED,
-  FETCH_ALL_JOBS_FAILED,
-} from './constant';
+import { CREATE_JOB, CREATE_JOB_SUCCEED, CREATE_JOB_FAILED } from './constant';
 
 const initialState = {
-  isFetching: false,
-  project: [],
-  jobs: [],
+  jobCreated: false
 };
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-    case FETCH_PROJECT:
+    case CREATE_JOB:
       return {
         ...state,
-        isFetching: true,
+        jobCreated: false
       };
-    case FETCH_PROJECT_SUCCEED:
+    case CREATE_JOB_SUCCEED:
       return {
         ...state,
-        isFetching: false,
-        project: action.payload,
+        jobCreated: true
       };
-    case FETCH_PROJECT_FAILED:
+    case CREATE_JOB_FAILED:
       return {
         ...state,
-        isFetching: false,
-      };
-    case FETCH_ALL_JOBS_SUCCEED:
-      return {
-        ...state,
-        jobs: action.payload,
-      };
-    case FETCH_ALL_JOBS_FAILED:
-      return {
-        ...state,
-        jobs: [],
+        jobCreated: false,
+        isError: action.payload
       };
     default:
       return state;

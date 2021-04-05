@@ -7,7 +7,31 @@ import InputLabel from '@material-ui/core/InputLabel';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 const Proptypes = require('prop-types');
 
-const Select = (props) => {
+interface Props {
+  fullWidth?: boolean;
+  required?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  extrasmall?: boolean;
+  error?: boolean;
+  label?: string;
+  placeholder?: string;
+  multiple?: boolean;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  name?: string;
+  variant?: string;
+  className?: any;
+  value?: string;
+  style?: any;
+
+  disabled?: boolean;
+  autoWidth?: boolean;
+  options: {
+    key?: string;
+    value: string;
+    label: string;
+  }[];
+}
+const Select: React.FC<Props> = props => {
   const {
     fullWidth = true,
     required = false,
@@ -27,7 +51,7 @@ const Select = (props) => {
 
     disabled = false,
     autoWidth = false,
-    options = [],
+    options = []
   } = props;
 
   return (
@@ -51,7 +75,7 @@ const Select = (props) => {
           extrasmall={extrasmall.toString()}
           input={<StyledOutlinedInput />}
         >
-          {options.map((option) => {
+          {options.map(option => {
             return (
               <MenuItem key={option.label} value={option.value}>
                 {option.label}
@@ -62,25 +86,6 @@ const Select = (props) => {
       </StyledFormControl>
     </div>
   );
-};
-
-Select.propTypes = {
-  fullWidth: Proptypes.bool,
-  required: Proptypes.bool,
-  helperText: Proptypes.string,
-  label: Proptypes.string,
-  name: Proptypes.string,
-  placeholder: Proptypes.string,
-  multiline: Proptypes.bool,
-  onChange: Proptypes.func.isRequired,
-  rows: Proptypes.number,
-  size: Proptypes.string,
-  type: Proptypes.string,
-  variant: Proptypes.string,
-  defaultValue: Proptypes.any,
-  style: Proptypes.object,
-  error: Proptypes.bool,
-  disabled: Proptypes.bool,
 };
 export default Select;
 
@@ -103,9 +108,9 @@ const TopLabel = styled.div`
 `;
 
 const StyledSelect = styled(MuiSelect)`
-  height: ${(props) => (props.extrasmall === 'true' ? '40px' : 'inherit')};
+  height: ${props => (props.extrasmall === 'true' ? '40px' : 'inherit')};
 `;
 
 const StyledOutlinedInput = styled(OutlinedInput)`
-  font-size: ${(props) => (props.extrasmall === 'true' ? '18px !important' : 'none')};
+  font-size: ${props => (props.extrasmall === 'true' ? '18px !important' : 'none')};
 `;
