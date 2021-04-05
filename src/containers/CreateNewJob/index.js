@@ -1,17 +1,15 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { startCase, toLower, map, isEmpty } from 'lodash';
 import { Grid, Paper, Divider, Stepper, Step, StepLabel, Button } from '@material-ui/core/';
-import { withStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import { fetchProjectById } from 'containers/ProjectDetail/action';
 import CreateNewJobForm from './Components/CreateNewJobForm';
 import GroupIcon from '@material-ui/icons/Group';
-import GroupAddIcon from '@material-ui/icons/GroupAdd';
 
 import DataSourceConnector from './Components/AddDataSource';
 import DataTargetConnector from './Components/AddDataTarget';
-// import useProjectJobsHooks from '../hooks/useProjectJobsHooks';
 
 const steps = [
   {
@@ -28,118 +26,100 @@ const steps = [
   }
 ];
 
-class CreateNewJob extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      activeStep: 0,
-      navigableStepMax: 1
+const CreateNewJob = props => {
+  const { projectDetail } = useSelector(state => {
+    return {
+      projectDetail: state.projectDetail
     };
-  }
-  componentDidMount() {
-    const { projectDetail } = this.props;
-    const { project } = projectDetail;
+  });
+
+  const [activeStep, setActiveStep] = useState(1);
+  const [navigableStepMax, setNavigableStepMax] = useState(1);
+  const dispatch = useDispatch();
+  const classes = useStyles();
+
+  useEffect(() => {
+    const { project = [] } = projectDetail;
     if (project.length === 0) {
-      const { id } = this.props.match.params;
-      this.props.fetchProjectById(id);
+      const { id } = props.match.params;
+      dispatch(fetchProjectById(id));
     }
-  }
-  handleNavigableStepChange = step => {
-    this.setState({ navigableStepMax: step });
+  }, []);
+
+  const handleNavigableStepChange = step => {
+    setNavigableStepMax(step);
   };
 
-  handleStepChange = step => {
-    this.setState({
-      activeStep: step
-    });
+  const handleStepChange = step => {
+    setActiveStep(step);
   };
-  handleUpdateStep = step => {
-    this.handleStepChange(step);
-    this.handleNavigableStepChange(step);
+  const handleUpdateStep = step => {
+    handleStepChange(step);
+    handleNavigableStepChange(step);
   };
 
-  renderDataTargetConnector = () => {
-    const { data_destination } = this.state.inputObj;
-    return (
-      <div>
-        <DataTargetConnector data_source={'spreadsheet'} handleSubmit={data => console.log(data)} />
-      </div>
-    );
-  };
+  const { project = [], jobs = [] } = projectDetail;
+  const { id, name, total_members, description } = project[0] || {};
+  const projectName = startCase(toLower(name)) || 'Loading...';
 
-  render() {
-    const { classes, projectDetail, history } = this.props;
-    const { activeStep, navigableStepMax } = this.state;
-
-    const { project, jobs = [] } = projectDetail;
-    const { id, name, total_members, description } = project[0] || {};
-    const projectName = startCase(toLower(name)) || 'Loading...';
-
-    return (
-      <div>
-        {/* Project info */}
-        <div className={classes.headerWrapper}>
-          <HeaderText className={classes.HeaderText} display="inline-block">
-            {projectName}
-          </HeaderText>
-          <div className={classes.userGroup}>
-            <GroupIcon fontSize={'small'} />
-            <span className={classes.userCount}>{total_members || 0}</span>
-          </div>
+  return (
+    <div>
+      {/* Project info */}
+      <div className={classes.headerWrapper}>
+        <HeaderText className={classes.HeaderText} display="inline-block">
+          {projectName}
+        </HeaderText>
+        <div className={classes.userGroup}>
+          <GroupIcon fontSize={'small'} />
+          <span className={classes.userCount}>{total_members || 0}</span>
         </div>
+      </div>
 
-        {/* Add new job form and summary */}
-        <div>
-          <Paper elevation={3} className={classes.contentWrapper}>
-            <Grid container spacing={0}>
-              <Grid item xs={12}>
-                <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
-                  Add new job
-                </HeaderText>
-                <Divider light className={classes.dividers} />
+      {/* Add new job form and summary */}
+      <div>
+        <Paper elevation={3} className={classes.contentWrapper}>
+          <Grid container spacing={0}>
+            <Grid item xs={12}>
+              <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
+                Add new job
+              </HeaderText>
+              <Divider light className={classes.dividers} />
 
-                <div className={classes.content}>
-                  <Stepper activeStep={activeStep} alternativeLabel>
-                    {steps.map(({ label, id }) => (
-                      <Step
-                        key={label}
-                        onClick={e => {
-                          e.preventDefault();
-                          if (navigableStepMax >= id) {
-                            this.handleStepChange(id);
-                          }
-                        }}
-                      >
-                        <StepLabel>{label}</StepLabel>
-                      </Step>
-                    ))}
-                  </Stepper>
-                  {activeStep === 0 && <CreateNewJobForm projectId={id} updateStep={this.handleUpdateStep} />}
+              <div className={classes.content}>
+                <Stepper activeStep={activeStep} alternativeLabel>
+                  {steps.map(({ label, id }) => (
+                    <Step
+                      key={label}
+                      onClick={e => {
+                        e.preventDefault();
+                        if (navigableStepMax >= id) {
+                          handleStepChange(id);
+                        }
+                      }}
+                    >
+                      <StepLabel>{label}</StepLabel>
+                    </Step>
+                  ))}
+                </Stepper>
+                {activeStep === 0 && <CreateNewJobForm projectId={id} updateStep={handleUpdateStep} />}
 
-                  {activeStep === 1 && (
-                    <DataSourceConnector data_source={'database'} handleSubmit={data => console.log(data)} />
-                  )}
+                {activeStep === 1 && (
+                  <DataSourceConnector data_source={'database'} handleSubmit={data => console.log(data)} />
+                )}
 
-                  {activeStep === 2 && (
-                    <DataTargetConnector data_source={'spreadsheet'} handleSubmit={data => console.log(data)} />
-                  )}
-                </div>
-              </Grid>
+                {activeStep === 2 && (
+                  <DataTargetConnector data_source={'spreadsheet'} handleSubmit={data => console.log(data)} />
+                )}
+              </div>
             </Grid>
-          </Paper>
-        </div>
+          </Grid>
+        </Paper>
       </div>
-    );
-  }
-}
-
-const mapStateToProps = state => {
-  return {
-    projectDetail: state.projectDetail
-  };
+    </div>
+  );
 };
 
-const styles = theme => ({
+const useStyles = makeStyles(() => ({
   projectWrapper: {
     border: 0,
     borderRadius: 3,
@@ -221,9 +201,9 @@ const styles = theme => ({
     minHeight: '70vh',
     maxHeight: '80vh'
   }
-});
+}));
 
-export default connect(mapStateToProps, { fetchProjectById })(withStyles(styles)(CreateNewJob));
+export default CreateNewJob;
 
 export const HeaderText = styled.div`
   font-weight: bold;
