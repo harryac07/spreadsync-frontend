@@ -1,4 +1,4 @@
-import { CREATE_JOB_SUCCEED, CREATE_JOB_FAILED } from './constant';
+import { CREATE_JOB_SUCCEED, CREATE_JOB_FAILED, UPDATE_JOB_SUCCEED } from './constant';
 
 /**
  * createJobSucceed

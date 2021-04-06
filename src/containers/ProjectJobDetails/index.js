@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import styled from 'styled-components';
-import { startCase, toLower, map, isEmpty } from 'lodash';
-import { Grid, Paper, Divider, Stepper, Step, StepLabel, Button } from '@material-ui/core/';
-import { makeStyles } from '@material-ui/core/styles';
+import { startCase, toLower, isEmpty } from 'lodash';
+import { Grid, Paper, Divider, Stepper, Step, StepLabel } from '@material-ui/core/';
+import { toast } from 'react-toastify';
+import { makeStyles, styled as muiStyled } from '@material-ui/core/styles';
 import { fetchProjectById } from 'containers/ProjectDetail/action';
 import CreateNewJobForm from './Components/CreateNewJobForm';
 import GroupIcon from '@material-ui/icons/Group';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import useProjectJobsHooks from './hooks/useProjectJobsHooks';
 
 import DataSourceConnector from './Components/AddDataSource';
@@ -33,13 +35,20 @@ const steps = [
 const CreateNewJob = props => {
   const { id: projectId, jobid: jobId } = props?.match?.params ?? {};
 
-  const [{ currentJob, currentJobDataSource, currentProject }, { createDataSource }] = useProjectJobsHooks(
-    projectId,
-    jobId
-  );
-
+  const [
+    {
+      currentJob,
+      currentJobDataSource,
+      currentProject,
+      isNewJobCreated,
+      isJobUpdated,
+      isNewDataSourceCreated,
+      isDataSourceUpdated
+    },
+    { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState }
+  ] = useProjectJobsHooks(projectId, jobId);
   const [activeStep, setActiveStep] = useState(0);
-  const [navigableStepMax, setNavigableStepMax] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState([]);
   const dispatch = useDispatch();
   const classes = useStyles();
   const isCreatingNewJob = props?.match?.path?.includes('/job/new');
@@ -50,19 +59,38 @@ const CreateNewJob = props => {
     }
   }, []);
 
-  const handleNavigableStepChange = step => {
-    setNavigableStepMax(step);
-  };
+  useEffect(() => {
+    if (!isEmpty(currentJob)) {
+      setCompletedSteps([...completedSteps, 0]);
+    }
+    if (!isEmpty(currentJobDataSource)) {
+      setCompletedSteps([...completedSteps, 1]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentJob, currentJobDataSource]);
+
+  useEffect(() => {
+    if (isJobUpdated) {
+      toast.success(`Job updated successfully!`);
+      resetState();
+    } else if (isNewJobCreated) {
+      toast.success(`Job created successfully!`);
+    } else if (isNewDataSourceCreated) {
+      toast.success(`Data source created successfully!`);
+    } else if (isDataSourceUpdated) {
+      toast.success(`Data source updated successfully!`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJobUpdated, isNewJobCreated, isNewDataSourceCreated, isDataSourceUpdated]);
 
   const handleStepChange = step => {
     setActiveStep(step);
   };
   const handleUpdateStep = step => {
     handleStepChange(step);
-    handleNavigableStepChange(step);
   };
 
-  const { id, name, total_members, description } = currentProject || {};
+  const { id, name, total_members } = currentProject || {};
   const projectName = startCase(toLower(name)) || 'Loading...';
 
   return (
@@ -89,33 +117,62 @@ const CreateNewJob = props => {
               <Divider light className={classes.dividers} />
 
               <div className={classes.content}>
-                <Stepper activeStep={activeStep} style={{ padding: '20px 0px', width: '60%', marginBottom: 10 }}>
-                  {steps.map(({ label, id, createNewJobLabel }, index) => (
-                    <Step
-                      key={label}
-                      onClick={e => {
-                        e.preventDefault();
-                        if (navigableStepMax >= id) {
-                          handleStepChange(id);
-                        }
-                      }}
-                    >
-                      <StepLabel style={{ marginLeft: index === 0 ? -8 : 'inherit' }}>
-                        {isCreatingNewJob ? createNewJobLabel : label}
-                      </StepLabel>
-                    </Step>
-                  ))}
+                <Stepper activeStep={activeStep} style={{ padding: '20px 0px', width: '50%', marginBottom: 10 }}>
+                  {steps.map(({ label, id, createNewJobLabel }, index) => {
+                    const isCompleted = completedSteps.indexOf(id) >= 0;
+                    const maxNumFromCompleted = Math.max(...completedSteps);
+                    const isNavigationClickable =
+                      !isCreatingNewJob || isCompleted || (id === maxNumFromCompleted + 1 && isCreatingNewJob);
+                    return (
+                      <Step
+                        key={label}
+                        onClick={e => {
+                          e.preventDefault();
+                          if (isNavigationClickable) {
+                            handleStepChange(id);
+                          }
+                        }}
+                      >
+                        <StyledStepLabel
+                          style={{ marginLeft: index === 0 ? -8 : 'inherit' }}
+                          {...(isCompleted ? { icon: <CheckCircleIcon className={classes.completedStepLabel} /> } : {})}
+                          StepIconProps={{
+                            classes: { root: classes.remainingSteps }
+                          }}
+                        >
+                          {isCreatingNewJob ? createNewJobLabel : label}
+                        </StyledStepLabel>
+                      </Step>
+                    );
+                  })}
                 </Stepper>
                 <div style={{ border: '1px solid #eee', padding: 30 }}>
                   {activeStep === 0 && (
-                    <CreateNewJobForm projectId={id} updateStep={handleUpdateStep} defaultData={currentJob} />
+                    <CreateNewJobForm
+                      projectId={id}
+                      updateStep={() => null}
+                      defaultData={currentJob}
+                      handleSubmit={data => {
+                        if (isCreatingNewJob) {
+                          createNewJob(data);
+                        } else {
+                          updateNewJob(jobId, data);
+                        }
+                      }}
+                    />
                   )}
 
                   {activeStep === 1 && (
                     <DataSourceConnector
                       data_source={'database'}
                       defaultData={currentJobDataSource}
-                      handleSubmit={data => console.log(data)}
+                      handleSubmit={data => {
+                        if (isEmpty(currentJobDataSource)) {
+                          createDataSource(data);
+                        } else {
+                          updateDataSource(currentJobDataSource.id, data);
+                        }
+                      }}
                     />
                   )}
 
@@ -216,6 +273,12 @@ const useStyles = makeStyles(() => ({
     backgroundColor: '#eee',
     minHeight: '70vh',
     maxHeight: '80vh'
+  },
+  completedStepLabel: {
+    color: 'green'
+  },
+  remainingSteps: {
+    height: 28
   }
 }));
 
@@ -247,3 +310,9 @@ export const NewJobRightbarWrapper = styled.div`
     margin: 0px;
   }
 `;
+
+const StyledStepLabel = muiStyled(StepLabel)({
+  '& .MuiStepLabel-active': {
+    fontWeight: 'bold'
+  }
+});

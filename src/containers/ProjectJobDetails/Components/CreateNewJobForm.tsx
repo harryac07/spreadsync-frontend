@@ -13,11 +13,11 @@ interface Props {
   updateStep: (value: number) => void;
   projectId: string;
   defaultData?: any;
-  createNewJob: (data) => void;
+  handleSubmit: (data) => void;
 }
 type FormProps = Omit<NewJobPayloadProps, 'project'>;
 
-const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId, createNewJob }) => {
+const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId, handleSubmit }) => {
   const classes = useStyles();
 
   const [error, setError] = useState({} as FormProps);
@@ -73,7 +73,7 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
     const payload: NewJobPayloadProps = { ...inputObj, project: projectId };
     const errorExists = isError();
     if (!errorExists) {
-      createNewJob(payload);
+      handleSubmit(payload);
       updateStep(1);
     }
   };
@@ -177,9 +177,8 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             color="primary"
             onClick={submitForm}
             type="submit"
-            // float={'right'}
           >
-            Save and continue
+            {isEmpty(defaultData) ? 'Save and continue' : 'Update'}
           </Button>
         </Grid>
       </Grid>
