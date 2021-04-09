@@ -27,7 +27,7 @@ class Auth extends React.Component {
     this.state = {
       signupStep: 1,
       queryToken: null,
-      accountName: '',
+      accountName: ''
     };
   }
   componentDidMount() {
@@ -42,17 +42,17 @@ class Auth extends React.Component {
       this.handleLogout();
     }
   }
-  handleSignup = (payload) => {
+  handleSignup = payload => {
     const { queryToken, accountName } = this.state;
     // Disptach action
     this.props.signup(
       {
         ...payload,
-        account_name: accountName,
+        account_name: accountName
       },
       {
         history: this.props.history,
-        token: queryToken,
+        token: queryToken
       }
     );
   };
@@ -60,7 +60,7 @@ class Auth extends React.Component {
     this.setState({ signupStep: 2, accountName: account_name });
   };
 
-  handleLogin = (payload) => {
+  handleLogin = payload => {
     // Disptach action
     this.props.login(payload);
   };
@@ -94,7 +94,7 @@ class Auth extends React.Component {
     const { classes, auth } = this.props;
     const {
       error: { SIGNUP: signupError },
-      success: { SIGNUP: signupSuccess },
+      success: { SIGNUP: signupSuccess }
     } = auth;
     const { signupStep, queryToken } = this.state;
     let tokenPayload = {};
@@ -156,7 +156,7 @@ class Auth extends React.Component {
   renderLoginView = () => {
     const { classes, auth } = this.props;
     const {
-      error: { LOGIN: loginError },
+      error: { LOGIN: loginError }
     } = auth;
     return (
       <React.Fragment>
@@ -181,10 +181,15 @@ class Auth extends React.Component {
             clientId={GOOGLE_CLIENT_ID}
             buttonText="Google"
             onSuccess={this.handleLoginWithGoogle}
-            onFailure={(responseGoogle) => console.log('Google auth error: ', responseGoogle)}
+            onFailure={responseGoogle => console.log('Google auth error: ', responseGoogle)}
             cookiePolicy={'single_host_origin'}
             responseType="code"
             accessType="offline"
+            prompt={'consent'}
+            scope={[
+              'https://www.googleapis.com/auth/userinfo.email',
+              'https://www.googleapis.com/auth/userinfo.profile'
+            ].join(' ')}
           />
           <p>
             Don't have an account yet? <StyledLink to="/signup">sign up</StyledLink>
@@ -223,34 +228,34 @@ class Auth extends React.Component {
   }
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = state => {
   return {
     app: state.app,
-    auth: state.auth,
+    auth: state.auth
   };
 };
 
-const styles = (theme) => ({
+const styles = theme => ({
   wrapper: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     height: '100%',
     minHeight: '100vh',
-    fontFamily: 'Lato, sans-serif',
+    fontFamily: 'Lato, sans-serif'
   },
   divider: {
     backgroundColor: '#fff',
     margin: '20px auto',
-    width: '50%',
+    width: '50%'
   },
 
   paperWrapper: {
     margin: '0px auto',
     width: '60%',
     [theme.breakpoints.down('md')]: {
-      width: '100%',
-    },
+      width: '100%'
+    }
   },
   leftWrapper: {
     padding: 30,
@@ -260,30 +265,30 @@ const styles = (theme) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   rightWrapper: {
     padding: 30,
-    lineHeight: 'normal',
+    lineHeight: 'normal'
   },
   headerWrapper: {
     marginBottom: 30,
-    textAlign: 'center',
+    textAlign: 'center'
   },
   buttonSocial: {
     backgroundColor: '#fff',
     color: '#627284',
     fontSize: 14,
     textTransform: 'none',
-    margin: '20px auto !important',
+    margin: '20px auto !important'
   },
   textCenter: {
-    textAlign: 'center',
-  },
+    textAlign: 'center'
+  }
 });
 export default connect(mapStateToProps, {
   signup,
-  login,
+  login
 })(withStyles(styles)(Auth));
 
 const StyledLogo = styled.img`

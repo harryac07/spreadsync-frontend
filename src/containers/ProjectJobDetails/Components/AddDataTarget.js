@@ -1,47 +1,46 @@
 import React, { useState } from 'react';
-import Button from 'components/common/Button';
-import { Link } from 'react-router-dom';
-import * as queryString from 'query-string';
+import { GoogleLogin } from 'react-google-login';
+import { GOOGLE_CLIENT_ID } from 'env';
 
-const DataConnector = props => {
-  const { data_source } = props;
-
-  let authorizationLink = '';
-  let connectionText = '';
-  switch (data_source) {
-    case 'spreadsheet':
-      const stringifiedParams = queryString.stringify({
-        client_id: '831743571895-h86cvf32nr6etbhdqvheke0tco5k6i10.apps.googleusercontent.com',
-        redirect_uri: 'http://localhost:3000/projects',
-        scope: [
-          'https://www.googleapis.com/auth/userinfo.email',
-          'https://www.googleapis.com/auth/userinfo.profile',
-          'https://www.googleapis.com/auth/drive.file',
-          'https://www.googleapis.com/auth/spreadsheets'
-        ].join(' '),
-        response_type: 'code',
-        access_type: 'offline',
-        prompt: 'consent'
-      });
-      authorizationLink = `https://accounts.google.com/o/oauth2/v2/auth?${stringifiedParams}`;
-      connectionText = 'Authorize to Google';
-      break;
-    default:
-      authorizationLink = '';
-      connectionText = 'Data connection';
-  }
-
-  const trackRedirectLink = () => {
-    localStorage.setItem('redirect_to', 'http://localhost:3000/projects/c19cc6da-6679-49e5-a48d-31e3affc9d7a/job/new');
+const DataConnector = ({ currentSocialAuth, handleSubmit }) => {
+  const handleSuccess = response => {
+    const code = response?.code ?? '';
+    if (code) {
+      handleSubmit(code);
+    }
   };
-
+  const handleError = response => {
+    const error = response?.error ?? '';
+    if (error) {
+      alert(error);
+    }
+  };
   return (
     <div>
-      <Button color="default" onClick={trackRedirectLink}>
-        <a href={authorizationLink} type="button">
-          {connectionText}
-        </a>
-      </Button>
+      {currentSocialAuth ? (
+        <div>
+          <h3>{'Connected to ' + currentSocialAuth?.social_name} </h3>
+          <br />
+          Fetch sheets now and allow user to select actual target for data collection
+        </div>
+      ) : (
+        <GoogleLogin
+          clientId={GOOGLE_CLIENT_ID}
+          buttonText={'Authorize to Google'}
+          onSuccess={handleSuccess}
+          onFailure={handleError}
+          cookiePolicy={'single_host_origin'}
+          scope={[
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/spreadsheets'
+          ].join(' ')}
+          responseType={'code'}
+          accessType={'offline'}
+          prompt={'consent'}
+        />
+      )}
     </div>
   );
 };

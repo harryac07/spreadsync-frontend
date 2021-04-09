@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { startCase, toLower, isEmpty } from 'lodash';
 import { Grid, Paper, Divider, Stepper, Step, StepLabel } from '@material-ui/core/';
@@ -40,18 +41,22 @@ const CreateNewJob = props => {
       currentJob,
       currentJobDataSource,
       currentProject,
+      currentSocialAuth,
       isNewJobCreated,
       isJobUpdated,
       isNewDataSourceCreated,
       isDataSourceUpdated
     },
-    { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState }
+    { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth }
   ] = useProjectJobsHooks(projectId, jobId);
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const dispatch = useDispatch();
+  const history = useHistory();
   const classes = useStyles();
   const isCreatingNewJob = props?.match?.path?.includes('/job/new');
+
+  const targetDataAuth = currentSocialAuth?.filter(data => (data.type = 'target'))[0];
 
   useEffect(() => {
     if (isEmpty(currentProject)) {
@@ -63,9 +68,17 @@ const CreateNewJob = props => {
     if (!isEmpty(currentJob)) {
       setCompletedSteps([...completedSteps, 0]);
     }
+    if (!isEmpty(currentJob) && isNewJobCreated) {
+      setCompletedSteps([...completedSteps, 0]);
+      resetState();
+      history.push(`/projects/${projectId}/job/${currentJob.id}`);
+    }
     if (!isEmpty(currentJobDataSource)) {
       setCompletedSteps([...completedSteps, 1]);
     }
+    // if (!isEmpty(targetDataAuth)) {
+    //   setCompletedSteps([...completedSteps, 2]);
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentJob, currentJobDataSource]);
 
@@ -75,10 +88,13 @@ const CreateNewJob = props => {
       resetState();
     } else if (isNewJobCreated) {
       toast.success(`Job created successfully!`);
+      // no resetting state here
     } else if (isNewDataSourceCreated) {
       toast.success(`Data source created successfully!`);
+      resetState();
     } else if (isDataSourceUpdated) {
       toast.success(`Data source updated successfully!`);
+      resetState();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isJobUpdated, isNewJobCreated, isNewDataSourceCreated, isDataSourceUpdated]);
@@ -88,6 +104,10 @@ const CreateNewJob = props => {
   };
   const handleUpdateStep = step => {
     handleStepChange(step);
+  };
+
+  const getSocialName = () => {
+    return 'google';
   };
 
   const { id, name, total_members } = currentProject || {};
@@ -177,7 +197,14 @@ const CreateNewJob = props => {
                   )}
 
                   {activeStep === 2 && (
-                    <DataTargetConnector data_source={'spreadsheet'} handleSubmit={data => console.log(data)} />
+                    <DataTargetConnector
+                      data_source={'spreadsheet'}
+                      handleSubmit={authCode => {
+                        const socialName = getSocialName();
+                        saveSocialAuth(authCode, 'target', socialName);
+                      }}
+                      currentSocialAuth={targetDataAuth}
+                    />
                   )}
                 </div>
               </div>

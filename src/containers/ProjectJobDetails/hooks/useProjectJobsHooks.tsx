@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useReducer } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { API_URL } from 'env';
 
 import { selectAllJobsByProject } from '../selector';
-import { createJobSucceed, createJobFailed } from '../action';
 import { isEmpty } from 'lodash';
 
 export interface NewJobPayloadProps {
@@ -19,15 +18,82 @@ export interface NewJobPayloadProps {
   project: string;
 }
 
+type SocialAuthTypes = 'target' | 'source';
+type SocialNameTypes = 'google';
+
 export default function useProjectJobsHooks(projectId: string = '', jobId: string = '') {
-  const storeDispatch = useDispatch();
-  const [newJobPayload, setNewJobPayload] = useState({});
-  const [currentJob, setCurrentJob] = useState({});
-  const [currentJobDataSource, setCurrentJobDataSource] = useState({});
-  const [isNewJobCreated, setIsNewJobCreated] = useState(false);
-  const [isNewDataSourceCreated, setIsNewDataSourceCreated] = useState(false);
-  const [isJobUpdated, setIsJobUpdated] = useState(false);
-  const [isDataSourceUpdated, setIsDataSourceUpdated] = useState(false);
+  const actions = {
+    LOADING: 'LOADING',
+    SET_CURRENT_JOB: 'SET_CURRENT_JOB',
+    CREATE_NEW_JOB: 'CREATE_NEW_JOB',
+    UPDATE_JOB: 'UPDATE_JOB',
+    CREATE_DATA_SOURCE: 'CREATE_DATA_SOURCE',
+    SET_DATA_SOURCE: 'SET_DATA_SOURCE',
+    UPDATE_DATA_SOURCE: 'UPDATE_DATA_SOURCE',
+    SET_SOCIAL_AUTH: 'SET_SOCIAL_AUTH',
+    RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES'
+  };
+  const initialState = {
+    currentJob: {},
+    currentJobDataSource: {},
+    currentSocialAuth: [],
+    isNewJobCreated: false,
+    isJobUpdated: false,
+    isNewDataSourceCreated: false,
+    isDataSourceUpdated: false,
+    error: {}
+  };
+  const reducer = (state, action) => {
+    switch (action.type) {
+      case 'SET_CURRENT_JOB':
+        return {
+          ...state,
+          currentJob: action.payload
+        };
+      case 'CREATE_NEW_JOB':
+        return {
+          ...state,
+          isNewJobCreated: true
+        };
+      case 'UPDATE_JOB':
+        return {
+          ...state,
+          isJobUpdated: true
+        };
+      case 'SET_DATA_SOURCE':
+        return {
+          ...state,
+          currentJobDataSource: action.payload
+        };
+      case 'CREATE_DATA_SOURCE':
+        return {
+          ...state,
+          isNewDataSourceCreated: true
+        };
+      case 'UPDATE_DATA_SOURCE':
+        return {
+          ...state,
+          isDataSourceUpdated: true
+        };
+      case 'SET_SOCIAL_AUTH':
+        return {
+          ...state,
+          currentSocialAuth: action.payload
+        };
+      case 'RESET_BOOLEAN_STATES':
+        return {
+          ...state,
+          isNewJobCreated: false,
+          isJobUpdated: false,
+          isNewDataSourceCreated: false,
+          isDataSourceUpdated: false
+        };
+      default:
+        return state;
+    }
+  };
+
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const { currentProject = {}, job = {} } = useSelector((state: any) => {
     return {
@@ -39,40 +105,41 @@ export default function useProjectJobsHooks(projectId: string = '', jobId: strin
   useEffect(() => {
     try {
       if (isEmpty(job) && jobId) {
-        fetchCurrentJob().then(data => {
-          setCurrentJob(data[0]);
-        });
+        fetchCurrentJob();
       } else {
-        setCurrentJob(job);
+        dispatch({ type: actions.SET_CURRENT_JOB, payload: job });
       }
     } catch (e) {
-      console.log(e.response.data);
+      console.error(e.stack);
     }
   }, []);
 
   useEffect(() => {
+    /* fetch job details */
     try {
       if (jobId) {
-        fetchCurrentJobDataSource().then(data => {
-          setCurrentJobDataSource(data[0]);
-        });
+        fetchCurrentJobDataSource();
+        getSocialAuthByJobId();
       }
     } catch (e) {
-      console.log(e.response.data);
+      console.error(e.stack);
     }
   }, []);
 
-  const fetchCurrentJob = async () => {
-    const response = await axios.get(`${API_URL}/jobs/${jobId}`, {
+  const fetchCurrentJob = async (id = '') => {
+    const response = await axios.get(`${API_URL}/jobs/${id || jobId}`, {
       headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
     });
-    return response?.data ?? [];
+    const [job] = response?.data ?? [];
+    dispatch({ type: actions.SET_CURRENT_JOB, payload: job });
   };
+
   const fetchCurrentJobDataSource = async () => {
     const response = await axios.get(`${API_URL}/jobs/${jobId}/datasource/`, {
       headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
     });
-    return response?.data ?? [];
+    const [dataSource] = response?.data ?? [];
+    dispatch({ type: actions.SET_DATA_SOURCE, payload: dataSource });
   };
 
   const createNewJob = async (reqPayload: NewJobPayloadProps) => {
@@ -80,11 +147,10 @@ export default function useProjectJobsHooks(projectId: string = '', jobId: strin
       const response = await axios.post(`${API_URL}/jobs/`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
-      setNewJobPayload(response.data[0]);
-      setIsNewJobCreated(true);
-      storeDispatch(createJobSucceed(response.data));
+      fetchCurrentJob(response.data[0].id);
+      dispatch({ type: actions.CREATE_NEW_JOB });
     } catch (e) {
-      storeDispatch(createJobSucceed(e.response.data));
+      console.error('createNewJob: ', e.stack);
     }
   };
 
@@ -93,24 +159,22 @@ export default function useProjectJobsHooks(projectId: string = '', jobId: strin
       await axios.patch(`${API_URL}/jobs/${jobId}`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
-      setIsJobUpdated(true);
-      fetchCurrentJob().then(data => {
-        setCurrentJob(data[0]);
-      });
+      dispatch({ type: actions.UPDATE_JOB });
+      fetchCurrentJob();
     } catch (e) {
-      console.log('updateNewJob ', e?.response?.data);
+      console.error('updateNewJob: ', e.stack);
     }
   };
 
   const createDataSource = async (reqPayload: any) => {
     try {
-      const response = await axios.post(`${API_URL}/jobs/${jobId}/datasource/`, reqPayload, {
+      await axios.post(`${API_URL}/jobs/${jobId}/datasource/`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
-      setCurrentJobDataSource(response.data[0]);
-      setIsNewDataSourceCreated(true);
+      dispatch({ type: actions.CREATE_DATA_SOURCE });
+      fetchCurrentJobDataSource();
     } catch (e) {
-      console.log('createDataSource ', e?.response?.data);
+      console.error('createDataSource: ', e.stack);
     }
   };
 
@@ -119,32 +183,50 @@ export default function useProjectJobsHooks(projectId: string = '', jobId: strin
       await axios.patch(`${API_URL}/jobs/${jobId}/datasource/${dataSourceId}`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
-      setIsDataSourceUpdated(true);
-      fetchCurrentJobDataSource().then(data => {
-        setCurrentJobDataSource(data[0]);
-      });
+      dispatch({ type: actions.UPDATE_DATA_SOURCE });
+      fetchCurrentJobDataSource();
     } catch (e) {
-      console.log('updateDataSource ', e?.response?.data);
+      console.error('updateDataSource: ', e.stack);
+    }
+  };
+
+  const getSocialAuthByJobId = async (social_name: SocialNameTypes = 'google') => {
+    try {
+      const response = await axios.get(`${API_URL}/auth/social/${social_name}/job/${jobId}`, {
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      });
+      const socialAuth = response?.data ?? [];
+      dispatch({ type: actions.SET_SOCIAL_AUTH, payload: socialAuth });
+    } catch (e) {
+      console.error('getSocialAuthByJobId: ', e.stack);
+    }
+  };
+  const saveSocialAuth = async (
+    authCode: string,
+    type: SocialAuthTypes = 'target',
+    social_name: SocialNameTypes = 'google'
+  ) => {
+    try {
+      const reqPayload = {
+        authCode,
+        jobId,
+        type
+      };
+      await axios.post(`${API_URL}/auth/social/${social_name}/`, reqPayload, {
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      });
+      getSocialAuthByJobId(social_name);
+    } catch (e) {
+      console.error('saveSocialAuth ', e.stack);
     }
   };
 
   const resetState = () => {
-    setIsNewJobCreated(false);
-    setIsJobUpdated(false);
-    setIsNewDataSourceCreated(false);
-    setIsDataSourceUpdated(false);
+    dispatch({ type: actions.RESET_BOOLEAN_STATES });
   };
+
   return [
-    {
-      newJobPayload,
-      currentJob,
-      currentJobDataSource,
-      currentProject,
-      isNewJobCreated,
-      isJobUpdated,
-      isNewDataSourceCreated,
-      isDataSourceUpdated
-    },
-    { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState }
+    { ...state, currentProject },
+    { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth }
   ] as const;
 }
