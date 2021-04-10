@@ -12,6 +12,7 @@ import GroupIcon from '@material-ui/icons/Group';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import useProjectJobsHooks from './hooks/useProjectJobsHooks';
 
+import { ProjectJobContextProvider } from './context';
 import DataSourceConnector from './Components/AddDataSource';
 import DataTargetConnector from './Components/AddDataTarget';
 
@@ -38,7 +39,7 @@ const CreateNewJob = props => {
 
   const [
     {
-      currentJob,
+      currentJob = {},
       currentJobDataSource,
       currentProject,
       currentSocialAuth,
@@ -48,7 +49,7 @@ const CreateNewJob = props => {
       isDataSourceUpdated
     },
     { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth }
-  ] = useProjectJobsHooks(projectId, jobId);
+  ] = useProjectJobsHooks(jobId);
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const dispatch = useDispatch();
@@ -115,7 +116,6 @@ const CreateNewJob = props => {
 
   return (
     <div>
-      {/* Project info */}
       <div className={classes.headerWrapper}>
         <HeaderText className={classes.HeaderText} display="inline-block">
           {projectName}
@@ -167,45 +167,47 @@ const CreateNewJob = props => {
                   })}
                 </Stepper>
                 <div style={{ border: '1px solid #eee', padding: 30 }}>
-                  {activeStep === 0 && (
-                    <CreateNewJobForm
-                      projectId={id}
-                      updateStep={() => null}
-                      defaultData={currentJob}
-                      handleSubmit={data => {
-                        if (isCreatingNewJob) {
-                          createNewJob(data);
-                        } else {
-                          updateNewJob(jobId, data);
-                        }
-                      }}
-                    />
-                  )}
+                  <ProjectJobContextProvider jobId={jobId}>
+                    {activeStep === 0 && (
+                      <CreateNewJobForm
+                        projectId={id}
+                        updateStep={() => null}
+                        defaultData={currentJob}
+                        handleSubmit={data => {
+                          if (isCreatingNewJob) {
+                            createNewJob(data);
+                          } else {
+                            updateNewJob(jobId, data);
+                          }
+                        }}
+                      />
+                    )}
 
-                  {activeStep === 1 && (
-                    <DataSourceConnector
-                      data_source={'database'}
-                      defaultData={currentJobDataSource}
-                      handleSubmit={data => {
-                        if (isEmpty(currentJobDataSource)) {
-                          createDataSource(data);
-                        } else {
-                          updateDataSource(currentJobDataSource.id, data);
-                        }
-                      }}
-                    />
-                  )}
+                    {activeStep === 1 && (
+                      <DataSourceConnector
+                        data_source={'database'}
+                        defaultData={currentJobDataSource}
+                        handleSubmit={data => {
+                          if (isEmpty(currentJobDataSource)) {
+                            createDataSource(data);
+                          } else {
+                            updateDataSource(currentJobDataSource.id, data);
+                          }
+                        }}
+                      />
+                    )}
 
-                  {activeStep === 2 && (
-                    <DataTargetConnector
-                      data_source={'spreadsheet'}
-                      handleSubmit={authCode => {
-                        const socialName = getSocialName();
-                        saveSocialAuth(authCode, 'target', socialName);
-                      }}
-                      currentSocialAuth={targetDataAuth}
-                    />
-                  )}
+                    {activeStep === 2 && (
+                      <DataTargetConnector
+                        data_source={'spreadsheet'}
+                        handleSubmit={authCode => {
+                          const socialName = getSocialName();
+                          saveSocialAuth(authCode, 'target', socialName);
+                        }}
+                        currentSocialAuth={targetDataAuth}
+                      />
+                    )}
+                  </ProjectJobContextProvider>
                 </div>
               </div>
             </Grid>

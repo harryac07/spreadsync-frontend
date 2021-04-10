@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from 'react-google-login';
 import { GOOGLE_CLIENT_ID } from 'env';
+import AddGoogleSheetForm from './AddGoogleSheetForm';
 
-const DataConnector = ({ currentSocialAuth, handleSubmit }) => {
+const DataConnector = ({ currentSocialAuth, handleSubmit, ...props }) => {
+  console.log('props ', props);
   const handleSuccess = response => {
     const code = response?.code ?? '';
     if (code) {
@@ -21,7 +23,7 @@ const DataConnector = ({ currentSocialAuth, handleSubmit }) => {
         <div>
           <h3>{'Connected to ' + currentSocialAuth?.social_name} </h3>
           <br />
-          Fetch sheets now and allow user to select actual target for data collection
+          <AddGoogleSheetForm requestType="target" />
         </div>
       ) : (
         <GoogleLogin
@@ -33,7 +35,7 @@ const DataConnector = ({ currentSocialAuth, handleSubmit }) => {
           scope={[
             'https://www.googleapis.com/auth/userinfo.email',
             'https://www.googleapis.com/auth/userinfo.profile',
-            'https://www.googleapis.com/auth/drive.file',
+            'https://www.googleapis.com/auth/drive',
             'https://www.googleapis.com/auth/spreadsheets'
           ].join(' ')}
           responseType={'code'}

@@ -1,7 +1,8 @@
 import { CREATE_JOB, CREATE_JOB_SUCCEED, CREATE_JOB_FAILED } from './constant';
 
 const initialState = {
-  jobCreated: false
+  currentJob: {},
+  currentJobDataSource: {}
 };
 const reducer = (state = initialState, action) => {
   switch (action.type) {

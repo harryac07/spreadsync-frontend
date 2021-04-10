@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { API_URL } from 'env';
 
 import { selectAllJobsByProject } from '../selector';
-import { isEmpty } from 'lodash';
+import { isEmpty, uniqBy } from 'lodash';
 
 export interface NewJobPayloadProps {
   name: string;
@@ -21,7 +21,31 @@ export interface NewJobPayloadProps {
 type SocialAuthTypes = 'target' | 'source';
 type SocialNameTypes = 'google';
 
-export default function useProjectJobsHooks(projectId: string = '', jobId: string = '') {
+type SpreadhSheetPayloadType = { type: SocialAuthTypes; spreadsheetId: string; sheets: any[] };
+export type State = {
+  currentJob: any;
+  currentJobDataSource: any;
+  currentSocialAuth: { id: string; name: string }[];
+  configuredSpreadsheetData: SpreadhSheetPayloadType[];
+  googleSheetLists: any;
+  isNewJobCreated: boolean;
+  isJobUpdated: boolean;
+  isNewDataSourceCreated: boolean;
+  isDataSourceUpdated: boolean;
+  error?: any;
+  currentProject?: any;
+};
+export type Dispatch = {
+  createNewJob: (newjobPayload: NewJobPayloadProps) => Promise<void>;
+  updateNewJob: (jobId: string, newjobPayload: NewJobPayloadProps) => Promise<void>;
+  createDataSource: (dataSourcePayload: any) => Promise<void>;
+  updateDataSource: (dataSourceId: string, dataSourcePayload: any) => Promise<void>;
+  resetState: () => void;
+  fetchSpreadSheet: (spreadsheetId: string, type: SocialAuthTypes) => void;
+  saveSocialAuth: (authCode: string, type: SocialAuthTypes, social_name: SocialNameTypes) => Promise<void>;
+};
+
+export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatch] {
   const actions = {
     LOADING: 'LOADING',
     SET_CURRENT_JOB: 'SET_CURRENT_JOB',
@@ -31,19 +55,23 @@ export default function useProjectJobsHooks(projectId: string = '', jobId: strin
     SET_DATA_SOURCE: 'SET_DATA_SOURCE',
     UPDATE_DATA_SOURCE: 'UPDATE_DATA_SOURCE',
     SET_SOCIAL_AUTH: 'SET_SOCIAL_AUTH',
+    SET_GOOGLE_SHEET_LIST: 'SET_GOOGLE_SHEET_LIST',
+    SET_SPREADSHEET: 'SET_SPREADSHEET',
     RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES'
   };
-  const initialState = {
+  const initialState: State = {
     currentJob: {},
     currentJobDataSource: {},
     currentSocialAuth: [],
+    googleSheetLists: {},
     isNewJobCreated: false,
     isJobUpdated: false,
     isNewDataSourceCreated: false,
     isDataSourceUpdated: false,
+    configuredSpreadsheetData: [],
     error: {}
   };
-  const reducer = (state, action) => {
+  const reducer = (state: State, action: any) => {
     switch (action.type) {
       case 'SET_CURRENT_JOB':
         return {
@@ -79,6 +107,20 @@ export default function useProjectJobsHooks(projectId: string = '', jobId: strin
         return {
           ...state,
           currentSocialAuth: action.payload
+        };
+      case 'SET_GOOGLE_SHEET_LIST':
+        return {
+          ...state,
+          googleSheetLists: action.payload
+        };
+      case 'SET_SPREADSHEET':
+        const filterSpreadSheetByType = state.configuredSpreadsheetData.filter(
+          ({ type }) => type !== action?.payload?.type
+        );
+        const uniqueSheetPayload = uniqBy([...filterSpreadSheetByType, action.payload], 'type');
+        return {
+          ...state,
+          configuredSpreadsheetData: uniqueSheetPayload
         };
       case 'RESET_BOOLEAN_STATES':
         return {
@@ -120,6 +162,7 @@ export default function useProjectJobsHooks(projectId: string = '', jobId: strin
       if (jobId) {
         fetchCurrentJobDataSource();
         getSocialAuthByJobId();
+        fetchAllGoogleSheetsForJob();
       }
     } catch (e) {
       console.error(e.stack);
@@ -162,7 +205,7 @@ export default function useProjectJobsHooks(projectId: string = '', jobId: strin
       dispatch({ type: actions.UPDATE_JOB });
       fetchCurrentJob();
     } catch (e) {
-      console.error('updateNewJob: ', e.stack);
+      console.error(': (newjobPayload:NewJobPayloadProps)=> Promise<void>;: ', e.stack);
     }
   };
 
@@ -221,12 +264,38 @@ export default function useProjectJobsHooks(projectId: string = '', jobId: strin
     }
   };
 
+  const fetchAllGoogleSheetsForJob = async () => {
+    const response = await axios.get(`${API_URL}/sheets/list/job/${jobId}`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+    });
+    dispatch({ type: actions.SET_GOOGLE_SHEET_LIST, payload: response.data });
+    // res?.data?.files ?? []; res.data.nextPageToken
+  };
+
+  const fetchSpreadSheet = async (spreadsheetId: string, type: SocialAuthTypes = 'target') => {
+    if (!spreadsheetId) {
+      throw new Error('Spreadsheet id is required');
+    }
+    const response = await axios.get(`${API_URL}/sheets/${spreadsheetId}/job/${jobId}/?data_type=${type}`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+    });
+    dispatch({
+      type: actions.SET_SPREADSHEET,
+      payload: {
+        sheets: response?.data?.sheets ?? [],
+        spreadsheetId: spreadsheetId,
+        type: type
+      } as SpreadhSheetPayloadType
+    });
+    // res?.data?.files ?? []; res.data.nextPageToken
+  };
+
   const resetState = () => {
     dispatch({ type: actions.RESET_BOOLEAN_STATES });
   };
 
   return [
     { ...state, currentProject },
-    { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth }
-  ] as const;
+    { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth, fetchSpreadSheet }
+  ];
 }

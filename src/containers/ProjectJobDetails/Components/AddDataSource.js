@@ -7,12 +7,15 @@ import Field from 'components/common/Field';
 import Select from 'components/common/Select';
 import Radio from '@material-ui/core/Radio';
 
-const DataConnector = props => {
-  const { data_source, handleSubmit, defaultData = {} } = props;
+import { useProjectJobState } from '../context';
+
+const DataConnector = ({ handleSubmit }) => {
+  const classes = useStyles();
   const [inputObj, setInputObj] = useState({ database_extra: 'ssl' });
   const [error, setError] = useState({});
+  const { currentJobDataSource: defaultData, currentJob } = useProjectJobState() || {};
 
-  const classes = useStyles();
+  const dataSource = currentJob?.data_source;
 
   useEffect(() => {
     if (!isEmpty(defaultData)) {
@@ -23,16 +26,6 @@ const DataConnector = props => {
     }
   }, [defaultData]);
 
-  console.log(inputObj, error);
-
-  let connectionText = '';
-  switch (data_source) {
-    case 'database':
-      connectionText = 'Connect to database';
-      break;
-    default:
-      connectionText = 'Data source connection';
-  }
   const handleChange = e => {
     const { name, value } = e.target;
     setInputObj({
@@ -169,7 +162,7 @@ const DataConnector = props => {
   return (
     <div>
       {/* {data_source === 'database' ? renderDatabaseSource() : null} */}
-      {data_source === 'database' && (
+      {dataSource === 'database' && (
         <form>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={6}>
