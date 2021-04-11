@@ -324,9 +324,15 @@ export const NewJobRightbarWrapper = styled.div`
   }
 `;
 
-const StyledStepLabel = muiStyled(StepLabel)({
-  '& .MuiStepLabel-active': {
-    fontWeight: 'bold'
-  },
-  cursor: 'pointer !important'
+const StyledStepLabel = muiStyled(StepLabel)(({ theme }) => {
+  return {
+    '& .MuiStepLabel-active': {
+      fontWeight: 'bold'
+    },
+    cursor: 'pointer !important',
+    whiteSpace: 'nowrap',
+    [theme.breakpoints.down('sm')]: {
+      whiteSpace: 'normal'
+    }
+  };
 });
