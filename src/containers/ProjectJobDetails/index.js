@@ -46,7 +46,8 @@ const CreateNewJob = props => {
       isNewJobCreated,
       isJobUpdated,
       isNewDataSourceCreated,
-      isDataSourceUpdated
+      isDataSourceUpdated,
+      spreadSheetConfig
     },
     { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth }
   ] = useProjectJobsHooks(jobId);
@@ -58,6 +59,7 @@ const CreateNewJob = props => {
   const isCreatingNewJob = props?.match?.path?.includes('/job/new');
 
   const targetDataAuth = currentSocialAuth?.filter(data => (data.type = 'target'))[0];
+  const [dataTargetConfig] = spreadSheetConfig;
 
   useEffect(() => {
     if (isEmpty(currentProject)) {
@@ -77,11 +79,15 @@ const CreateNewJob = props => {
     if (!isEmpty(currentJobDataSource)) {
       setCompletedSteps([...completedSteps, 1]);
     }
-    // if (!isEmpty(targetDataAuth)) {
-    //   setCompletedSteps([...completedSteps, 2]);
-    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentJob, currentJobDataSource]);
+
+  useEffect(() => {
+    if (!isEmpty(dataTargetConfig)) {
+      setCompletedSteps([...completedSteps, 2]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataTargetConfig]);
 
   useEffect(() => {
     if (isJobUpdated) {
@@ -160,7 +166,11 @@ const CreateNewJob = props => {
                             classes: { root: classes.remainingSteps }
                           }}
                         >
-                          {isCreatingNewJob ? createNewJobLabel : label}
+                          <span
+                            style={id === activeStep ? { borderBottom: '2px solid #7ED7DA', paddingBottom: 5 } : {}}
+                          >
+                            {isCreatingNewJob ? createNewJobLabel : label}
+                          </span>
                         </StyledStepLabel>
                       </Step>
                     );
@@ -343,5 +353,6 @@ export const NewJobRightbarWrapper = styled.div`
 const StyledStepLabel = muiStyled(StepLabel)({
   '& .MuiStepLabel-active': {
     fontWeight: 'bold'
-  }
+  },
+  cursor: 'pointer !important'
 });

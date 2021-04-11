@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { toast } from 'react-toastify';
+import { isEmpty } from 'lodash';
 import Field from 'components/common/Field';
 import Select from 'components/common/Select';
 import Button from 'components/common/Button';
@@ -14,19 +16,68 @@ interface Props {
 
 const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   const classes = useStyles();
-  const [{ googleSheetLists, configuredSpreadsheetData }, { fetchSpreadSheet }] = useJobConfig();
-  const { files = [], nextPageToken = '' } = googleSheetLists || {};
-  const [sheetsData = {}] = configuredSpreadsheetData.filter(({ type }) => type === requestType);
-  const { sheets = [] } = sheetsData as any;
-
+  const [
+    {
+      googleSheetLists,
+      selectedSpreadSheet,
+      spreadSheetConfig,
+      isSpreadsheetConfigCreated,
+      isSpreadsheetConfigUpdated
+    },
+    {
+      fetchSpreadSheet,
+      saveSpreadsheetConfigForJob,
+      getSpreadsheetConfigForJob,
+      updateSpreadsheetConfigForJob,
+      resetState
+    }
+  ] = useJobConfig();
   const [error, setError] = useState({} as any);
   const [inputObj, setInputObj] = useState({
     spreadsheet_id: '',
     sheet: '',
     range: 'A1',
-    job_tpe: 'append', // append or replace
+    enrich_type: 'replace' as 'append' | 'replace', // append or replace
     include_column_header: true
   });
+
+  const { files = [], nextPageToken = '' } = googleSheetLists || {};
+  const [sheetsData = {}] = selectedSpreadSheet.filter(({ type }) => type === requestType);
+
+  const [configuredData] = spreadSheetConfig.filter(({ type }) => type === requestType);
+  const { sheets = [] } = sheetsData as any;
+  const isSheetConfigured = !isEmpty(configuredData);
+
+  useEffect(() => {
+    getSpreadsheetConfigForJob(requestType);
+  }, []);
+
+  useEffect(() => {
+    if (!isEmpty(configuredData)) {
+      setInputObj({
+        ...inputObj,
+        ...{
+          spreadsheet_id: configuredData.spreadsheet_id,
+          sheet: configuredData.sheet,
+          range: configuredData.range,
+          enrich_type: configuredData.enrich_type,
+          include_column_header: configuredData.include_column_header
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configuredData]);
+
+  useEffect(() => {
+    if (isSpreadsheetConfigCreated) {
+      toast.success(`Spreadsheet configured successfully!`);
+      resetState();
+    } else if (isSpreadsheetConfigUpdated) {
+      toast.success(`Spreadsheet configuration updated successfully!`);
+      resetState();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSpreadsheetConfigCreated, isSpreadsheetConfigUpdated]);
 
   const handleInputChange = data => {
     setInputObj({
@@ -61,15 +112,19 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
     });
     return true;
   };
-
   const submitForm = e => {
     e.preventDefault();
-    const payload = inputObj;
+    const payload = { ...inputObj, type: requestType };
     const errorExists = isError();
     if (!errorExists) {
-      console.log('payload ', payload);
+      if (isSheetConfigured) {
+        updateSpreadsheetConfigForJob(configuredData.id, payload);
+      } else {
+        saveSpreadsheetConfigForJob(payload);
+      }
     }
   };
+
   return (
     <form>
       <Grid container spacing={2}>
@@ -134,7 +189,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
             </Grid>
             <Grid item xs={12} sm={6} md={6}>
               <Typography className={classes.jobTypeLable}>Job Type</Typography>
-              <RadioGroup row name="job_tpe" value={inputObj.job_tpe} onChange={handleChange}>
+              <RadioGroup row name="enrich_type" value={inputObj.enrich_type} onChange={handleChange}>
                 <FormControlLabel value="replace" control={<Radio />} label="Replace data" />
                 <FormControlLabel value="append" control={<Radio />} label="Append data" />
               </RadioGroup>
@@ -163,7 +218,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                   onClick={submitForm}
                   type="submit"
                 >
-                  Save
+                  {isSheetConfigured ? 'Update' : 'Save'}
                 </Button>
               </Grid>
             </Grid>

@@ -4,7 +4,6 @@ import { GOOGLE_CLIENT_ID } from 'env';
 import AddGoogleSheetForm from './AddGoogleSheetForm';
 
 const DataConnector = ({ currentSocialAuth, handleSubmit, ...props }) => {
-  console.log('props ', props);
   const handleSuccess = response => {
     const code = response?.code ?? '';
     if (code) {
@@ -17,6 +16,7 @@ const DataConnector = ({ currentSocialAuth, handleSubmit, ...props }) => {
       alert(error);
     }
   };
+
   return (
     <div>
       {currentSocialAuth ? (
