@@ -3,15 +3,19 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { startCase, toLower, map, isEmpty } from 'lodash';
-import { Paper, Divider } from '@material-ui/core/';
 import Button from 'components/common/Button';
-import Table from '@material-ui/core/Table';
-import Grid from '@material-ui/core/Grid';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
+import {
+  Paper,
+  Divider,
+  Grid,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  TableHead
+} from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import { fetchProjectById, fetchAllJobsForProject } from './action';
 
@@ -79,7 +83,9 @@ class ProjectDetail extends React.Component {
             {jobs.map(row => (
               <TableRow hover key={row.id}>
                 <TableCell component="th" scope="row">
-                  <Link to={`/projects/${projectId}/job/${row.id}`}>{row.name}</Link>
+                  <Link to={`/projects/${projectId}/job/${row.id}`} className={classes.jobName}>
+                    {row.name}
+                  </Link>
                 </TableCell>
                 <TableCell align="center">{row.description}</TableCell>
                 <TableCell align="center">{row.type}</TableCell>
@@ -303,10 +309,7 @@ const styles = theme => ({
   table: {
     border: '1px solid #eee'
   },
-  createJobRightbar: {
-    backgroundColor: '#eee',
-    minHeight: '40vh'
-  }
+  jobName: { fontSize: 16, textDecoration: 'none', color: '#3A3C67', fontWeight: 500 }
 });
 
 export default connect(mapStateToProps, {
