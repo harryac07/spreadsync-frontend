@@ -9,10 +9,30 @@ import Radio from '@material-ui/core/Radio';
 
 import { useProjectJobState } from '../context';
 
-const DataConnector = ({ handleSubmit }) => {
+type Props = {
+  handleSubmit: (reqPayload: any) => void;
+};
+type InputPayloadProps = {
+  alias_name: string;
+  database_type: string;
+  database_host: string;
+  database_port: string;
+  database_name: string;
+  database_user: string;
+  database_password: string;
+  database_extra: string;
+  ssh_host: string;
+  ssh_port: string;
+  ssh_username: string;
+  ssh_password: string;
+  ssh_key: string;
+};
+type ErrorProps = InputPayloadProps;
+
+const DataConnector: React.FC<Props> = ({ handleSubmit }) => {
   const classes = useStyles();
-  const [inputObj, setInputObj] = useState({ database_extra: 'ssl' });
-  const [error, setError] = useState({});
+  const [inputObj, setInputObj] = useState({ database_extra: 'ssl' } as InputPayloadProps);
+  const [error, setError] = useState({} as ErrorProps);
   const { currentJobDataSource: defaultData, currentJob } = useProjectJobState() || {};
 
   const dataSource = currentJob?.data_source;
@@ -80,7 +100,6 @@ const DataConnector = ({ handleSubmit }) => {
   const submitForm = e => {
     e.preventDefault();
     const errorExists = isError();
-    console.log('inputObj ', inputObj, errorExists);
     if (!errorExists) {
       handleSubmit(inputObj);
     }

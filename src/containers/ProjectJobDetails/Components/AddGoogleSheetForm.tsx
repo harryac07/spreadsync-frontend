@@ -7,31 +7,31 @@ import Select from 'components/common/Select';
 import Button from 'components/common/Button';
 import { SingleSelect } from 'react-select-material-ui';
 import { Grid, Radio, RadioGroup, FormControlLabel, Switch, Typography } from '@material-ui/core';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { useJobConfig } from '../context';
 
 interface Props {
   requestType?: 'target' | 'source';
+  setConfigurationCompleted?: () => void;
 }
 
-const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
+const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationCompleted }) => {
   const classes = useStyles();
   const [
-    {
-      googleSheetLists,
-      selectedSpreadSheet,
-      spreadSheetConfig,
-      isSpreadsheetConfigCreated,
-      isSpreadsheetConfigUpdated
-    },
+    { googleSheetLists, selectedSpreadSheet, spreadSheetConfig, isLoading },
     {
       fetchSpreadSheet,
       saveSpreadsheetConfigForJob,
       getSpreadsheetConfigForJob,
       updateSpreadsheetConfigForJob,
-      resetState
+      createNewSpreadSheet
     }
   ] = useJobConfig();
+
+  const { files = [], nextPageToken = '' } = googleSheetLists || {};
+  const [sheetsData] = selectedSpreadSheet.filter(({ type }) => type === requestType);
+
   const [error, setError] = useState({} as any);
   const [inputObj, setInputObj] = useState({
     spreadsheet_id: '',
@@ -41,43 +41,36 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
     include_column_header: true
   });
 
-  const { files = [], nextPageToken = '' } = googleSheetLists || {};
-  const [sheetsData = {}] = selectedSpreadSheet.filter(({ type }) => type === requestType);
-
   const [configuredData] = spreadSheetConfig.filter(({ type }) => type === requestType);
-  const { sheets = [] } = sheetsData as any;
-  const isSheetConfigured = !isEmpty(configuredData);
+  const { sheets = [] } = sheetsData || {};
 
+  const isSheetConfigured = !isEmpty(configuredData);
+  const mergedConfigurationData = {
+    ...configuredData,
+    ...{
+      spreadsheet_id: sheetsData?.spreadsheetId,
+      sheets: sheetsData?.sheets
+    }
+  };
   useEffect(() => {
     getSpreadsheetConfigForJob(requestType);
   }, []);
 
   useEffect(() => {
-    if (!isEmpty(configuredData)) {
+    if (!isEmpty(mergedConfigurationData)) {
       setInputObj({
         ...inputObj,
         ...{
-          spreadsheet_id: configuredData.spreadsheet_id,
-          sheet: configuredData.sheet,
-          range: configuredData.range,
-          enrich_type: configuredData.enrich_type,
-          include_column_header: configuredData.include_column_header
+          spreadsheet_id: mergedConfigurationData.spreadsheet_id,
+          sheet: mergedConfigurationData.sheet || '',
+          range: mergedConfigurationData.range || inputObj.range,
+          enrich_type: mergedConfigurationData.enrich_type || inputObj.enrich_type,
+          include_column_header: mergedConfigurationData.include_column_header || inputObj.include_column_header
         }
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configuredData]);
-
-  useEffect(() => {
-    if (isSpreadsheetConfigCreated) {
-      toast.success(`Spreadsheet configured successfully!`);
-      resetState();
-    } else if (isSpreadsheetConfigUpdated) {
-      toast.success(`Spreadsheet configuration updated successfully!`);
-      resetState();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSpreadsheetConfigCreated, isSpreadsheetConfigUpdated]);
+  }, [configuredData, sheetsData]);
 
   const handleInputChange = data => {
     setInputObj({
@@ -121,6 +114,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
         updateSpreadsheetConfigForJob(configuredData.id, payload);
       } else {
         saveSpreadsheetConfigForJob(payload);
+        setConfigurationCompleted();
       }
     }
   };
@@ -130,7 +124,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Grid container>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={5}>
               <Typography className={classes.jobTypeLable}>Select spreadsheet</Typography>
               <SingleSelect
                 value={inputObj.spreadsheet_id}
@@ -138,15 +132,26 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                 options={files.map(file => ({ key: file.id, value: file.id, label: file.name }))}
                 helperText="Select the existing Spreadsheet or create new one"
                 SelectProps={{
-                  isCreatable: true
+                  isCreatable: true,
+                  isValidNewOption: (inputValue: string) => inputValue !== '',
+                  formatCreateLabel: (value: string) => `${value} (Creating new...)`
                 }}
-                onChange={value => {
-                  handleChange({
-                    target: { value, name: 'spreadsheet_id' }
-                  });
-                  fetchSpreadSheet(value, 'target');
+                onChange={(value, obj) => {
+                  const { __isNew__ } = obj as any;
+                  if (__isNew__) {
+                    console.log('create new spreadsheet_: ', value);
+                    createNewSpreadSheet(value, requestType);
+                  } else {
+                    handleChange({
+                      target: { value, name: 'spreadsheet_id' }
+                    });
+                    fetchSpreadSheet(value, 'target');
+                  }
                 }}
               />
+              {isLoading ? (
+                <CircularProgress size={30} style={{ position: 'absolute', marginLeft: 15 }} color="primary" />
+              ) : null}
               <br />
               <br />
             </Grid>

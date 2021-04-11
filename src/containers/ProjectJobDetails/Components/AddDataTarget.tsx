@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { GoogleLogin } from 'react-google-login';
 import { GOOGLE_CLIENT_ID } from 'env';
 import AddGoogleSheetForm from './AddGoogleSheetForm';
 
-const DataConnector = ({ currentSocialAuth, handleSubmit, ...props }) => {
+type Props = {
+  currentSocialAuth: { social_name: string };
+  handleSubmit: (code: string) => void;
+  targetConfigurationCompleted: () => void;
+};
+const DataConnector: React.FC<Props> = ({ currentSocialAuth, handleSubmit, targetConfigurationCompleted }) => {
   const handleSuccess = response => {
     const code = response?.code ?? '';
     if (code) {
@@ -23,7 +28,7 @@ const DataConnector = ({ currentSocialAuth, handleSubmit, ...props }) => {
         <div>
           <h3>{'Connected to ' + currentSocialAuth?.social_name} </h3>
           <br />
-          <AddGoogleSheetForm requestType="target" />
+          <AddGoogleSheetForm requestType="target" setConfigurationCompleted={targetConfigurationCompleted} />
         </div>
       ) : (
         <GoogleLogin

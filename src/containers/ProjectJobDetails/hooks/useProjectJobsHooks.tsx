@@ -1,6 +1,7 @@
 import { useState, useEffect, useReducer } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 import { API_URL } from 'env';
 
@@ -39,13 +40,9 @@ export type State = {
   spreadSheetConfig: any[];
   googleSheetLists: any;
   isNewJobCreated: boolean;
-  isJobUpdated: boolean;
-  isNewDataSourceCreated: boolean;
-  isDataSourceUpdated: boolean;
-  isSpreadsheetConfigCreated: boolean;
-  isSpreadsheetConfigUpdated: boolean;
   error?: any;
   currentProject?: any;
+  isLoading?: boolean;
 };
 export type Dispatch = {
   createNewJob: (newjobPayload: NewJobPayloadProps) => Promise<void>;
@@ -58,6 +55,7 @@ export type Dispatch = {
   saveSpreadsheetConfigForJob: (reqPayload: SaveSpreadsheetConfigForJobTypes) => Promise<void>;
   getSpreadsheetConfigForJob: (type: 'source' | 'target') => Promise<void>;
   updateSpreadsheetConfigForJob: (configId: string, reqPayload: any) => Promise<void>;
+  createNewSpreadSheet: (spreadsheetName: string, type: 'source' | 'target') => Promise<void>;
 };
 
 export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatch] {
@@ -65,16 +63,11 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
     LOADING: 'LOADING',
     SET_CURRENT_JOB: 'SET_CURRENT_JOB',
     CREATE_NEW_JOB: 'CREATE_NEW_JOB',
-    UPDATE_JOB: 'UPDATE_JOB',
-    CREATE_DATA_SOURCE: 'CREATE_DATA_SOURCE',
     SET_DATA_SOURCE: 'SET_DATA_SOURCE',
-    UPDATE_DATA_SOURCE: 'UPDATE_DATA_SOURCE',
     SET_SOCIAL_AUTH: 'SET_SOCIAL_AUTH',
     SET_GOOGLE_SHEET_LIST: 'SET_GOOGLE_SHEET_LIST',
     SET_SPREADSHEET: 'SET_SPREADSHEET',
     SET_SPREAD_SHEET_CONFIG: 'SET_SPREAD_SHEET_CONFIG',
-    CREATE_SPREADSHEET_CONFIG: 'CREATE_SPREADSHEET_CONFIG',
-    UPDATE_SPREADSHEET_CONFIG: 'UPDATE_SPREADSHEET_CONFIG',
     RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES'
   };
   const initialState: State = {
@@ -83,17 +76,18 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
     currentSocialAuth: [],
     googleSheetLists: {},
     isNewJobCreated: false,
-    isJobUpdated: false,
-    isNewDataSourceCreated: false,
-    isDataSourceUpdated: false,
     selectedSpreadSheet: [],
     spreadSheetConfig: [],
-    isSpreadsheetConfigCreated: false,
-    isSpreadsheetConfigUpdated: false,
-    error: {}
+    error: {},
+    isLoading: false
   };
   const reducer = (state: State, action: any) => {
     switch (action.type) {
+      case 'LOADING':
+        return {
+          ...state,
+          isLoading: true
+        };
       case 'SET_CURRENT_JOB':
         return {
           ...state,
@@ -104,25 +98,10 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
           ...state,
           isNewJobCreated: true
         };
-      case 'UPDATE_JOB':
-        return {
-          ...state,
-          isJobUpdated: true
-        };
       case 'SET_DATA_SOURCE':
         return {
           ...state,
           currentJobDataSource: action.payload
-        };
-      case 'CREATE_DATA_SOURCE':
-        return {
-          ...state,
-          isNewDataSourceCreated: true
-        };
-      case 'UPDATE_DATA_SOURCE':
-        return {
-          ...state,
-          isDataSourceUpdated: true
         };
       case 'SET_SOCIAL_AUTH':
         return {
@@ -146,25 +125,11 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
           ...state,
           spreadSheetConfig: action.payload
         };
-      case 'CREATE_SPREADSHEET_CONFIG':
-        return {
-          ...state,
-          isSpreadsheetConfigCreated: true
-        };
-      case 'UPDATE_SPREADSHEET_CONFIG':
-        return {
-          ...state,
-          isSpreadsheetConfigUpdated: true
-        };
       case 'RESET_BOOLEAN_STATES':
         return {
           ...state,
           isNewJobCreated: false,
-          isJobUpdated: false,
-          isNewDataSourceCreated: false,
-          isDataSourceUpdated: false,
-          isSpreadsheetConfigCreated: false,
-          isSpreadsheetConfigUpdated: false
+          isLoading: false
         };
       default:
         return state;
@@ -227,8 +192,9 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
       const response = await axios.post(`${API_URL}/jobs/`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
-      fetchCurrentJob(response.data[0].id);
+      await fetchCurrentJob(response.data[0].id);
       dispatch({ type: actions.CREATE_NEW_JOB });
+      toast.success(`Job created successfully!`);
     } catch (e) {
       console.error('createNewJob: ', e.stack);
     }
@@ -239,8 +205,8 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
       await axios.patch(`${API_URL}/jobs/${jobId}`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
-      dispatch({ type: actions.UPDATE_JOB });
-      fetchCurrentJob();
+      await fetchCurrentJob();
+      toast.success(`Job updated successfully!`);
     } catch (e) {
       console.error(': (newjobPayload:NewJobPayloadProps)=> Promise<void>;: ', e.stack);
     }
@@ -251,8 +217,8 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
       await axios.post(`${API_URL}/jobs/${jobId}/datasource/`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
-      dispatch({ type: actions.CREATE_DATA_SOURCE });
-      fetchCurrentJobDataSource();
+      toast.success(`Data source created successfully!`);
+      await fetchCurrentJobDataSource();
     } catch (e) {
       console.error('createDataSource: ', e.stack);
     }
@@ -263,8 +229,8 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
       await axios.patch(`${API_URL}/jobs/${jobId}/datasource/${dataSourceId}`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
-      dispatch({ type: actions.UPDATE_DATA_SOURCE });
-      fetchCurrentJobDataSource();
+      toast.success(`Data source updated successfully!`);
+      await fetchCurrentJobDataSource();
     } catch (e) {
       console.error('updateDataSource: ', e.stack);
     }
@@ -326,6 +292,29 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
     });
   };
 
+  const createNewSpreadSheet = async (spreadSheetName: string, type: SocialAuthTypes = 'target') => {
+    try {
+      if (!jobId) {
+        throw new Error('Job id is required!');
+      }
+      const reqPayload = {
+        spreadsheet_name: spreadSheetName
+      };
+      dispatch({ type: actions.LOADING });
+      const response = await axios.post(`${API_URL}/sheets/create/job/${jobId}`, reqPayload, {
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      });
+      const sheetId = response?.data?.spreadsheet_id ?? '';
+      dispatch({ type: actions.RESET_BOOLEAN_STATES });
+      await fetchAllGoogleSheetsForJob();
+      if (sheetId) {
+        await fetchSpreadSheet(sheetId, type);
+      }
+    } catch (e) {
+      console.error('createNewSpreadSheet ', e.stack);
+    }
+  };
+
   const saveSpreadsheetConfigForJob = async (reqPayload: SaveSpreadsheetConfigForJobTypes) => {
     try {
       if (!jobId) {
@@ -335,7 +324,7 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
       await getSpreadsheetConfigForJob(reqPayload.type);
-      dispatch({ type: actions.CREATE_SPREADSHEET_CONFIG });
+      toast.success(`Spreadsheet configured successfully!`);
     } catch (e) {
       console.error('saveSpreadsheetConfigForJob ', e.stack);
     }
@@ -353,7 +342,7 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
       await getSpreadsheetConfigForJob(reqPayload.type);
-      dispatch({ type: actions.UPDATE_SPREADSHEET_CONFIG });
+      toast.success(`Spreadsheet configuration updated successfully!`);
     } catch (e) {
       console.error('updateSpreadsheetConfigForJob ', e.stack);
     }
@@ -397,7 +386,8 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
       fetchSpreadSheet,
       saveSpreadsheetConfigForJob,
       getSpreadsheetConfigForJob,
-      updateSpreadsheetConfigForJob
+      updateSpreadsheetConfigForJob,
+      createNewSpreadSheet
     }
   ];
 }

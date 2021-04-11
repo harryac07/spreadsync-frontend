@@ -4,7 +4,6 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { startCase, toLower, isEmpty } from 'lodash';
 import { Grid, Paper, Divider, Stepper, Step, StepLabel } from '@material-ui/core/';
-import { toast } from 'react-toastify';
 import { makeStyles, styled as muiStyled } from '@material-ui/core/styles';
 import { fetchProjectById } from 'containers/ProjectDetail/action';
 import CreateNewJobForm from './Components/CreateNewJobForm';
@@ -13,8 +12,8 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import useProjectJobsHooks from './hooks/useProjectJobsHooks';
 
 import { ProjectJobContextProvider } from './context';
-import DataSourceConnector from './Components/AddDataSource';
-import DataTargetConnector from './Components/AddDataTarget';
+import DataSourceConnector from './Components/AddDataSource.tsx';
+import DataTargetConnector from './Components/AddDataTarget.tsx';
 
 const steps = [
   {
@@ -38,19 +37,10 @@ const CreateNewJob = props => {
   const { id: projectId, jobid: jobId } = props?.match?.params ?? {};
 
   const [
-    {
-      currentJob = {},
-      currentJobDataSource,
-      currentProject,
-      currentSocialAuth,
-      isNewJobCreated,
-      isJobUpdated,
-      isNewDataSourceCreated,
-      isDataSourceUpdated,
-      spreadSheetConfig
-    },
+    { currentJob = {}, currentJobDataSource, currentProject, currentSocialAuth, isNewJobCreated, spreadSheetConfig },
     { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth }
   ] = useProjectJobsHooks(jobId);
+
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const dispatch = useDispatch();
@@ -88,23 +78,6 @@ const CreateNewJob = props => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataTargetConfig]);
-
-  useEffect(() => {
-    if (isJobUpdated) {
-      toast.success(`Job updated successfully!`);
-      resetState();
-    } else if (isNewJobCreated) {
-      toast.success(`Job created successfully!`);
-      // no resetting state here
-    } else if (isNewDataSourceCreated) {
-      toast.success(`Data source created successfully!`);
-      resetState();
-    } else if (isDataSourceUpdated) {
-      toast.success(`Data source updated successfully!`);
-      resetState();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isJobUpdated, isNewJobCreated, isNewDataSourceCreated, isDataSourceUpdated]);
 
   const handleStepChange = step => {
     setActiveStep(step);
@@ -215,6 +188,7 @@ const CreateNewJob = props => {
                           saveSocialAuth(authCode, 'target', socialName);
                         }}
                         currentSocialAuth={targetDataAuth}
+                        targetConfigurationCompleted={() => setCompletedSteps([...completedSteps, 2])}
                       />
                     )}
                   </ProjectJobContextProvider>
