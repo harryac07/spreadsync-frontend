@@ -160,7 +160,7 @@ const CreateNewJob = props => {
                           if (isCreatingNewJob) {
                             createNewJob(data);
                           } else {
-                            updateNewJob(jobId, data);
+                            updateNewJob(data);
                           }
                         }}
                       />

@@ -17,6 +17,18 @@ export interface NewJobPayloadProps {
   data_target: string;
   description: string;
   project: string;
+  script?: string;
+}
+export interface JobUpdatePayloadProps {
+  name?: string;
+  type?: string;
+  unit?: string;
+  value?: number;
+  data_source?: string;
+  data_target?: string;
+  description?: string;
+  project?: string;
+  script?: string;
 }
 
 type SocialAuthTypes = 'target' | 'source';
@@ -46,7 +58,7 @@ export type State = {
 };
 export type Dispatch = {
   createNewJob: (newjobPayload: NewJobPayloadProps) => Promise<void>;
-  updateNewJob: (jobId: string, newjobPayload: NewJobPayloadProps) => Promise<void>;
+  updateNewJob: (updatejobPayload: JobUpdatePayloadProps) => Promise<void>;
   createDataSource: (dataSourcePayload: any) => Promise<void>;
   updateDataSource: (dataSourceId: string, dataSourcePayload: any) => Promise<void>;
   resetState: () => void;
@@ -200,8 +212,12 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
     }
   };
 
-  const updateNewJob = async (jobId: string, reqPayload: NewJobPayloadProps) => {
+  const updateNewJob = async (reqPayload: JobUpdatePayloadProps) => {
     try {
+      if (!jobId) {
+        throw new Error('Job id is required!');
+      }
+      console.log('reqPayload ', reqPayload);
       await axios.patch(`${API_URL}/jobs/${jobId}`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { startCase, toLower, isEmpty } from 'lodash';
-import { Grid, Typography } from '@material-ui/core/';
+import { Grid } from '@material-ui/core/';
 import Button from 'components/common/Button';
 import Field from 'components/common/Field';
 import Select from 'components/common/Select';
 import Radio from '@material-ui/core/Radio';
 
-import { useProjectJobState } from '../context';
+import { useJobConfig } from '../context';
+import SqlEditor from './SqlEditor';
 
 type Props = {
   handleSubmit: (reqPayload: any) => void;
@@ -34,7 +35,8 @@ const DataConnector: React.FC<Props> = ({ handleSubmit }) => {
   const [inputObj, setInputObj] = useState({ database_extra: 'ssl' } as InputPayloadProps);
   const [isEditingConnection, setIsEditingConnection] = useState(false);
   const [error, setError] = useState({} as ErrorProps);
-  const { currentJobDataSource: defaultData, currentJob } = useProjectJobState() || {};
+  const [{ currentJobDataSource: defaultData, currentJob }, { updateNewJob }] = useJobConfig() || [];
+  console.log('currentJob ', currentJob);
 
   const dataSource = currentJob?.data_source;
   const isDataSourceConfigured = !isEmpty(defaultData);
@@ -349,9 +351,10 @@ const DataConnector: React.FC<Props> = ({ handleSubmit }) => {
         </form>
       ) : (
         <div style={{ position: 'relative', margin: '30px 0px' }}>
-          <div style={{ padding: 40, border: '2px solid #eee' }}>
+          <h4>Database connection overview</h4>
+          <div style={{ padding: 30, border: '2px solid #eee' }}>
             <Button
-              rootStyle={{ display: 'inline-block', marginBottom: 30, marginLeft: -16 }}
+              rootStyle={{ display: 'inline-block', marginBottom: 10, float: 'right' }}
               className={classes.submitButton}
               variant="contained"
               color="primary"
@@ -361,19 +364,33 @@ const DataConnector: React.FC<Props> = ({ handleSubmit }) => {
             >
               Edit connection
             </Button>
-            <Grid container spacing={8}>
+            <Grid container spacing={0}>
               {Object.entries(defaultData).map(([key, val]) => {
                 if (!databaseSettingToDisplay.includes(key) || !val) {
                   return null;
                 }
                 return (
-                  <Grid item xs="auto" style={{ padding: '16px' }}>
+                  <Grid item xs="auto" key={key} style={{ paddingRight: '16px' }}>
                     <span style={{ marginRight: 5, fontWeight: 'bold', color: '#000' }}>{key}:</span>
                     <span style={{ color: '#3A3C67' }}>{val}</span>
                   </Grid>
                 );
               })}
             </Grid>
+            <br />
+          </div>
+          <div>
+            <h4>Add script to run</h4>
+            <SqlEditor
+              handleSubmit={script =>
+                updateNewJob({
+                  script,
+                  data_source: currentJob?.data_source,
+                  data_target: currentJob?.data_target
+                })
+              }
+              defaultScript={currentJob?.script}
+            />
           </div>
         </div>
       )}
