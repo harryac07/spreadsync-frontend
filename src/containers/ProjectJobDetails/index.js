@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
+import axios from 'axios';
 import styled from 'styled-components';
+import { toast } from 'react-toastify';
 import { startCase, toLower, isEmpty } from 'lodash';
 import { Grid, Paper, Divider, Stepper, Step, StepLabel } from '@material-ui/core/';
 import { makeStyles, styled as muiStyled } from '@material-ui/core/styles';
@@ -12,34 +14,29 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import useProjectJobsHooks from './hooks/useProjectJobsHooks';
 
 import { ProjectJobContextProvider } from './context';
-import DataSourceConnector from './Components/AddDataSource.tsx';
-import DataTargetConnector from './Components/AddDataTarget.tsx';
+import DataSourceConnector from './Components/AddDataSource';
+import DataTargetConnector from './Components/AddDataTarget';
+import { jobSteps } from './utils/jobSteps';
 
-const steps = [
-  {
-    label: 'Job detail',
-    createNewJobLabel: 'Create a job',
-    id: 0
-  },
-  {
-    label: 'Data source',
-    createNewJobLabel: 'Connect data source',
-    id: 1
-  },
-  {
-    label: 'Data target',
-    createNewJobLabel: 'Connect data target',
-    id: 2
-  }
-];
+import { API_URL } from 'env';
+
+const steps = jobSteps;
 
 const CreateNewJob = props => {
   const { id: projectId, jobid: jobId } = props?.match?.params ?? {};
 
-  const [
-    { currentJob = {}, currentJobDataSource, currentProject, currentSocialAuth, isNewJobCreated, spreadSheetConfig },
-    { createNewJob, updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth }
-  ] = useProjectJobsHooks(jobId);
+  const [state, { updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth }] = useProjectJobsHooks(
+    jobId
+  );
+  const {
+    currentJob = {},
+    currentJobDataSource,
+    currentProject,
+    currentSocialAuth,
+    isNewJobCreated,
+    spreadSheetConfig,
+    googleSheetLists
+  } = state;
 
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
@@ -48,7 +45,7 @@ const CreateNewJob = props => {
   const classes = useStyles();
   const isCreatingNewJob = props?.match?.path?.includes('/job/new');
 
-  const targetDataAuth = currentSocialAuth?.filter(data => (data.type = 'target'))[0];
+  const [targetDataAuth] = currentSocialAuth?.filter(data => (data.type = 'target'));
   const [dataTargetConfig] = spreadSheetConfig;
 
   useEffect(() => {
@@ -58,19 +55,22 @@ const CreateNewJob = props => {
   }, []);
 
   useEffect(() => {
+    if (!isEmpty(currentJobDataSource) && currentJob?.script) {
+      setCompletedSteps([...completedSteps, 1]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentJobDataSource]);
+
+  useEffect(() => {
     if (!isEmpty(currentJob)) {
       setCompletedSteps([...completedSteps, 0]);
     }
     if (!isEmpty(currentJob) && isNewJobCreated) {
       setCompletedSteps([...completedSteps, 0]);
       resetState();
-      history.push(`/projects/${projectId}/job/${currentJob.id}`);
-    }
-    if (!isEmpty(currentJobDataSource)) {
-      setCompletedSteps([...completedSteps, 1]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentJob, currentJobDataSource]);
+  }, [currentJob, isNewJobCreated]);
 
   useEffect(() => {
     if (!isEmpty(dataTargetConfig)) {
@@ -82,12 +82,22 @@ const CreateNewJob = props => {
   const handleStepChange = step => {
     setActiveStep(step);
   };
-  const handleUpdateStep = step => {
-    handleStepChange(step);
-  };
 
   const getSocialName = () => {
     return 'google';
+  };
+
+  const createNewJob = async reqPayload => {
+    try {
+      const response = await axios.post(`${API_URL}/jobs/`, reqPayload, {
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      });
+      history.push(`/projects/${projectId}/job/${response.data[0].id}`);
+      toast.success(`Job created successfully!`);
+      handleStepChange(1);
+    } catch (e) {
+      console.error('createNewJob: ', e.stack);
+    }
   };
 
   const { id, name, total_members } = currentProject || {};
@@ -113,15 +123,14 @@ const CreateNewJob = props => {
               <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px 30px" display="inline-block">
                 {isCreatingNewJob ? 'Add new job' : currentJob.name}
               </HeaderText>
-              <Divider light className={classes.dividers} />
+              <Divider light />
 
               <div className={classes.content}>
                 <Stepper activeStep={activeStep} style={{ padding: '20px 0px', width: '50%', marginBottom: 10 }}>
                   {steps.map(({ label, id, createNewJobLabel }, index) => {
                     const isCompleted = completedSteps.indexOf(id) >= 0;
                     const maxNumFromCompleted = Math.max(...completedSteps);
-                    const isNavigationClickable =
-                      !isCreatingNewJob || isCompleted || (id === maxNumFromCompleted + 1 && isCreatingNewJob);
+                    const isNavigationClickable = isCompleted || id === maxNumFromCompleted + 1;
                     return (
                       <Step
                         key={label}
@@ -168,7 +177,6 @@ const CreateNewJob = props => {
 
                     {activeStep === 1 && (
                       <DataSourceConnector
-                        data_source={'database'}
                         defaultData={currentJobDataSource}
                         handleSubmit={data => {
                           if (isEmpty(currentJobDataSource)) {
@@ -177,18 +185,19 @@ const CreateNewJob = props => {
                             updateDataSource(currentJobDataSource.id, data);
                           }
                         }}
+                        markStepCompleted={() => setCompletedSteps([...completedSteps, 1])}
                       />
                     )}
 
                     {activeStep === 2 && (
                       <DataTargetConnector
-                        data_source={'spreadsheet'}
                         handleSubmit={authCode => {
                           const socialName = getSocialName();
                           saveSocialAuth(authCode, 'target', socialName);
                         }}
                         currentSocialAuth={targetDataAuth}
                         targetConfigurationCompleted={() => setCompletedSteps([...completedSteps, 2])}
+                        googleSheetLists={googleSheetLists}
                       />
                     )}
                   </ProjectJobContextProvider>

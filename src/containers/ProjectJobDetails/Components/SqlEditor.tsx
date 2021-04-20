@@ -15,7 +15,7 @@ type Props = {
 };
 const SqlEditor: React.FC<Props> = ({ handleSubmit, defaultScript }) => {
   const classes = useStyles();
-  const [code, setCode] = useState(`SELECT * FROM users; -- get all users` as string);
+  const [code, setCode] = useState(`-- SELECT * FROM users; -- get all users` as string);
   const [error, setError] = useState('');
 
   useEffect(() => {

@@ -14,7 +14,6 @@ import WrapperWithNavigation from 'components/WrapperWithNavigation';
 import Projects from 'containers/Projects';
 import ProjectDetail from 'containers/ProjectDetail';
 import JobDetails from 'containers/ProjectJobDetails';
-// import AuthCallback from 'containers/AuthCallback';
 
 import logo from '../../utils/spreadsync_logo_black.png';
 import Background from '../../utils/bgnew.png';

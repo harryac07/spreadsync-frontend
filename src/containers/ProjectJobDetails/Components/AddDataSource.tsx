@@ -12,6 +12,8 @@ import SqlEditor from './SqlEditor';
 
 type Props = {
   handleSubmit: (reqPayload: any) => void;
+  defaultData: any;
+  markStepCompleted?: () => void;
 };
 type InputPayloadProps = {
   alias_name: string;
@@ -30,16 +32,16 @@ type InputPayloadProps = {
 };
 type ErrorProps = InputPayloadProps;
 
-const DataConnector: React.FC<Props> = ({ handleSubmit }) => {
+const DataConnector: React.FC<Props> = ({ handleSubmit, defaultData, markStepCompleted }) => {
   const classes = useStyles();
   const [inputObj, setInputObj] = useState({ database_extra: 'ssl' } as InputPayloadProps);
   const [isEditingConnection, setIsEditingConnection] = useState(false);
   const [error, setError] = useState({} as ErrorProps);
-  const [{ currentJobDataSource: defaultData, currentJob }, { updateNewJob }] = useJobConfig() || [];
-  console.log('currentJob ', currentJob);
+  const [{ currentJob }, { updateNewJob }] = useJobConfig() || [];
 
   const dataSource = currentJob?.data_source;
   const isDataSourceConfigured = !isEmpty(defaultData);
+  const dataSourceScript = currentJob?.script ?? '';
 
   useEffect(() => {
     if (!isEmpty(defaultData)) {
@@ -49,6 +51,13 @@ const DataConnector: React.FC<Props> = ({ handleSubmit }) => {
       });
     }
   }, [defaultData]);
+
+  useEffect(() => {
+    if (dataSourceScript) {
+      markStepCompleted();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataSourceScript]);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -181,8 +190,7 @@ const DataConnector: React.FC<Props> = ({ handleSubmit }) => {
       </Grid>
     );
   };
-  // const displayDatabaseForm = isEmpty(defaultData) &&
-  console.log('isDataSourceConfigured ', isDataSourceConfigured, defaultData);
+
   const databaseSettingToDisplay = [
     'database_type',
     'database_host',

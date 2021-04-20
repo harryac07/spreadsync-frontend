@@ -3,12 +3,23 @@ import { GoogleLogin } from 'react-google-login';
 import { GOOGLE_CLIENT_ID } from 'env';
 import AddGoogleSheetForm from './AddGoogleSheetForm';
 
+type Files = {
+  id: string;
+  name: string;
+};
+
 type Props = {
-  currentSocialAuth: { social_name: string };
+  currentSocialAuth: any;
   handleSubmit: (code: string) => void;
   targetConfigurationCompleted: () => void;
+  googleSheetLists: { files: Files[]; nextPageToken: string };
 };
-const DataConnector: React.FC<Props> = ({ currentSocialAuth, handleSubmit, targetConfigurationCompleted }) => {
+const DataConnector: React.FC<Props> = ({
+  currentSocialAuth,
+  handleSubmit,
+  targetConfigurationCompleted,
+  googleSheetLists
+}) => {
   const handleSuccess = response => {
     const code = response?.code ?? '';
     if (code) {
@@ -28,7 +39,11 @@ const DataConnector: React.FC<Props> = ({ currentSocialAuth, handleSubmit, targe
         <div>
           <h3>{'Connected to ' + currentSocialAuth?.social_name} </h3>
           <br />
-          <AddGoogleSheetForm requestType="target" setConfigurationCompleted={targetConfigurationCompleted} />
+          <AddGoogleSheetForm
+            googleSheetLists={googleSheetLists}
+            requestType="target"
+            setConfigurationCompleted={targetConfigurationCompleted}
+          />
         </div>
       ) : (
         <GoogleLogin

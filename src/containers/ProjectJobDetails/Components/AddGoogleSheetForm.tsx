@@ -8,18 +8,25 @@ import Button from 'components/common/Button';
 import { SingleSelect } from 'react-select-material-ui';
 import { Grid, Radio, RadioGroup, FormControlLabel, Switch, Typography } from '@material-ui/core';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import { useSelector } from 'react-redux';
 
 import { useJobConfig } from '../context';
+
+type Files = {
+  id: string;
+  name: string;
+};
 
 interface Props {
   requestType?: 'target' | 'source';
   setConfigurationCompleted?: () => void;
+  googleSheetLists: { files: Files[]; nextPageToken: string };
 }
 
-const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationCompleted }) => {
+const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationCompleted, googleSheetLists }) => {
   const classes = useStyles();
   const [
-    { googleSheetLists, selectedSpreadSheet, spreadSheetConfig, isLoading },
+    { selectedSpreadSheet, spreadSheetConfig, isLoading },
     {
       fetchSpreadSheet,
       saveSpreadsheetConfigForJob,
@@ -139,7 +146,6 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationComp
                 onChange={(value, obj) => {
                   const { __isNew__ } = obj as any;
                   if (__isNew__) {
-                    console.log('create new spreadsheet_: ', value);
                     createNewSpreadSheet(value, requestType);
                   } else {
                     handleChange({
@@ -205,7 +211,6 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationComp
                 checked={inputObj.include_column_header}
                 color="primary"
                 onChange={e => {
-                  console.log(e.target.checked);
                   setInputObj({
                     ...inputObj,
                     include_column_header: e.target.checked

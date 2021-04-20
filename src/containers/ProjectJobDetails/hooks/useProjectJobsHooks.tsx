@@ -1,11 +1,8 @@
-import { useState, useEffect, useReducer } from 'react';
+import { useEffect, useReducer } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { useDispatch } from 'react-redux';
 import { API_URL } from 'env';
-
-import { selectAllJobsByProject } from '../selector';
 import { isEmpty, uniqBy } from 'lodash';
 
 export interface NewJobPayloadProps {
@@ -70,104 +67,109 @@ export type Dispatch = {
   createNewSpreadSheet: (spreadsheetName: string, type: 'source' | 'target') => Promise<void>;
 };
 
-export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatch] {
-  const actions = {
-    LOADING: 'LOADING',
-    SET_CURRENT_JOB: 'SET_CURRENT_JOB',
-    CREATE_NEW_JOB: 'CREATE_NEW_JOB',
-    SET_DATA_SOURCE: 'SET_DATA_SOURCE',
-    SET_SOCIAL_AUTH: 'SET_SOCIAL_AUTH',
-    SET_GOOGLE_SHEET_LIST: 'SET_GOOGLE_SHEET_LIST',
-    SET_SPREADSHEET: 'SET_SPREADSHEET',
-    SET_SPREAD_SHEET_CONFIG: 'SET_SPREAD_SHEET_CONFIG',
-    RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES'
-  };
-  const initialState: State = {
-    currentJob: {},
-    currentJobDataSource: {},
-    currentSocialAuth: [],
-    googleSheetLists: {},
-    isNewJobCreated: false,
-    selectedSpreadSheet: [],
-    spreadSheetConfig: [],
-    error: {},
-    isLoading: false
-  };
-  const reducer = (state: State, action: any) => {
-    switch (action.type) {
-      case 'LOADING':
-        return {
-          ...state,
-          isLoading: true
-        };
-      case 'SET_CURRENT_JOB':
-        return {
-          ...state,
-          currentJob: action.payload
-        };
-      case 'CREATE_NEW_JOB':
-        return {
-          ...state,
-          isNewJobCreated: true
-        };
-      case 'SET_DATA_SOURCE':
-        return {
-          ...state,
-          currentJobDataSource: action.payload
-        };
-      case 'SET_SOCIAL_AUTH':
-        return {
-          ...state,
-          currentSocialAuth: action.payload
-        };
-      case 'SET_GOOGLE_SHEET_LIST':
-        return {
-          ...state,
-          googleSheetLists: action.payload
-        };
-      case 'SET_SPREADSHEET':
-        const filterSpreadSheetByType = state.selectedSpreadSheet.filter(({ type }) => type !== action?.payload?.type);
-        const uniqueSheetPayload = uniqBy([...filterSpreadSheetByType, action.payload], 'type');
-        return {
-          ...state,
-          selectedSpreadSheet: uniqueSheetPayload
-        };
-      case 'SET_SPREAD_SHEET_CONFIG':
-        return {
-          ...state,
-          spreadSheetConfig: action.payload
-        };
-      case 'RESET_BOOLEAN_STATES':
-        return {
-          ...state,
-          isNewJobCreated: false,
-          isLoading: false
-        };
-      default:
-        return state;
-    }
-  };
+const actions = {
+  LOADING: 'LOADING',
+  SET_CURRENT_JOB: 'SET_CURRENT_JOB',
+  CREATE_NEW_JOB: 'CREATE_NEW_JOB',
+  SET_DATA_SOURCE: 'SET_DATA_SOURCE',
+  SET_SOCIAL_AUTH: 'SET_SOCIAL_AUTH',
+  SET_GOOGLE_SHEET_LIST: 'SET_GOOGLE_SHEET_LIST',
+  SET_SPREADSHEET: 'SET_SPREADSHEET',
+  SET_SPREAD_SHEET_CONFIG: 'SET_SPREAD_SHEET_CONFIG',
+  RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES'
+};
+const initialState: State = {
+  currentJob: {},
+  currentJobDataSource: {},
+  currentSocialAuth: [],
+  googleSheetLists: {},
+  isNewJobCreated: false,
+  selectedSpreadSheet: [],
+  spreadSheetConfig: [],
+  error: {},
+  isLoading: false
+};
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+const reducer = (state: State, action: any) => {
+  switch (action.type) {
+    case 'LOADING':
+      return {
+        ...state,
+        isLoading: true
+      };
+    case 'SET_CURRENT_JOB':
+      return {
+        ...state,
+        currentJob: action.payload
+      };
+    case 'CREATE_NEW_JOB':
+      return {
+        ...state,
+        isNewJobCreated: true
+      };
+    case 'SET_DATA_SOURCE':
+      return {
+        ...state,
+        currentJobDataSource: action.payload
+      };
+    case 'SET_SOCIAL_AUTH':
+      return {
+        ...state,
+        currentSocialAuth: action.payload
+      };
+    case 'SET_GOOGLE_SHEET_LIST':
+      return {
+        ...state,
+        googleSheetLists: action.payload
+      };
+    case 'SET_SPREADSHEET':
+      const filterSpreadSheetByType = state.selectedSpreadSheet.filter(({ type }) => type !== action?.payload?.type);
+      const uniqueSheetPayload = uniqBy([...filterSpreadSheetByType, action.payload], 'type');
+      return {
+        ...state,
+        selectedSpreadSheet: uniqueSheetPayload
+      };
+    case 'SET_SPREAD_SHEET_CONFIG':
+      return {
+        ...state,
+        spreadSheetConfig: action.payload
+      };
+    case 'RESET_BOOLEAN_STATES':
+      return {
+        ...state,
+        isNewJobCreated: false,
+        isLoading: false
+      };
+    default:
+      return {
+        ...state
+      };
+  }
+};
 
-  const { currentProject = {}, job = {} } = useSelector((state: any) => {
+export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
+  const [state, dispatch] = useReducer(reducer, { ...initialState });
+  const { currentProject = {}, job = {} } = useSelector((states: any) => {
     return {
-      currentProject: state.projectDetail.project[0] || {},
-      job: state.projectDetail.jobs.find(each => each.id === jobId)
+      currentProject: states.projectDetail.project[0] || {},
+      job: states.projectDetail.jobs.find(each => each.id === jobId)
     };
   });
 
   useEffect(() => {
-    try {
-      if (isEmpty(job) && jobId) {
-        fetchCurrentJob();
-      } else {
-        dispatch({ type: actions.SET_CURRENT_JOB, payload: job });
+    if (jobId) {
+      try {
+        if (isEmpty(job)) {
+          fetchCurrentJob();
+        } else {
+          dispatch({ type: actions.SET_CURRENT_JOB, payload: job });
+        }
+      } catch (e) {
+        console.error(e.stack);
       }
-    } catch (e) {
-      console.error(e.stack);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId]);
 
   useEffect(() => {
     /* fetch job details */
@@ -217,7 +219,6 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
       if (!jobId) {
         throw new Error('Job id is required!');
       }
-      console.log('reqPayload ', reqPayload);
       await axios.patch(`${API_URL}/jobs/${jobId}`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
@@ -277,7 +278,8 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
       await axios.post(`${API_URL}/auth/social/${social_name}/`, reqPayload, {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
-      getSocialAuthByJobId(social_name);
+      await getSocialAuthByJobId(social_name);
+      await fetchAllGoogleSheetsForJob();
     } catch (e) {
       console.error('saveSocialAuth ', e.stack);
     }
@@ -389,7 +391,6 @@ export default function useProjectJobsHooks(jobId: string = ''): [State, Dispatc
   const resetState = () => {
     dispatch({ type: actions.RESET_BOOLEAN_STATES });
   };
-
   return [
     { ...state, currentProject },
     {
