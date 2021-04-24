@@ -2,17 +2,16 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { startCase, toLower, map, isEmpty } from 'lodash';
+import { startCase, toLower } from 'lodash';
 import Button from 'components/common/Button';
 import {
   Paper,
   Divider,
-  Grid,
-  Typography,
   Table,
   TableBody,
   TableCell,
   TableContainer,
+  TablePagination,
   TableRow,
   TableHead
 } from '@material-ui/core';
@@ -24,14 +23,15 @@ import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import SettingsIcon from '@material-ui/icons/Settings';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
-import MoodIcon from '@material-ui/icons/Mood';
 
 class ProjectDetail extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       currentView: 'job', // job or setting or newjob
-      newJobInput: {}
+      newJobInput: {},
+      page: 0,
+      rowsPerPage: 10
     };
   }
   componentDidMount() {
@@ -57,6 +57,7 @@ class ProjectDetail extends React.Component {
     const { classes, projectDetail } = this.props;
     const { jobs } = projectDetail;
     const projectId = this.props?.match?.params?.id ?? '';
+    const { rowsPerPage, page } = this.state;
 
     if (jobs.length === 0) {
       return (
@@ -69,32 +70,61 @@ class ProjectDetail extends React.Component {
     }
     return (
       <div>
-        <Table className={classes.table} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>Job Name</TableCell>
-              <TableCell align="center">Description</TableCell>
-              <TableCell align="center">Type</TableCell>
-              <TableCell align="center">Created By</TableCell>
-              <TableCell align="center"></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {jobs.map(row => (
-              <TableRow hover key={row.id}>
-                <TableCell component="th" scope="row">
-                  <Link to={`/projects/${projectId}/job/${row.id}`} className={classes.jobName}>
-                    {row.name}
-                  </Link>
-                </TableCell>
-                <TableCell align="center">{row.description}</TableCell>
-                <TableCell align="center">{row.type}</TableCell>
-                <TableCell align="center">{row.user_email}</TableCell>
-                <TableCell align="center">Action</TableCell>
+        <TableContainer>
+          <Table className={classes.table} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Job Name</TableCell>
+                <TableCell align="center">Description</TableCell>
+                <TableCell align="center">Type</TableCell>
+                <TableCell align="center">Created By</TableCell>
+                <TableCell align="center"></TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {(rowsPerPage > 0 ? jobs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : jobs).map(row => (
+                <TableRow hover key={row.id}>
+                  <TableCell component="th" scope="row">
+                    <Link to={`/projects/${projectId}/job/${row.id}`} className={classes.jobName}>
+                      {row.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell align="center">{row.description}</TableCell>
+                  <TableCell align="center">{row.type}</TableCell>
+                  <TableCell align="center">{row.user_email}</TableCell>
+                  <TableCell align="center">Action</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        {jobs.length > rowsPerPage && (
+          <TablePagination
+            rowsPerPageOptions={[10, 20, jobs.length]}
+            component="div"
+            count={jobs.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={(e, page) => this.setState({ page })}
+            onChangeRowsPerPage={e => {
+              const selectedRowsPerPage = parseInt(e.target.value);
+              if (jobs.length >= selectedRowsPerPage * page) {
+                this.setState({ rowsPerPage: selectedRowsPerPage });
+              }
+            }}
+            classes={{
+              caption: classes.caption,
+              selectIcon: classes.paginationSelectIcon,
+              select: classes.paginationSelect
+            }}
+            backIconButtonProps={{
+              size: 'small'
+            }}
+            nextIconButtonProps={{
+              size: 'small'
+            }}
+          />
+        )}
       </div>
     );
   };
@@ -147,11 +177,10 @@ class ProjectDetail extends React.Component {
     const { classes, projectDetail, history } = this.props;
 
     const { project, jobs = [] } = projectDetail;
-    const { currentView, newJobInput } = this.state;
+    const { currentView } = this.state;
 
-    const { name, total_members, description } = project[0] || {};
+    const { name, total_members } = project[0] || {};
     const projectName = startCase(toLower(name));
-    const { id } = this.props.match.params;
 
     return (
       <div className={classes.projectWrapper}>
@@ -309,7 +338,18 @@ const styles = theme => ({
   table: {
     border: '1px solid #eee'
   },
-  jobName: { fontSize: 16, textDecoration: 'none', color: '#3A3C67', fontWeight: 500 }
+  jobName: { fontSize: 16, textDecoration: 'none', color: '#3A3C67', fontWeight: 500 },
+  caption: {
+    color: '#000',
+    padding: 8,
+    fontSize: 14
+  },
+  paginationSelectIcon: {
+    marginTop: -5
+  },
+  paginationSelect: {
+    fontSize: 14
+  }
 });
 
 export default connect(mapStateToProps, {
