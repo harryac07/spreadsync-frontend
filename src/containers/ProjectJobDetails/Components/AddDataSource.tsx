@@ -13,7 +13,9 @@ import SqlEditor from './SqlEditor';
 type Props = {
   handleSubmit: (reqPayload: any) => void;
   defaultData: any;
+  databaseConnectionText: string;
   markStepCompleted?: () => void;
+  handleCheckDatabaseConnection?: () => void;
 };
 type InputPayloadProps = {
   alias_name: string;
@@ -32,7 +34,13 @@ type InputPayloadProps = {
 };
 type ErrorProps = InputPayloadProps;
 
-const DataConnector: React.FC<Props> = ({ handleSubmit, defaultData, markStepCompleted }) => {
+const DataConnector: React.FC<Props> = ({
+  handleSubmit,
+  defaultData,
+  markStepCompleted,
+  handleCheckDatabaseConnection,
+  databaseConnectionText
+}) => {
   const classes = useStyles();
   const [inputObj, setInputObj] = useState({ database_extra: 'ssl' } as InputPayloadProps);
   const [isEditingConnection, setIsEditingConnection] = useState(false);
@@ -329,8 +337,29 @@ const DataConnector: React.FC<Props> = ({ handleSubmit, defaultData, markStepCom
           <br />
 
           {inputObj.database_extra === 'ssh' ? renderSSHForm() : null}
-
-          <Grid container justify="flex-end" style={{ marginTop: 20 }}>
+          <Grid container justify="space-between" style={{ marginTop: 20 }}>
+            <Grid item xs="auto">
+              <Button
+                rootStyle={{ display: 'inline-block' }}
+                className={classes.submitButton}
+                variant="outlined"
+                color="primary"
+                onClick={handleCheckDatabaseConnection}
+                type="submit"
+              >
+                Test Connection
+              </Button>
+              {databaseConnectionText && (
+                <span
+                  style={{
+                    marginLeft: 10,
+                    color: databaseConnectionText.includes('success') ? 'green' : 'red'
+                  }}
+                >
+                  {databaseConnectionText}
+                </span>
+              )}
+            </Grid>
             <Grid item xs="auto">
               {isDataSourceConfigured && (
                 <Button

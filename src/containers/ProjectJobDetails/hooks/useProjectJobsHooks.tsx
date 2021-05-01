@@ -58,6 +58,7 @@ export type Dispatch = {
   updateNewJob: (updatejobPayload: JobUpdatePayloadProps) => Promise<void>;
   createDataSource: (dataSourcePayload: any) => Promise<void>;
   updateDataSource: (dataSourceId: string, dataSourcePayload: any) => Promise<void>;
+  checkDatabaseConnection: (dataSourceId: string) => Promise<boolean | void>;
   resetState: () => void;
   fetchSpreadSheet: (spreadsheetId: string, type: SocialAuthTypes) => void;
   saveSocialAuth: (authCode: string, type: SocialAuthTypes, social_name: SocialNameTypes) => Promise<void>;
@@ -253,6 +254,21 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
     }
   };
 
+  const checkDatabaseConnection = async (dataSourceId: string) => {
+    try {
+      await axios.post(
+        `${API_URL}/jobs/${jobId}/datasource/${dataSourceId}/connection-check`,
+        {},
+        {
+          headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        }
+      );
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
   const getSocialAuthByJobId = async (social_name: SocialNameTypes = 'google') => {
     try {
       const response = await axios.get(`${API_URL}/auth/social/${social_name}/job/${jobId}`, {
@@ -398,6 +414,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       updateNewJob,
       createDataSource,
       updateDataSource,
+      checkDatabaseConnection,
       resetState,
       saveSocialAuth,
       fetchSpreadSheet,

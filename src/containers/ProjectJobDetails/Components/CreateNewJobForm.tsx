@@ -101,9 +101,8 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             error={error.type ? true : false}
             options={
               [
-                { key: 'test', value: 'test', label: 'test' },
-                { key: 'test1', value: 'test1', label: 'test1' },
-                { key: 'test2', value: 'test2', label: 'test2' }
+                { key: 'export', value: 'export', label: 'Export' }
+                // { key: 'sync', value: 'sync', label: 'sync' },
               ] as any
             }
             onChange={handleChange}

@@ -25,9 +25,10 @@ const steps = jobSteps;
 const CreateNewJob = props => {
   const { id: projectId, jobid: jobId } = props?.match?.params ?? {};
 
-  const [state, { updateNewJob, createDataSource, updateDataSource, resetState, saveSocialAuth }] = useProjectJobsHooks(
-    jobId
-  );
+  const [
+    state,
+    { updateNewJob, createDataSource, checkDatabaseConnection, updateDataSource, resetState, saveSocialAuth }
+  ] = useProjectJobsHooks(jobId);
   const {
     currentJob = {},
     currentJobDataSource,
@@ -40,6 +41,7 @@ const CreateNewJob = props => {
 
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
+  const [databaseConnectionMessage, setDatabaseConnectionMessage] = useState('');
   const dispatch = useDispatch();
   const history = useHistory();
   const classes = useStyles();
@@ -97,6 +99,19 @@ const CreateNewJob = props => {
       handleStepChange(1);
     } catch (e) {
       console.error('createNewJob: ', e.stack);
+    }
+  };
+
+  const handleCheckDatabaseConnection = async dataSourceId => {
+    if (dataSourceId) {
+      const connectionStatus = await checkDatabaseConnection(dataSourceId);
+      if (connectionStatus) {
+        setDatabaseConnectionMessage('Connection successful.');
+      } else {
+        setDatabaseConnectionMessage('Connection failed!');
+      }
+    } else {
+      toast.warning(`data source id not defined!`);
     }
   };
 
@@ -185,7 +200,9 @@ const CreateNewJob = props => {
                             updateDataSource(currentJobDataSource.id, data);
                           }
                         }}
+                        handleCheckDatabaseConnection={() => handleCheckDatabaseConnection(currentJobDataSource?.id)}
                         markStepCompleted={() => setCompletedSteps([...completedSteps, 1])}
+                        databaseConnectionText={databaseConnectionMessage}
                       />
                     )}
 
