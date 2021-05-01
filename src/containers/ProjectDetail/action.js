@@ -1,13 +1,13 @@
-import { FETCH_PROJECT, FETCH_ALL_JOBS } from './constant';
+import { FETCH_PROJECT, FETCH_ALL_JOBS, DELETE_JOB } from './constant';
 
 /**
  * fetchProjectById
  * @param {String}projectId - some params
  */
-export const fetchProjectById = (projectId) => {
+export const fetchProjectById = projectId => {
   return {
     type: FETCH_PROJECT,
-    id: projectId,
+    id: projectId
   };
 };
 
@@ -15,9 +15,22 @@ export const fetchProjectById = (projectId) => {
  * fetchAllJobsForProject
  * @param {String}projectId - some params
  */
-export const fetchAllJobsForProject = (projectId) => {
+export const fetchAllJobsForProject = projectId => {
   return {
     type: FETCH_ALL_JOBS,
-    id: projectId,
+    id: projectId
+  };
+};
+
+/**
+ * deleteAJobByJobId
+ * @param {String}jobId - Job id to delete
+ * @param {String}projectId - projectId of the job
+ */
+export const deleteAJobByJobId = (jobId, projectId) => {
+  return {
+    type: DELETE_JOB,
+    jobId,
+    projectId
   };
 };

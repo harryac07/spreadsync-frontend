@@ -4,40 +4,71 @@ import {
   FETCH_PROJECT_FAILED,
   FETCH_ALL_JOBS_SUCCEED,
   FETCH_ALL_JOBS_FAILED,
+  DELETE_JOB,
+  DELETE_JOB_SUCCEED,
+  DELETE_JOB_FAILED
 } from './constant';
 
 const initialState = {
   isFetching: false,
   project: [],
   jobs: [],
+  error: {}
 };
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case FETCH_PROJECT:
       return {
         ...state,
-        isFetching: true,
+        isFetching: true
       };
     case FETCH_PROJECT_SUCCEED:
       return {
         ...state,
         isFetching: false,
-        project: action.payload,
+        project: action.payload
       };
     case FETCH_PROJECT_FAILED:
       return {
         ...state,
-        isFetching: false,
+        isFetching: false
       };
     case FETCH_ALL_JOBS_SUCCEED:
       return {
         ...state,
-        jobs: action.payload,
+        jobs: action.payload
       };
     case FETCH_ALL_JOBS_FAILED:
       return {
         ...state,
-        jobs: [],
+        jobs: []
+      };
+    case DELETE_JOB:
+      return {
+        ...state,
+        isJobDeleted: false,
+        error: {
+          ...state.error,
+          DELETE_JOB: null
+        }
+      };
+    case DELETE_JOB_SUCCEED:
+      return {
+        ...state,
+        isJobDeleted: true,
+        error: {
+          ...state.error,
+          DELETE_JOB: null
+        }
+      };
+    case DELETE_JOB_FAILED:
+      return {
+        ...state,
+        isJobDeleted: false,
+        error: {
+          ...state.error,
+          DELETE_JOB: action.error
+        }
       };
     default:
       return state;

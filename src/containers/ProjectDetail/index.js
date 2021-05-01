@@ -1,9 +1,11 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import styled from 'styled-components';
 import { startCase, toLower } from 'lodash';
 import Button from 'components/common/Button';
+import ConfirmDialog from 'components/common/ConfirmDialog';
 import {
   Paper,
   Divider,
@@ -16,13 +18,14 @@ import {
   TableHead
 } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
-import { fetchProjectById, fetchAllJobsForProject } from './action';
+import { fetchProjectById, fetchAllJobsForProject, deleteAJobByJobId } from './action';
 
 import GroupIcon from '@material-ui/icons/Group';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import SettingsIcon from '@material-ui/icons/Settings';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 class ProjectDetail extends React.Component {
   constructor(props) {
@@ -39,6 +42,23 @@ class ProjectDetail extends React.Component {
     this.props.fetchProjectById(id);
     this.props.fetchAllJobsForProject(id);
   }
+  componentDidUpdate(prevProps, prevState) {
+    const store = this.props.projectDetail;
+    const {
+      error: { DELETE_JOB: currentDeleteJobError },
+      isJobDeleted
+    } = store;
+    const {
+      error: { DELETE_JOB: prevDeleteJobError },
+      isJobDeleted: prevIsJobDeleted
+    } = prevProps.projectDetail;
+    if (currentDeleteJobError !== prevDeleteJobError && currentDeleteJobError) {
+      toast.error(`${currentDeleteJobError}`);
+    }
+    if (isJobDeleted !== prevIsJobDeleted && isJobDeleted) {
+      toast.success(`Job deleted successfully!`);
+    }
+  }
   updateCurrentView = (selectedView = 'job') => {
     this.setState({ currentView: selectedView });
   };
@@ -54,7 +74,7 @@ class ProjectDetail extends React.Component {
     });
   };
   renderJobs = () => {
-    const { classes, projectDetail } = this.props;
+    const { classes, projectDetail, deleteAJobByJobId } = this.props;
     const { jobs } = projectDetail;
     const projectId = this.props?.match?.params?.id ?? '';
     const { rowsPerPage, page } = this.state;
@@ -92,7 +112,25 @@ class ProjectDetail extends React.Component {
                   <TableCell align="center">{row.description}</TableCell>
                   <TableCell align="center">{row.type}</TableCell>
                   <TableCell align="center">{row.user_email}</TableCell>
-                  <TableCell align="center">Action</TableCell>
+                  <TableCell align="center">
+                    <ConfirmDialog
+                      ctaToOpenModal={
+                        <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
+                      }
+                      header={
+                        <span>
+                          Confirm deleting the job: <u>{row.name}</u>?
+                        </span>
+                      }
+                      bodyContent={
+                        'Deleting the job deletes everything connected to the job and you can not undone this later. This action deletes the job history, configured data source and target'
+                      }
+                      cancelText="Cancel"
+                      cancelCallback={() => null}
+                      confirmText="Confirm"
+                      confirmCallback={() => deleteAJobByJobId(row.id, projectId)}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -354,7 +392,8 @@ const styles = theme => ({
 
 export default connect(mapStateToProps, {
   fetchProjectById,
-  fetchAllJobsForProject
+  fetchAllJobsForProject,
+  deleteAJobByJobId
 })(withStyles(styles)(ProjectDetail));
 
 export const HeaderText = styled.div`

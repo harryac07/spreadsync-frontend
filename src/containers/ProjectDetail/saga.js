@@ -9,9 +9,11 @@ import {
   FETCH_ALL_JOBS,
   FETCH_ALL_JOBS_SUCCEED,
   FETCH_ALL_JOBS_FAILED,
-  CREATE_JOB,
   CREATE_JOB_SUCCEED,
-  CREATE_JOB_FAILED
+  CREATE_JOB_FAILED,
+  DELETE_JOB,
+  DELETE_JOB_SUCCEED,
+  DELETE_JOB_FAILED
 } from './constant';
 
 const fetchProject = projectId => {
@@ -85,7 +87,39 @@ export function* createJobForProjectSaga(action) {
   }
 }
 
+const deleteAJob = jobId => {
+  return axios
+    .delete(`${API_URL}/jobs/${jobId}`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+    })
+    .then(response => {
+      return response.data;
+    });
+};
+export function* deleteAJobSaga(action) {
+  try {
+    yield call(deleteAJob, action.jobId);
+
+    yield put({
+      type: DELETE_JOB_SUCCEED
+    });
+    if (action.projectId) {
+      // refetch project jobs
+      yield put({
+        type: FETCH_ALL_JOBS,
+        id: action.projectId
+      });
+    }
+  } catch (error) {
+    yield put({
+      type: DELETE_JOB_FAILED,
+      error: error?.response?.data?.message ?? 'Something went wrong!'
+    });
+  }
+}
+
 export const projectDetailSaga = [
   takeEvery(FETCH_PROJECT, fetchProjectSaga),
-  takeEvery(FETCH_ALL_JOBS, fetchAllProjectJobsSaga)
+  takeEvery(FETCH_ALL_JOBS, fetchAllProjectJobsSaga),
+  takeEvery(DELETE_JOB, deleteAJobSaga)
 ];
