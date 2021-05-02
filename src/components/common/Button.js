@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Button as MuiButton } from '@material-ui/core/';
 
-const Button = (props) => {
+const Button = props => {
   const {
     children,
     onClick,
@@ -15,6 +15,7 @@ const Button = (props) => {
     float = 'none',
     fullWidth = false,
     rootStyle,
+    disabled = false
   } = props;
 
   return (
@@ -28,6 +29,7 @@ const Button = (props) => {
         display={display}
         startIcon={startIcon}
         fullWidth={fullWidth}
+        disabled={disabled}
       >
         {children}
       </StyledButton>
@@ -38,14 +40,15 @@ const Button = (props) => {
 export default Button;
 
 const StyledButton = styled(MuiButton)`
-  display: ${(props) => (props.display ? props.display : 'flex')};
-  height: ${(props) => (props.size === 'xs' ? '30px' : 'inherit')};
-  font-size: ${(props) => (props.size === 'xs' ? '14px' : 'inherit')};
-  text-transform: ${(props) => (props.capital ? 'uppercase' : 'none')};
-  line-height: ${(props) => (props.size === 'xs' ? '10px' : 'inherit')};
+  display: ${props => (props.display ? props.display : 'flex')};
+  height: ${props => (props.size === 'xs' ? '30px' : 'inherit')};
+  font-size: ${props => (props.size === 'xs' ? '14px' : 'inherit')};
+  text-transform: ${props => (props.capital ? 'uppercase' : 'none')};
+  line-height: ${props => (props.size === 'xs' ? '10px' : 'inherit')};
+  background-color: ${props => (props.disabled === true ? 'rgba(0, 0, 0, 0.12)' : null)};
 `;
 
 const ButtonWrapper = styled.div`
   display: block;
-  float: ${(props) => (props.float === 'right' ? 'right' : props.float === 'left' ? 'left' : 'none')};
+  float: ${props => (props.float === 'right' ? 'right' : props.float === 'left' ? 'left' : 'none')};
 `;

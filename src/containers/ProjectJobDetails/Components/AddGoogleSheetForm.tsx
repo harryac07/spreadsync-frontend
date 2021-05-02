@@ -43,6 +43,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationComp
   const [inputObj, setInputObj] = useState({
     spreadsheet_id: '',
     sheet: '',
+    sheet_name: '',
     range: 'A1',
     enrich_type: 'replace' as 'append' | 'replace', // append or replace
     include_column_header: true
@@ -114,7 +115,9 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationComp
   };
   const submitForm = e => {
     e.preventDefault();
-    const payload = { ...inputObj, type: requestType };
+    const selectedSheet = sheets?.find(({ properties }) => properties?.sheetId?.toString() === inputObj?.sheet);
+    const sheetName = selectedSheet?.properties?.title;
+    const payload = { ...inputObj, type: requestType, sheet_name: sheetName };
     const errorExists = isError();
     if (!errorExists) {
       if (isSheetConfigured) {

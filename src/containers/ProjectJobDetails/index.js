@@ -11,7 +11,10 @@ import { fetchProjectById } from 'containers/ProjectDetail/action';
 import CreateNewJobForm from './Components/CreateNewJobForm';
 import GroupIcon from '@material-ui/icons/Group';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import ExportIcon from '@material-ui/icons/FlashOn';
 import useProjectJobsHooks from './hooks/useProjectJobsHooks';
+import Button from 'components/common/Button';
 
 import { ProjectJobContextProvider } from './context';
 import DataSourceConnector from './Components/AddDataSource';
@@ -27,7 +30,15 @@ const CreateNewJob = props => {
 
   const [
     state,
-    { updateNewJob, createDataSource, checkDatabaseConnection, updateDataSource, resetState, saveSocialAuth }
+    {
+      updateNewJob,
+      createDataSource,
+      checkDatabaseConnection,
+      updateDataSource,
+      resetState,
+      saveSocialAuth,
+      runExportJobManually
+    }
   ] = useProjectJobsHooks(jobId);
   const {
     currentJob = {},
@@ -36,11 +47,13 @@ const CreateNewJob = props => {
     currentSocialAuth,
     isNewJobCreated,
     spreadSheetConfig,
-    googleSheetLists
+    googleSheetLists,
+    currentManualJobRunning
   } = state;
 
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
+  const [isManualJobRunning, setIsManualJobRunning] = useState(false);
   const [databaseConnectionMessage, setDatabaseConnectionMessage] = useState('');
   const dispatch = useDispatch();
   const history = useHistory();
@@ -80,6 +93,15 @@ const CreateNewJob = props => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataTargetConfig]);
+
+  useEffect(() => {
+    if (currentManualJobRunning === jobId) {
+      setIsManualJobRunning(true);
+    } else {
+      setIsManualJobRunning(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentManualJobRunning]);
 
   const handleStepChange = step => {
     setActiveStep(step);
@@ -138,6 +160,26 @@ const CreateNewJob = props => {
               <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px 30px" display="inline-block">
                 {isCreatingNewJob ? 'Add new job' : currentJob.name}
               </HeaderText>
+              <Button
+                rootStyle={{
+                  position: 'absolute',
+                  display: 'inline-block',
+                  right: 62,
+                  marginTop: 15
+                }}
+                variant="outlined"
+                color="primary"
+                onClick={() => {
+                  setIsManualJobRunning(true);
+                  runExportJobManually();
+                }}
+                type="submit"
+                startIcon={isManualJobRunning ? <CircularProgress size={24} /> : <ExportIcon />}
+                disabled={isManualJobRunning}
+                className={classes.manualJobButton}
+              >
+                Run job manually
+              </Button>
               <Divider light />
 
               <div className={classes.content}>
@@ -243,6 +285,12 @@ const useStyles = makeStyles(() => ({
     right: 20,
     verticalAlign: 'middle',
     marginLeft: 20
+  },
+  manualJobButton: {
+    border: '1px solid #3A3C67',
+    '& :hover': {
+      color: '#3A3C67'
+    }
   },
   headerWrapper: {
     backgroundColor: '#fff',

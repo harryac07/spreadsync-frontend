@@ -51,6 +51,7 @@ export type State = {
   isNewJobCreated: boolean;
   error?: any;
   currentProject?: any;
+  currentManualJobRunning: string;
   isLoading?: boolean;
 };
 export type Dispatch = {
@@ -66,6 +67,7 @@ export type Dispatch = {
   getSpreadsheetConfigForJob: (type: 'source' | 'target') => Promise<void>;
   updateSpreadsheetConfigForJob: (configId: string, reqPayload: any) => Promise<void>;
   createNewSpreadSheet: (spreadsheetName: string, type: 'source' | 'target') => Promise<void>;
+  runExportJobManually: () => Promise<void>;
 };
 
 const actions = {
@@ -77,6 +79,7 @@ const actions = {
   SET_GOOGLE_SHEET_LIST: 'SET_GOOGLE_SHEET_LIST',
   SET_SPREADSHEET: 'SET_SPREADSHEET',
   SET_SPREAD_SHEET_CONFIG: 'SET_SPREAD_SHEET_CONFIG',
+  SET_CURRENT_MANUAL_JOB_RUNNING: 'SET_CURRENT_MANUAL_JOB_RUNNING',
   RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES'
 };
 const initialState: State = {
@@ -88,7 +91,8 @@ const initialState: State = {
   selectedSpreadSheet: [],
   spreadSheetConfig: [],
   error: {},
-  isLoading: false
+  isLoading: false,
+  currentManualJobRunning: ''
 };
 
 const reducer = (state: State, action: any) => {
@@ -134,6 +138,11 @@ const reducer = (state: State, action: any) => {
       return {
         ...state,
         spreadSheetConfig: action.payload
+      };
+    case 'SET_CURRENT_MANUAL_JOB_RUNNING':
+      return {
+        ...state,
+        currentManualJobRunning: action.payload
       };
     case 'RESET_BOOLEAN_STATES':
       return {
@@ -404,6 +413,34 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
     }
   };
 
+  const runExportJobManually = async () => {
+    try {
+      dispatch({
+        type: actions.SET_CURRENT_MANUAL_JOB_RUNNING,
+        payload: jobId
+      });
+      await axios.post(
+        `${API_URL}/jobs/${jobId}/export`,
+        {},
+        {
+          headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        }
+      );
+      dispatch({
+        type: actions.SET_CURRENT_MANUAL_JOB_RUNNING,
+        payload: ''
+      });
+      toast.success(`Data export job completed successfully!`);
+    } catch (e) {
+      toast.error(`Export failed! ${e?.response?.data?.message ?? e?.message}`);
+      console.error('runExportJobManually ', e?.response?.data);
+      dispatch({
+        type: actions.SET_CURRENT_MANUAL_JOB_RUNNING,
+        payload: ''
+      });
+    }
+  };
+
   const resetState = () => {
     dispatch({ type: actions.RESET_BOOLEAN_STATES });
   };
@@ -421,7 +458,8 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       saveSpreadsheetConfigForJob,
       getSpreadsheetConfigForJob,
       updateSpreadsheetConfigForJob,
-      createNewSpreadSheet
+      createNewSpreadSheet,
+      runExportJobManually
     }
   ];
 }
