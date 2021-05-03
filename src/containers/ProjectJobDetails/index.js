@@ -362,10 +362,11 @@ const useStyles = makeStyles(() => ({
     maxHeight: '80vh'
   },
   completedStepLabel: {
-    color: 'green'
+    color: '#3CB371',
+    height: 30
   },
   remainingSteps: {
-    height: 28
+    height: 26
   }
 }));
 
