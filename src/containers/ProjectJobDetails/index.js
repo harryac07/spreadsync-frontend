@@ -15,6 +15,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import ExportIcon from '@material-ui/icons/FlashOn';
 import useProjectJobsHooks from './hooks/useProjectJobsHooks';
 import Button from 'components/common/Button';
+import ConfirmDialog from 'components/common/ConfirmDialog';
 
 import { ProjectJobContextProvider } from './context';
 import DataSourceConnector from './Components/AddDataSource';
@@ -160,26 +161,38 @@ const CreateNewJob = props => {
               <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px 30px" display="inline-block">
                 {isCreatingNewJob ? 'Add new job' : currentJob.name}
               </HeaderText>
-              <Button
-                rootStyle={{
-                  position: 'absolute',
-                  display: 'inline-block',
-                  right: 62,
-                  marginTop: 15
-                }}
-                variant="outlined"
-                color="primary"
-                onClick={() => {
+              <ConfirmDialog
+                ctaToOpenModal={
+                  <Button
+                    rootStyle={{
+                      position: 'absolute',
+                      display: 'inline-block',
+                      right: 62,
+                      marginTop: 15
+                    }}
+                    variant="outlined"
+                    color="primary"
+                    type="submit"
+                    startIcon={isManualJobRunning ? <CircularProgress size={24} /> : <ExportIcon />}
+                    disabled={isManualJobRunning}
+                    className={classes.manualJobButton}
+                  >
+                    Run job manually
+                  </Button>
+                }
+                header={<span>Are you sure to run the job manually?</span>}
+                bodyContent={
+                  'Running the job updates the changes the data depending on append or replace setting you have set in data target stage. This cannot be undone with this app.'
+                }
+                cancelText="Cancel"
+                cancelCallback={() => null}
+                confirmText="Confirm"
+                confirmCallback={() => {
                   setIsManualJobRunning(true);
                   runExportJobManually();
                 }}
-                type="submit"
-                startIcon={isManualJobRunning ? <CircularProgress size={24} /> : <ExportIcon />}
-                disabled={isManualJobRunning}
-                className={classes.manualJobButton}
-              >
-                Run job manually
-              </Button>
+              />
+
               <Divider light />
 
               <div className={classes.content}>

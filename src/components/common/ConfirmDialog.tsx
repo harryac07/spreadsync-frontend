@@ -39,7 +39,7 @@ const SimpleConfirmDialog: React.FC<Props> = ({
   };
 
   return (
-    <div>
+    <>
       {ctaToOpenModal ? (
         React.cloneElement(ctaToOpenModal, { onClick: handleClickOpen })
       ) : (
@@ -85,7 +85,7 @@ const SimpleConfirmDialog: React.FC<Props> = ({
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </>
   );
 };
 
