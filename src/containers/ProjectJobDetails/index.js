@@ -29,39 +29,26 @@ const steps = jobSteps;
 const CreateNewJob = props => {
   const { id: projectId, jobid: jobId } = props?.match?.params ?? {};
 
-  const [
-    state,
-    {
-      updateNewJob,
-      createDataSource,
-      checkDatabaseConnection,
-      updateDataSource,
-      resetState,
-      saveSocialAuth,
-      runExportJobManually
-    }
-  ] = useProjectJobsHooks(jobId);
+  const [state, { updateNewJob, resetState, saveSocialAuth, runExportJobManually }] = useProjectJobsHooks(jobId);
   const {
     currentJob = {},
     currentJobDataSource,
     currentProject,
     currentSocialAuth,
+    selectedSpreadSheet,
     isNewJobCreated,
     spreadSheetConfig,
-    googleSheetLists,
     currentManualJobRunning
   } = state;
 
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [isManualJobRunning, setIsManualJobRunning] = useState(false);
-  const [databaseConnectionMessage, setDatabaseConnectionMessage] = useState('');
   const dispatch = useDispatch();
   const history = useHistory();
   const classes = useStyles();
   const isCreatingNewJob = props?.match?.path?.includes('/job/new');
 
-  const [targetDataAuth] = currentSocialAuth?.filter(data => (data.type = 'target'));
   const [dataTargetConfig] = spreadSheetConfig;
 
   useEffect(() => {
@@ -78,22 +65,28 @@ const CreateNewJob = props => {
   }, [currentJobDataSource]);
 
   useEffect(() => {
+    const completedStepList = [];
     if (!isEmpty(currentJob)) {
-      setCompletedSteps([...completedSteps, 0]);
+      completedStepList.push(0);
     }
+    if (currentJob?.is_data_source_configured) {
+      completedStepList.push(1);
+    }
+    if (currentJob?.is_data_target_configured) {
+      completedStepList.push(2);
+    }
+    if (completedStepList.length > 0) {
+      setCompletedSteps(completedStepList);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentJob]);
+
+  useEffect(() => {
     if (!isEmpty(currentJob) && isNewJobCreated) {
-      setCompletedSteps([...completedSteps, 0]);
       resetState();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentJob, isNewJobCreated]);
-
-  useEffect(() => {
-    if (!isEmpty(dataTargetConfig)) {
-      setCompletedSteps([...completedSteps, 2]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataTargetConfig]);
+  }, [isNewJobCreated]);
 
   useEffect(() => {
     if (currentManualJobRunning === jobId) {
@@ -108,10 +101,6 @@ const CreateNewJob = props => {
     setActiveStep(step);
   };
 
-  const getSocialName = () => {
-    return 'google';
-  };
-
   const createNewJob = async reqPayload => {
     try {
       const response = await axios.post(`${API_URL}/jobs/`, reqPayload, {
@@ -122,19 +111,6 @@ const CreateNewJob = props => {
       handleStepChange(1);
     } catch (e) {
       console.error('createNewJob: ', e.stack);
-    }
-  };
-
-  const handleCheckDatabaseConnection = async dataSourceId => {
-    if (dataSourceId) {
-      const connectionStatus = await checkDatabaseConnection(dataSourceId);
-      if (connectionStatus) {
-        setDatabaseConnectionMessage('Connection successful.');
-      } else {
-        setDatabaseConnectionMessage('Connection failed!');
-      }
-    } else {
-      toast.warning(`data source id not defined!`);
     }
   };
 
@@ -246,19 +222,7 @@ const CreateNewJob = props => {
                     )}
 
                     {activeStep === 1 && (
-                      <DataSourceConnector
-                        defaultData={currentJobDataSource}
-                        handleSubmit={data => {
-                          if (isEmpty(currentJobDataSource)) {
-                            createDataSource(data);
-                          } else {
-                            updateDataSource(currentJobDataSource.id, data);
-                          }
-                        }}
-                        handleCheckDatabaseConnection={() => handleCheckDatabaseConnection(currentJobDataSource?.id)}
-                        markStepCompleted={() => setCompletedSteps([...completedSteps, 1])}
-                        databaseConnectionText={databaseConnectionMessage}
-                      />
+                      <DataSourceConnector markStepCompleted={() => setCompletedSteps([...completedSteps, 1])} />
                     )}
 
                     {activeStep === 2 && (

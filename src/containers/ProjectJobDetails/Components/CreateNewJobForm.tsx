@@ -119,6 +119,7 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             error={!!error.data_source}
             options={[
               { value: 'database', label: 'Sql Database' },
+              { value: 'spreadsheet', label: 'Spreadsheet' },
               { value: 'api', label: 'API endpoint' },
               { value: 'crm', label: 'CRM' }
             ]}
@@ -136,6 +137,7 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             error={!!error.data_target}
             options={[
               { value: 'spreadsheet', label: 'Spreadsheet' },
+              { value: 'database', label: 'Sql Database' },
               { value: 'slack', label: 'Slack' },
               { value: 'email', label: 'Email' }
             ]}

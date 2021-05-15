@@ -1,5 +1,6 @@
 import React from 'react';
 import AddGoogleSheetForm from './AddGoogleSheetForm';
+import DatabaseForm from './databaseForm';
 
 type Props = {
   targetConfigurationCompleted: () => void;
@@ -10,6 +11,10 @@ const DataConnector: React.FC<Props> = ({ targetConfigurationCompleted, dataTarg
     <div>
       {dataTargetType === 'spreadsheet' && (
         <AddGoogleSheetForm requestType="target" setConfigurationCompleted={targetConfigurationCompleted} />
+      )}
+
+      {dataTargetType === 'database' && (
+        <DatabaseForm requestType="target" markStepCompleted={targetConfigurationCompleted} />
       )}
       <div />
     </div>

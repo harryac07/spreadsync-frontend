@@ -15,6 +15,9 @@ export interface NewJobPayloadProps {
   description: string;
   project: string;
   script?: string;
+
+  is_data_source_configured?: boolean;
+  is_data_target_configured?: boolean;
 }
 export interface JobUpdatePayloadProps {
   name?: string;
@@ -26,6 +29,9 @@ export interface JobUpdatePayloadProps {
   description?: string;
   project?: string;
   script?: string;
+
+  is_data_source_configured?: boolean;
+  is_data_target_configured?: boolean;
 }
 
 type SocialAuthTypes = 'target' | 'source';
@@ -188,7 +194,6 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         fetchCurrentJobDataSource();
         getSocialAuthByJobId();
         fetchAllGoogleSheetsForJob();
-        getSpreadsheetConfigForJob('target');
       }
     } catch (e) {
       console.error(e.stack);

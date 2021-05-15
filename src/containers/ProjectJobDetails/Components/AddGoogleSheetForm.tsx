@@ -64,6 +64,13 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationComp
   }, []);
 
   useEffect(() => {
+    if (sheetsData) {
+      setConfigurationCompleted();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheetsData]);
+
+  useEffect(() => {
     if (!isEmpty(mergedConfigurationData)) {
       setInputObj({
         ...inputObj,
@@ -173,7 +180,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationComp
                           handleChange({
                             target: { value, name: 'spreadsheet_id' }
                           });
-                          fetchSpreadSheet(value, 'target');
+                          fetchSpreadSheet(value, requestType);
                         }
                       }}
                     />

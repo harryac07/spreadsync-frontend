@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { startCase, toLower, isEmpty } from 'lodash';
+import { toast } from 'react-toastify';
 import { Grid } from '@material-ui/core/';
 import Button from 'components/common/Button';
 import Field from 'components/common/Field';
@@ -11,11 +12,8 @@ import { useJobConfig } from '../context';
 import SqlEditor from './SqlEditor';
 
 type Props = {
-  handleSubmit: (reqPayload: any) => void;
-  defaultData: any;
-  databaseConnectionText: string;
   markStepCompleted?: () => void;
-  handleCheckDatabaseConnection?: () => void;
+  requestType: 'target' | 'source';
 };
 type InputPayloadProps = {
   alias_name: string;
@@ -34,24 +32,22 @@ type InputPayloadProps = {
 };
 type ErrorProps = InputPayloadProps;
 
-const DatabaseForm: React.FC<Props> = ({
-  handleSubmit,
-  defaultData,
-  markStepCompleted,
-  handleCheckDatabaseConnection,
-  databaseConnectionText
-}) => {
+const DatabaseForm: React.FC<Props> = ({ markStepCompleted, requestType }) => {
   const classes = useStyles();
   const [inputObj, setInputObj] = useState({ database_extra: 'ssl' } as InputPayloadProps);
   const [isEditingConnection, setIsEditingConnection] = useState(false);
   const [error, setError] = useState({} as ErrorProps);
-  const [{ currentJob }, { updateNewJob }] = useJobConfig() || [];
+  const [databaseConnectionMessage, setDatabaseConnectionMessage] = useState('');
 
-  const dataSource = currentJob?.data_source;
+  const [
+    { currentJob, currentJobDataSource },
+    { updateNewJob, createDataSource, updateDataSource, checkDatabaseConnection }
+  ] = useJobConfig() || [];
+
+  const defaultData = currentJobDataSource;
+
   const isDataSourceConfigured = !isEmpty(defaultData);
   const dataSourceScript = currentJob?.script ?? '';
-
-  console.log('AddDataSource currentJob ', currentJob);
 
   useEffect(() => {
     if (!isEmpty(defaultData)) {
@@ -124,7 +120,24 @@ const DatabaseForm: React.FC<Props> = ({
     e.preventDefault();
     const errorExists = isError();
     if (!errorExists) {
-      handleSubmit(inputObj);
+      if (isEmpty(currentJobDataSource)) {
+        createDataSource(inputObj);
+      } else {
+        updateDataSource(currentJobDataSource.id, inputObj);
+      }
+    }
+  };
+
+  const handleCheckDatabaseConnection = async dataSourceId => {
+    if (dataSourceId) {
+      const connectionStatus = await checkDatabaseConnection(dataSourceId);
+      if (connectionStatus) {
+        setDatabaseConnectionMessage('Connection successful.');
+      } else {
+        setDatabaseConnectionMessage('Connection failed!');
+      }
+    } else {
+      toast.warning(`data source id not defined!`);
     }
   };
 
@@ -215,7 +228,7 @@ const DatabaseForm: React.FC<Props> = ({
     <div>
       {/* {data_source === 'database' ? renderDatabaseSource() : null} */}
 
-      {dataSource === 'database' && (isEditingConnection || !isDataSourceConfigured) ? (
+      {isEditingConnection || !isDataSourceConfigured ? (
         <form>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={6}>
@@ -346,19 +359,19 @@ const DatabaseForm: React.FC<Props> = ({
                 className={classes.submitButton}
                 variant="outlined"
                 color="primary"
-                onClick={handleCheckDatabaseConnection}
+                onClick={() => handleCheckDatabaseConnection(currentJobDataSource.id)}
                 type="submit"
               >
                 Test Connection
               </Button>
-              {databaseConnectionText && (
+              {databaseConnectionMessage && (
                 <span
                   style={{
                     marginLeft: 10,
-                    color: databaseConnectionText.includes('success') ? 'green' : 'red'
+                    color: databaseConnectionMessage.includes('success') ? 'green' : 'red'
                   }}
                 >
-                  {databaseConnectionText}
+                  {databaseConnectionMessage}
                 </span>
               )}
             </Grid>
@@ -404,7 +417,7 @@ const DatabaseForm: React.FC<Props> = ({
               Edit connection
             </Button>
             <Grid container spacing={0}>
-              {Object.entries(defaultData).map(([key, val]) => {
+              {Object.entries(defaultData || {}).map(([key, val]) => {
                 if (!databaseSettingToDisplay.includes(key) || !val) {
                   return null;
                 }
@@ -421,13 +434,17 @@ const DatabaseForm: React.FC<Props> = ({
           <div>
             <h4>Add script to run</h4>
             <SqlEditor
-              handleSubmit={script =>
+              handleSubmit={script => {
+                const updateJobCompletedPayload =
+                  requestType === 'source' ? { is_data_source_configured: true } : { is_data_target_configured: true };
+
                 updateNewJob({
                   script,
                   data_source: currentJob?.data_source,
-                  data_target: currentJob?.data_target
-                })
-              }
+                  data_target: currentJob?.data_target,
+                  ...updateJobCompletedPayload
+                });
+              }}
               defaultScript={currentJob?.script}
             />
           </div>

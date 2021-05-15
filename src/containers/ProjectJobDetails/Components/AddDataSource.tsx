@@ -2,46 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useJobConfig } from '../context';
 import DatabaseForm from './databaseForm';
+import SpreadSheetForm from './AddGoogleSheetForm';
 
 type Props = {
-  handleSubmit: (reqPayload: any) => void;
-  defaultData: any;
-  databaseConnectionText: string;
   markStepCompleted?: () => void;
-  handleCheckDatabaseConnection?: () => void;
 };
 
-const DataConnector: React.FC<Props> = ({
-  handleSubmit,
-  defaultData,
-  markStepCompleted,
-  handleCheckDatabaseConnection,
-  databaseConnectionText
-}) => {
+const DataConnector: React.FC<Props> = ({ markStepCompleted }) => {
   // const classes = useStyles();
   const [{ currentJob }] = useJobConfig() || [];
 
   const dataSource = currentJob?.data_source;
-  const dataSourceScript = currentJob?.script ?? '';
-
-  useEffect(() => {
-    if (dataSourceScript) {
-      markStepCompleted();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataSourceScript]);
 
   return (
     <div>
       {/* render data source component based on datasource type */}
-      {dataSource === 'database' && (
-        <DatabaseForm
-          handleSubmit={handleSubmit}
-          defaultData={defaultData}
-          databaseConnectionText={databaseConnectionText}
-          markStepCompleted={markStepCompleted}
-          handleCheckDatabaseConnection={handleCheckDatabaseConnection}
-        />
+      {dataSource === 'database' && <DatabaseForm requestType="source" markStepCompleted={markStepCompleted} />}
+      {dataSource === 'spreadsheet' && (
+        <SpreadSheetForm requestType="source" setConfigurationCompleted={markStepCompleted} />
       )}
     </div>
   );
