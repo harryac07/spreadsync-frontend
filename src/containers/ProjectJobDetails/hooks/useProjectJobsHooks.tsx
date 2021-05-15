@@ -44,7 +44,7 @@ type SaveSpreadsheetConfigForJobTypes = {
 export type State = {
   currentJob: any;
   currentJobDataSource: any;
-  currentSocialAuth: { id: string; name: string }[];
+  currentSocialAuth: { id: string; name: string; type?: string }[];
   selectedSpreadSheet: SelectedSpreadSheetTypes[];
   spreadSheetConfig: any[];
   googleSheetLists: any;

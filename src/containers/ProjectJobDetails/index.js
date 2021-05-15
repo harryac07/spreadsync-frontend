@@ -263,13 +263,8 @@ const CreateNewJob = props => {
 
                     {activeStep === 2 && (
                       <DataTargetConnector
-                        handleSubmit={authCode => {
-                          const socialName = getSocialName();
-                          saveSocialAuth(authCode, 'target', socialName);
-                        }}
-                        currentSocialAuth={targetDataAuth}
                         targetConfigurationCompleted={() => setCompletedSteps([...completedSteps, 2])}
-                        googleSheetLists={googleSheetLists}
+                        dataTargetType={currentJob.data_target}
                       />
                     )}
                   </ProjectJobContextProvider>

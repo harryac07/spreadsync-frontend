@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { toast } from 'react-toastify';
-import { isEmpty } from 'lodash';
+import { countBy, isEmpty } from 'lodash';
+import { GoogleLogin } from 'react-google-login';
 import Field from 'components/common/Field';
 import Select from 'components/common/Select';
 import Button from 'components/common/Button';
@@ -10,31 +11,29 @@ import { Grid, Radio, RadioGroup, FormControlLabel, Switch, Typography } from '@
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { useSelector } from 'react-redux';
 
+import { GOOGLE_CLIENT_ID } from 'env';
 import { useJobConfig } from '../context';
-
-type Files = {
-  id: string;
-  name: string;
-};
 
 interface Props {
   requestType?: 'target' | 'source';
   setConfigurationCompleted?: () => void;
-  googleSheetLists: { files: Files[]; nextPageToken: string };
 }
 
-const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationCompleted, googleSheetLists }) => {
+const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationCompleted }) => {
   const classes = useStyles();
   const [
-    { selectedSpreadSheet, spreadSheetConfig, isLoading },
+    { selectedSpreadSheet, spreadSheetConfig, isLoading, currentSocialAuth, googleSheetLists },
     {
       fetchSpreadSheet,
       saveSpreadsheetConfigForJob,
       getSpreadsheetConfigForJob,
       updateSpreadsheetConfigForJob,
-      createNewSpreadSheet
+      createNewSpreadSheet,
+      saveSocialAuth
     }
   ] = useJobConfig();
+
+  const [authConnection] = currentSocialAuth?.filter(data => (data.type = requestType));
 
   const { files = [], nextPageToken = '' } = googleSheetLists || {};
   const [sheetsData] = selectedSpreadSheet.filter(({ type }) => type === requestType);
@@ -129,116 +128,156 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationComp
     }
   };
 
-  return (
-    <form>
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Grid container>
-            <Grid item xs={12} sm={5}>
-              <Typography className={classes.jobTypeLable}>Select spreadsheet</Typography>
-              <SingleSelect
-                value={inputObj.spreadsheet_id}
-                placeholder="Select spreadsheet"
-                options={files.map(file => ({ key: file.id, value: file.id, label: file.name }))}
-                helperText="Select the existing Spreadsheet or create new one"
-                SelectProps={{
-                  isCreatable: true,
-                  isValidNewOption: (inputValue: string) => inputValue !== '',
-                  formatCreateLabel: (value: string) => `${value} (Creating new...)`
-                }}
-                onChange={(value, obj) => {
-                  const { __isNew__ } = obj as any;
-                  if (__isNew__) {
-                    createNewSpreadSheet(value, requestType);
-                  } else {
-                    handleChange({
-                      target: { value, name: 'spreadsheet_id' }
-                    });
-                    fetchSpreadSheet(value, 'target');
-                  }
-                }}
-              />
-              {isLoading ? (
-                <CircularProgress size={30} style={{ position: 'absolute', marginLeft: 15 }} color="primary" />
-              ) : null}
-              <br />
-              <br />
-            </Grid>
-          </Grid>
-        </Grid>
+  const handleSpreadsheetConnectionSuccess = response => {
+    const code = response?.code ?? '';
+    if (code) {
+      const socialName = 'google';
+      saveSocialAuth(code, requestType, socialName);
+    }
+  };
+  const handleSpreadsheetConnectionError = response => {
+    const error = response?.error ?? '';
+    if (error) {
+      alert(error);
+    }
+  };
 
-        {inputObj?.spreadsheet_id && (
-          <>
-            <Grid item xs={12} sm={6} md={6}>
-              <Select
-                required={true}
-                label={'Sheet name'}
-                name="sheet"
-                error={!!error.sheet}
-                options={
-                  sheets?.map(({ properties }) => ({
-                    label: properties?.title,
-                    value: properties?.sheetId?.toString(),
-                    key: properties?.sheetId
-                  })) as any
-                }
-                onChange={handleChange}
-                size="small"
-                fullWidth={true}
-                value={inputObj.sheet}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={6}>
-              <Field
-                required={true}
-                label={'Range'}
-                placeholder="Range"
-                name="range"
-                error={!!error.range}
-                onChange={handleChange}
-                multiline
-                size="small"
-                defaultValue={inputObj.range}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={6}>
-              <Typography className={classes.jobTypeLable}>Job Type</Typography>
-              <RadioGroup row name="enrich_type" value={inputObj.enrich_type} onChange={handleChange}>
-                <FormControlLabel value="replace" control={<Radio />} label="Replace data" />
-                <FormControlLabel value="append" control={<Radio />} label="Append data" />
-              </RadioGroup>
-            </Grid>
-            <Grid item xs={12} sm={6} md={6}>
-              <Typography className={classes.jobTypeLable}>Include column headers</Typography>
-              <Switch
-                checked={inputObj.include_column_header}
-                color="primary"
-                onChange={e => {
-                  setInputObj({
-                    ...inputObj,
-                    include_column_header: e.target.checked
-                  });
-                }}
-                name="include_column_header"
-              />
-            </Grid>
-            <Grid container justify="flex-end">
-              <Grid item xs="auto">
-                <Button
-                  className={classes.submitButton}
-                  variant="contained"
-                  color="primary"
-                  onClick={submitForm}
-                  type="submit"
-                >
-                  {isSheetConfigured ? 'Update' : 'Save'}
-                </Button>
+  return (
+    <div>
+      {authConnection ? (
+        <>
+          <h3>Connected to Google Spreadsheet</h3>
+          <br />
+
+          <form>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Grid container>
+                  <Grid item xs={12} sm={5}>
+                    <Typography className={classes.jobTypeLable}>Select spreadsheet</Typography>
+                    <SingleSelect
+                      value={inputObj.spreadsheet_id}
+                      placeholder="Select spreadsheet"
+                      options={files.map(file => ({ key: file.id, value: file.id, label: file.name }))}
+                      helperText="Select the existing Spreadsheet or create new one"
+                      SelectProps={{
+                        isCreatable: true,
+                        isValidNewOption: (inputValue: string) => inputValue !== '',
+                        formatCreateLabel: (value: string) => `${value} (Creating new...)`
+                      }}
+                      onChange={(value, obj) => {
+                        const { __isNew__ } = obj as any;
+                        if (__isNew__) {
+                          createNewSpreadSheet(value, requestType);
+                        } else {
+                          handleChange({
+                            target: { value, name: 'spreadsheet_id' }
+                          });
+                          fetchSpreadSheet(value, 'target');
+                        }
+                      }}
+                    />
+                    {isLoading ? (
+                      <CircularProgress size={30} style={{ position: 'absolute', marginLeft: 15 }} color="primary" />
+                    ) : null}
+                    <br />
+                    <br />
+                  </Grid>
+                </Grid>
               </Grid>
+
+              {inputObj?.spreadsheet_id && (
+                <>
+                  <Grid item xs={12} sm={6} md={6}>
+                    <Select
+                      required={true}
+                      label={'Sheet name'}
+                      name="sheet"
+                      error={!!error.sheet}
+                      options={
+                        sheets?.map(({ properties }) => ({
+                          label: properties?.title,
+                          value: properties?.sheetId?.toString(),
+                          key: properties?.sheetId
+                        })) as any
+                      }
+                      onChange={handleChange}
+                      size="small"
+                      fullWidth={true}
+                      value={inputObj.sheet}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6}>
+                    <Field
+                      required={true}
+                      label={'Range'}
+                      placeholder="Range"
+                      name="range"
+                      error={!!error.range}
+                      onChange={handleChange}
+                      multiline
+                      size="small"
+                      defaultValue={inputObj.range}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6}>
+                    <Typography className={classes.jobTypeLable}>Job Type</Typography>
+                    <RadioGroup row name="enrich_type" value={inputObj.enrich_type} onChange={handleChange}>
+                      <FormControlLabel value="replace" control={<Radio />} label="Replace data" />
+                      <FormControlLabel value="append" control={<Radio />} label="Append data" />
+                    </RadioGroup>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={6}>
+                    <Typography className={classes.jobTypeLable}>Include column headers</Typography>
+                    <Switch
+                      checked={inputObj.include_column_header}
+                      color="primary"
+                      onChange={e => {
+                        setInputObj({
+                          ...inputObj,
+                          include_column_header: e.target.checked
+                        });
+                      }}
+                      name="include_column_header"
+                    />
+                  </Grid>
+                  <Grid container justify="flex-end">
+                    <Grid item xs="auto">
+                      <Button
+                        className={classes.submitButton}
+                        variant="contained"
+                        color="primary"
+                        onClick={submitForm}
+                        type="submit"
+                      >
+                        {isSheetConfigured ? 'Update' : 'Save'}
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </>
+              )}
             </Grid>
-          </>
-        )}
-      </Grid>
-    </form>
+          </form>
+        </>
+      ) : (
+        <GoogleLogin
+          clientId={GOOGLE_CLIENT_ID}
+          buttonText={'Authorize to Google'}
+          onSuccess={handleSpreadsheetConnectionSuccess}
+          onFailure={handleSpreadsheetConnectionError}
+          cookiePolicy={'single_host_origin'}
+          scope={[
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'https://www.googleapis.com/auth/drive',
+            'https://www.googleapis.com/auth/spreadsheets'
+          ].join(' ')}
+          responseType={'code'}
+          accessType={'offline'}
+          prompt={'consent'}
+        />
+      )}
+    </div>
   );
 };
 
