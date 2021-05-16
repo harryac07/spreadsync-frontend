@@ -428,7 +428,9 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
             <SqlEditor
               handleSubmit={script => {
                 const updateJobCompletedPayload =
-                  requestType === 'source' ? { is_data_source_configured: true } : { is_data_target_configured: true };
+                  requestType === 'source'
+                    ? { is_data_source_configured: true }
+                    : { is_data_target_configured: true, is_data_source_configured: true };
 
                 updateDataSource(currentJobDataSource.id, {
                   script

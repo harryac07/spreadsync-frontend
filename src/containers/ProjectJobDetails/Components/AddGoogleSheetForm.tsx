@@ -126,7 +126,9 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
       }
       /* Mark job as configured */
       const updateJobCompletedPayload =
-        requestType === 'source' ? { is_data_source_configured: true } : { is_data_target_configured: true };
+        requestType === 'source'
+          ? { is_data_source_configured: true }
+          : { is_data_target_configured: true, is_data_source_configured: true };
 
       updateNewJob({
         data_source: currentJob?.data_source,
