@@ -230,27 +230,34 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                       defaultValue={inputObj.range}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={6}>
-                    <Typography className={classes.jobTypeLable}>Job Type</Typography>
-                    <RadioGroup row name="enrich_type" value={inputObj.enrich_type} onChange={handleChange}>
-                      <FormControlLabel value="replace" control={<Radio />} label="Replace data" />
-                      <FormControlLabel value="append" control={<Radio />} label="Append data" />
-                    </RadioGroup>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={6}>
-                    <Typography className={classes.jobTypeLable}>Include column headers</Typography>
-                    <Switch
-                      checked={inputObj.include_column_header}
-                      color="primary"
-                      onChange={e => {
-                        setInputObj({
-                          ...inputObj,
-                          include_column_header: e.target.checked
-                        });
-                      }}
-                      name="include_column_header"
-                    />
-                  </Grid>
+
+                  {/* Display only when requestType is target */}
+                  {requestType === 'target' && (
+                    <>
+                      <Grid item xs={12} sm={6} md={6}>
+                        <Typography className={classes.jobTypeLable}>Job Type</Typography>
+                        <RadioGroup row name="enrich_type" value={inputObj.enrich_type} onChange={handleChange}>
+                          <FormControlLabel value="replace" control={<Radio />} label="Replace data" />
+                          <FormControlLabel value="append" control={<Radio />} label="Append data" />
+                        </RadioGroup>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={6}>
+                        <Typography className={classes.jobTypeLable}>Include column headers</Typography>
+                        <Switch
+                          checked={inputObj.include_column_header}
+                          color="primary"
+                          onChange={e => {
+                            setInputObj({
+                              ...inputObj,
+                              include_column_header: e.target.checked
+                            });
+                          }}
+                          name="include_column_header"
+                        />
+                      </Grid>
+                    </>
+                  )}
+
                   <Grid container justify="flex-end">
                     <Grid item xs="auto">
                       <Button
