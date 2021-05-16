@@ -12,7 +12,6 @@ import { useJobConfig } from '../context';
 import SqlEditor from './SqlEditor';
 
 type Props = {
-  markStepCompleted?: () => void;
   requestType: 'target' | 'source';
 };
 type InputPayloadProps = {
@@ -29,10 +28,12 @@ type InputPayloadProps = {
   ssh_username: string;
   ssh_password: string;
   ssh_key: string;
+  script?: string;
+  tablename?: string;
 };
 type ErrorProps = InputPayloadProps;
 
-const DatabaseForm: React.FC<Props> = ({ markStepCompleted, requestType }) => {
+const DatabaseForm: React.FC<Props> = ({ requestType }) => {
   const classes = useStyles();
   const [inputObj, setInputObj] = useState({ database_extra: 'ssl' } as InputPayloadProps);
   const [isEditingConnection, setIsEditingConnection] = useState(false);
@@ -45,9 +46,7 @@ const DatabaseForm: React.FC<Props> = ({ markStepCompleted, requestType }) => {
   ] = useJobConfig() || [];
 
   const defaultData = currentJobDataSource;
-
   const isDataSourceConfigured = !isEmpty(defaultData);
-  const dataSourceScript = currentJob?.script ?? '';
 
   useEffect(() => {
     if (!isEmpty(defaultData)) {
@@ -57,13 +56,6 @@ const DatabaseForm: React.FC<Props> = ({ markStepCompleted, requestType }) => {
       });
     }
   }, [defaultData]);
-
-  useEffect(() => {
-    if (dataSourceScript) {
-      markStepCompleted();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataSourceScript]);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -438,14 +430,16 @@ const DatabaseForm: React.FC<Props> = ({ markStepCompleted, requestType }) => {
                 const updateJobCompletedPayload =
                   requestType === 'source' ? { is_data_source_configured: true } : { is_data_target_configured: true };
 
+                updateDataSource(currentJobDataSource.id, {
+                  script
+                });
                 updateNewJob({
-                  script,
                   data_source: currentJob?.data_source,
                   data_target: currentJob?.data_target,
                   ...updateJobCompletedPayload
                 });
               }}
-              defaultScript={currentJob?.script}
+              defaultScript={currentJobDataSource?.script}
             />
           </div>
         </div>

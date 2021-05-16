@@ -16,20 +16,20 @@ import { useJobConfig } from '../context';
 
 interface Props {
   requestType?: 'target' | 'source';
-  setConfigurationCompleted?: () => void;
 }
 
-const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationCompleted }) => {
+const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   const classes = useStyles();
   const [
-    { selectedSpreadSheet, spreadSheetConfig, isLoading, currentSocialAuth, googleSheetLists },
+    { currentJob, selectedSpreadSheet, spreadSheetConfig, isLoading, currentSocialAuth, googleSheetLists },
     {
       fetchSpreadSheet,
       saveSpreadsheetConfigForJob,
       getSpreadsheetConfigForJob,
       updateSpreadsheetConfigForJob,
       createNewSpreadSheet,
-      saveSocialAuth
+      saveSocialAuth,
+      updateNewJob
     }
   ] = useJobConfig();
 
@@ -62,13 +62,6 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationComp
   useEffect(() => {
     getSpreadsheetConfigForJob(requestType);
   }, []);
-
-  useEffect(() => {
-    if (sheetsData) {
-      setConfigurationCompleted();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sheetsData]);
 
   useEffect(() => {
     if (!isEmpty(mergedConfigurationData)) {
@@ -130,8 +123,16 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType, setConfigurationComp
         updateSpreadsheetConfigForJob(configuredData.id, payload);
       } else {
         saveSpreadsheetConfigForJob(payload);
-        setConfigurationCompleted();
       }
+      /* Mark job as configured */
+      const updateJobCompletedPayload =
+        requestType === 'source' ? { is_data_source_configured: true } : { is_data_target_configured: true };
+
+      updateNewJob({
+        data_source: currentJob?.data_source,
+        data_target: currentJob?.data_target,
+        ...updateJobCompletedPayload
+      });
     }
   };
 

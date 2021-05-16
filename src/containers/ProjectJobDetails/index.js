@@ -78,6 +78,8 @@ const CreateNewJob = props => {
     if (completedStepList.length > 0) {
       setCompletedSteps(completedStepList);
     }
+
+    console.log('currentJob ', currentJob, completedStepList);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentJob]);
 

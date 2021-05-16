@@ -11,16 +11,21 @@ type Props = {
 const DataConnector: React.FC<Props> = ({ markStepCompleted }) => {
   // const classes = useStyles();
   const [{ currentJob }] = useJobConfig() || [];
-
   const dataSource = currentJob?.data_source;
+  const { is_data_source_configured } = currentJob || {};
+
+  useEffect(() => {
+    if (is_data_source_configured) {
+      markStepCompleted();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [is_data_source_configured]);
 
   return (
     <div>
       {/* render data source component based on datasource type */}
-      {dataSource === 'database' && <DatabaseForm requestType="source" markStepCompleted={markStepCompleted} />}
-      {dataSource === 'spreadsheet' && (
-        <SpreadSheetForm requestType="source" setConfigurationCompleted={markStepCompleted} />
-      )}
+      {dataSource === 'database' && <DatabaseForm requestType="source" />}
+      {dataSource === 'spreadsheet' && <SpreadSheetForm requestType="source" />}
     </div>
   );
 };

@@ -14,8 +14,6 @@ export interface NewJobPayloadProps {
   data_target: string;
   description: string;
   project: string;
-  script?: string;
-
   is_data_source_configured?: boolean;
   is_data_target_configured?: boolean;
 }
@@ -28,8 +26,6 @@ export interface JobUpdatePayloadProps {
   data_target?: string;
   description?: string;
   project?: string;
-  script?: string;
-
   is_data_source_configured?: boolean;
   is_data_target_configured?: boolean;
 }
@@ -238,7 +234,12 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
       await fetchCurrentJob();
-      toast.success(`Job updated successfully!`);
+
+      const isDataSourceUpdated =
+        (reqPayload.is_data_source_configured || reqPayload.is_data_target_configured) && !reqPayload.name;
+      if (!isDataSourceUpdated) {
+        toast.success(`Job updated successfully!`);
+      }
     } catch (e) {
       console.error(': (newjobPayload:NewJobPayloadProps)=> Promise<void>;: ', e.stack);
     }
