@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { startCase, toLower, isEmpty } from 'lodash';
 import { toast } from 'react-toastify';
-import { Grid } from '@material-ui/core/';
+import { Grid, Typography, Radio, RadioGroup, FormControlLabel, Switch } from '@material-ui/core/';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import { SingleSelect } from 'react-select-material-ui';
 import Button from 'components/common/Button';
 import Field from 'components/common/Field';
 import Select from 'components/common/Select';
-import Radio from '@material-ui/core/Radio';
 
 import { useJobConfig } from '../context';
 import SqlEditor from './SqlEditor';
@@ -30,6 +31,7 @@ type InputPayloadProps = {
   ssh_key: string;
   script?: string;
   tablename?: string;
+  enrich_type?: 'replace' | 'append';
 };
 type ErrorProps = InputPayloadProps;
 
@@ -41,12 +43,20 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
   const [databaseConnectionMessage, setDatabaseConnectionMessage] = useState('');
 
   const [
-    { currentJob, currentJobDataSource },
-    { updateNewJob, createDataSource, updateDataSource, checkDatabaseConnection }
+    { currentJob, currentJobDataSource, tableList },
+    { updateNewJob, createDataSource, updateDataSource, listDatabaseTable, checkDatabaseConnection }
   ] = useJobConfig() || [];
 
   const defaultData = currentJobDataSource;
   const isDataSourceConfigured = !isEmpty(defaultData);
+  const filteredTableList = tableList[defaultData.id] || [];
+
+  useEffect(() => {
+    if (currentJob.data_target === 'database' && requestType === 'target' && isDataSourceConfigured) {
+      listDatabaseTable(defaultData.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!isEmpty(defaultData)) {
@@ -423,27 +433,89 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
             </Grid>
             <br />
           </div>
-          <div>
-            <h4>Add script to run</h4>
-            <SqlEditor
-              handleSubmit={script => {
-                const updateJobCompletedPayload =
-                  requestType === 'source'
-                    ? { is_data_source_configured: true }
-                    : { is_data_target_configured: true, is_data_source_configured: true };
 
-                updateDataSource(currentJobDataSource.id, {
-                  script
-                });
-                updateNewJob({
-                  data_source: currentJob?.data_source,
-                  data_target: currentJob?.data_target,
-                  ...updateJobCompletedPayload
-                });
-              }}
-              defaultScript={currentJobDataSource?.script}
-            />
-          </div>
+          {/* Display sql editor if requestType is source */}
+          {requestType === 'source' && (
+            <div>
+              <h4>Add script to run</h4>
+              <SqlEditor
+                handleSubmit={script => {
+                  updateDataSource(currentJobDataSource.id, {
+                    script
+                  });
+                  updateNewJob({
+                    data_source: currentJob?.data_source,
+                    data_target: currentJob?.data_target,
+                    is_data_source_configured: true
+                  });
+                }}
+                defaultScript={currentJobDataSource?.script}
+              />
+            </div>
+          )}
+
+          {/* Display table name input if requestType is target */}
+          {requestType === 'target' && (
+            <>
+              <h4>Target configuration</h4>
+              <Grid container spacing={4}>
+                <Grid item xs={12} sm={7}>
+                  <Typography className={classes.selectTableLabel}>Select table</Typography>
+                  <SingleSelect
+                    value={inputObj.tablename || ''}
+                    placeholder="Select existing table"
+                    options={filteredTableList.map(table => ({
+                      key: table.tablename,
+                      value: table.tablename,
+                      label: table.tablename
+                    }))}
+                    helperText="Select the existing tablename"
+                    onChange={value => {
+                      handleChange({
+                        target: {
+                          name: 'tablename',
+                          value
+                        }
+                      });
+                    }}
+                  />
+                  <br />
+                </Grid>
+                <Grid item xs={12} sm={5}>
+                  <Typography className={classes.selectTableLabel}>Data enrich type</Typography>
+                  <RadioGroup row name="enrich_type" value={inputObj.enrich_type || ''} onChange={handleChange}>
+                    <FormControlLabel value="replace" control={<Radio />} label="Replace data" />
+                    <FormControlLabel value="append" control={<Radio />} label="Append data" />
+                  </RadioGroup>
+                </Grid>
+              </Grid>
+              <br />
+              <Grid container justify="flex-end">
+                <Grid item xs="auto">
+                  <Button
+                    className={classes.submitButton}
+                    variant="contained"
+                    color="primary"
+                    onClick={e => {
+                      submitForm(e);
+                      const updateJobCompletedPayload = {
+                        is_data_target_configured: true,
+                        is_data_source_configured: true
+                      };
+                      updateNewJob({
+                        data_source: currentJob?.data_source,
+                        data_target: currentJob?.data_target,
+                        ...updateJobCompletedPayload
+                      });
+                    }}
+                    type="submit"
+                  >
+                    Update configuration
+                  </Button>
+                </Grid>
+              </Grid>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -487,6 +559,11 @@ const useStyles = makeStyles(() => ({
   },
   radioLabel: {
     margin: '0px 15px 5px 0px',
+    padding: 0,
+    fontSize: 16
+  },
+  selectTableLabel: {
+    margin: '0px 0px 5px 0px',
     padding: 0,
     fontSize: 16
   }

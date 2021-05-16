@@ -46,6 +46,7 @@ type SaveSpreadsheetConfigForJobTypes = {
 export type State = {
   currentJob: any;
   currentJobDataSource: any;
+  tableList: any;
   currentSocialAuth: { id: string; name: string; type?: string }[];
   selectedSpreadSheet: SelectedSpreadSheetTypes[];
   spreadSheetConfig: any[];
@@ -62,6 +63,7 @@ export type Dispatch = {
   createDataSource: (dataSourcePayload: any) => Promise<void>;
   updateDataSource: (dataSourceId: string, dataSourcePayload: any) => Promise<void>;
   checkDatabaseConnection: (dataSourceId: string) => Promise<boolean | void>;
+  listDatabaseTable: (dataSourceId: string) => Promise<void>;
   resetState: () => void;
   fetchSpreadSheet: (spreadsheetId: string, type: SocialAuthTypes) => void;
   saveSocialAuth: (authCode: string, type: SocialAuthTypes, social_name: SocialNameTypes) => Promise<void>;
@@ -82,7 +84,8 @@ const actions = {
   SET_SPREADSHEET: 'SET_SPREADSHEET',
   SET_SPREAD_SHEET_CONFIG: 'SET_SPREAD_SHEET_CONFIG',
   SET_CURRENT_MANUAL_JOB_RUNNING: 'SET_CURRENT_MANUAL_JOB_RUNNING',
-  RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES'
+  RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES',
+  SET_DATA_SOURCE_TABLE_LIST: 'SET_DATA_SOURCE_TABLE_LIST'
 };
 const initialState: State = {
   currentJob: {},
@@ -94,7 +97,8 @@ const initialState: State = {
   spreadSheetConfig: [],
   error: {},
   isLoading: false,
-  currentManualJobRunning: ''
+  currentManualJobRunning: '',
+  tableList: {}
 };
 
 const reducer = (state: State, action: any) => {
@@ -118,6 +122,14 @@ const reducer = (state: State, action: any) => {
       return {
         ...state,
         currentJobDataSource: action.payload
+      };
+    case 'SET_DATA_SOURCE_TABLE_LIST':
+      return {
+        ...state,
+        tableList: {
+          ...state.tableList,
+          [action.id]: action.payload
+        }
       };
     case 'SET_SOCIAL_AUTH':
       return {
@@ -281,6 +293,17 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       return true;
     } catch (e) {
       return false;
+    }
+  };
+
+  const listDatabaseTable = async (dataSourceId: string) => {
+    try {
+      const res = await axios.get(`${API_URL}/jobs/${jobId}/datasource/${dataSourceId}/list-table`, {
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      });
+      dispatch({ type: actions.SET_DATA_SOURCE_TABLE_LIST, id: dataSourceId, payload: res.data });
+    } catch (e) {
+      console.error(e.stack);
     }
   };
 
@@ -458,6 +481,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       createDataSource,
       updateDataSource,
       checkDatabaseConnection,
+      listDatabaseTable,
       resetState,
       saveSocialAuth,
       fetchSpreadSheet,

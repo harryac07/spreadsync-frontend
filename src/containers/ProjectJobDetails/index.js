@@ -49,8 +49,6 @@ const CreateNewJob = props => {
   const classes = useStyles();
   const isCreatingNewJob = props?.match?.path?.includes('/job/new');
 
-  const [dataTargetConfig] = spreadSheetConfig;
-
   useEffect(() => {
     if (isEmpty(currentProject)) {
       dispatch(fetchProjectById(projectId));
@@ -79,7 +77,6 @@ const CreateNewJob = props => {
       setCompletedSteps(completedStepList);
     }
 
-    console.log('currentJob ', currentJob, completedStepList);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentJob]);
 
