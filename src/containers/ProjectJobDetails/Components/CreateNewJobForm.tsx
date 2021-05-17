@@ -120,8 +120,7 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             options={[
               { value: 'database', label: 'Sql Database' },
               { value: 'spreadsheet', label: 'Spreadsheet' },
-              { value: 'api', label: 'API endpoint' },
-              { value: 'crm', label: 'CRM' }
+              { value: 'api', label: 'API endpoint' }
             ]}
             onChange={handleChange}
             size="small"
@@ -137,9 +136,9 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             error={!!error.data_target}
             options={[
               { value: 'spreadsheet', label: 'Spreadsheet' },
-              { value: 'database', label: 'Sql Database' },
-              { value: 'slack', label: 'Slack' },
-              { value: 'email', label: 'Email' }
+              { value: 'database', label: 'Sql Database' }
+              // { value: 'slack', label: 'Slack' },
+              // { value: 'email', label: 'Email' }
             ]}
             onChange={handleChange}
             size="small"

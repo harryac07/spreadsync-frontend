@@ -163,7 +163,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Grid container>
-                  <Grid item xs={12} sm={5}>
+                  <Grid item xs={12} sm={6}>
                     <Typography className={classes.jobTypeLable}>Select spreadsheet</Typography>
                     <SingleSelect
                       value={inputObj.spreadsheet_id}
@@ -217,23 +217,24 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                       value={inputObj.sheet}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={6}>
-                    <Field
-                      required={true}
-                      label={'Range'}
-                      placeholder="Range"
-                      name="range"
-                      error={!!error.range}
-                      onChange={handleChange}
-                      multiline
-                      size="small"
-                      defaultValue={inputObj.range}
-                    />
-                  </Grid>
 
                   {/* Display only when requestType is target */}
                   {requestType === 'target' && (
                     <>
+                      <Grid item xs={12} sm={6} md={6}>
+                        <Field
+                          required={true}
+                          label={'Range'}
+                          placeholder="Range"
+                          name="range"
+                          error={!!error.range}
+                          onChange={handleChange}
+                          multiline
+                          size="small"
+                          defaultValue={inputObj.range}
+                        />
+                      </Grid>
+
                       <Grid item xs={12} sm={6} md={6}>
                         <Typography className={classes.jobTypeLable}>Job Type</Typography>
                         <RadioGroup row name="enrich_type" value={inputObj.enrich_type} onChange={handleChange}>

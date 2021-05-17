@@ -466,7 +466,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
 
           {/* Display table name input if requestType is target */}
           {requestType === 'target' && (
-            <>
+            <div className={classes.targetConfiguration}>
               <h4>Target configuration</h4>
               <Grid container spacing={4}>
                 <Grid item xs={12} sm={7}>
@@ -524,7 +524,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
                   </Button>
                 </Grid>
               </Grid>
-            </>
+            </div>
           )}
         </div>
       )}
@@ -576,5 +576,11 @@ const useStyles = makeStyles(() => ({
     margin: '0px 0px 5px 0px',
     padding: 0,
     fontSize: 16
+  },
+  targetConfiguration: {
+    padding: '10px 30px 30px 30px',
+    background: '#fafafa',
+    marginTop: '15px',
+    marginBottom: '0px'
   }
 }));
