@@ -433,7 +433,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         payload: response?.data ?? []
       });
       /* fetch spreadsheet */
-      const [spreadsheetResponse] = response?.data;
+      const [spreadsheetResponse] = response?.data?.filter(({ type: reqType }) => reqType === type);
       if (type && !isEmpty(spreadsheetResponse)) {
         fetchSpreadSheet(spreadsheetResponse?.spreadsheet_id, type);
       }

@@ -29,16 +29,8 @@ const steps = jobSteps;
 const CreateNewJob = props => {
   const { id: projectId, jobid: jobId } = props?.match?.params ?? {};
 
-  const [state, { updateNewJob, resetState, saveSocialAuth, runExportJobManually }] = useProjectJobsHooks(jobId);
-  const {
-    currentJob = {},
-    currentProject,
-    currentSocialAuth,
-    selectedSpreadSheet,
-    isNewJobCreated,
-    spreadSheetConfig,
-    currentManualJobRunning
-  } = state;
+  const [state, { updateNewJob, resetState, runExportJobManually }] = useProjectJobsHooks(jobId);
+  const { currentJob = {}, currentProject, isNewJobCreated, currentManualJobRunning } = state;
 
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);

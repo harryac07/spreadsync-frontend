@@ -33,7 +33,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
     }
   ] = useJobConfig();
 
-  const [authConnection] = currentSocialAuth?.filter(data => (data.type = requestType));
+  const [authConnection] = currentSocialAuth?.filter(data => data.type === requestType);
 
   const { files = [], nextPageToken = '' } = googleSheetLists || {};
   const [sheetsData] = selectedSpreadSheet.filter(({ type }) => type === requestType);
