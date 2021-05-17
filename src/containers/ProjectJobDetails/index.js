@@ -32,7 +32,6 @@ const CreateNewJob = props => {
   const [state, { updateNewJob, resetState, saveSocialAuth, runExportJobManually }] = useProjectJobsHooks(jobId);
   const {
     currentJob = {},
-    currentJobDataSource,
     currentProject,
     currentSocialAuth,
     selectedSpreadSheet,
@@ -54,13 +53,6 @@ const CreateNewJob = props => {
       dispatch(fetchProjectById(projectId));
     }
   }, []);
-
-  useEffect(() => {
-    if (!isEmpty(currentJobDataSource) && currentJob?.script) {
-      setCompletedSteps([...completedSteps, 1]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentJobDataSource]);
 
   useEffect(() => {
     const completedStepList = [];

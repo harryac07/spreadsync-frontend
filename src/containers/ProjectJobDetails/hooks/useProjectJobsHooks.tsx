@@ -89,7 +89,7 @@ const actions = {
 };
 const initialState: State = {
   currentJob: {},
-  currentJobDataSource: {},
+  currentJobDataSource: [],
   currentSocialAuth: [],
   googleSheetLists: {},
   isNewJobCreated: false,
@@ -220,7 +220,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
     const response = await axios.get(`${API_URL}/jobs/${jobId}/datasource/`, {
       headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
     });
-    const [dataSource] = response?.data ?? [];
+    const dataSource = response?.data ?? [];
     dispatch({ type: actions.SET_DATA_SOURCE, payload: dataSource });
   };
 

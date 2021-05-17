@@ -47,7 +47,8 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
     { updateNewJob, createDataSource, updateDataSource, listDatabaseTable, checkDatabaseConnection }
   ] = useJobConfig() || [];
 
-  const defaultData = currentJobDataSource;
+  const [defaultData = {}] = currentJobDataSource.filter(({ data_type }) => data_type === requestType);
+
   const isDataSourceConfigured = !isEmpty(defaultData);
   const filteredTableList = tableList[defaultData.id] || [];
 
@@ -65,6 +66,10 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
         database_extra: !!defaultData.is_ssh ? 'ssh' : 'ssl'
       });
     }
+    if (!isEmpty(defaultData) && defaultData.data_type === 'target') {
+      listDatabaseTable(defaultData.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultData]);
 
   const handleChange = e => {
@@ -121,11 +126,16 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
   const submitForm = e => {
     e.preventDefault();
     const errorExists = isError();
+    const payload = {
+      ...inputObj,
+      data_type: requestType,
+      ...(requestType === 'target' && !inputObj.enrich_type ? { enrich_type: 'replace' } : {})
+    };
     if (!errorExists) {
-      if (isEmpty(currentJobDataSource)) {
-        createDataSource(inputObj);
+      if (isEmpty(defaultData)) {
+        createDataSource(payload);
       } else {
-        updateDataSource(currentJobDataSource.id, inputObj);
+        updateDataSource(defaultData.id, payload);
       }
     }
   };
@@ -361,7 +371,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
                 className={classes.submitButton}
                 variant="outlined"
                 color="primary"
-                onClick={() => handleCheckDatabaseConnection(currentJobDataSource.id)}
+                onClick={() => handleCheckDatabaseConnection(defaultData.id)}
                 type="submit"
               >
                 Test Connection
@@ -440,7 +450,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
               <h4>Add script to run</h4>
               <SqlEditor
                 handleSubmit={script => {
-                  updateDataSource(currentJobDataSource.id, {
+                  updateDataSource(defaultData.id, {
                     script
                   });
                   updateNewJob({
@@ -449,7 +459,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
                     is_data_source_configured: true
                   });
                 }}
-                defaultScript={currentJobDataSource?.script}
+                defaultScript={defaultData?.script}
               />
             </div>
           )}
