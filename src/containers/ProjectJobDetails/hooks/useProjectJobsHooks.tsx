@@ -50,7 +50,7 @@ export type State = {
   currentSocialAuth: { id: string; name: string; type?: string }[];
   selectedSpreadSheet: SelectedSpreadSheetTypes[];
   spreadSheetConfig: any[];
-  googleSheetLists: any;
+  googleSheetLists: { files: any; type: 'source' | 'target'; nextPageToken?: string }[];
   isNewJobCreated: boolean;
   error?: any;
   currentProject?: any;
@@ -65,6 +65,7 @@ export type Dispatch = {
   checkDatabaseConnection: (dataSourceId: string) => Promise<boolean | void>;
   listDatabaseTable: (dataSourceId: string) => Promise<void>;
   resetState: () => void;
+  fetchAllGoogleSheetsForJob: (type: SocialAuthTypes) => Promise<void>;
   fetchSpreadSheet: (spreadsheetId: string, type: SocialAuthTypes) => void;
   saveSocialAuth: (authCode: string, type: SocialAuthTypes, social_name: SocialNameTypes) => Promise<void>;
   saveSpreadsheetConfigForJob: (reqPayload: SaveSpreadsheetConfigForJobTypes) => Promise<void>;
@@ -91,7 +92,7 @@ const initialState: State = {
   currentJob: {},
   currentJobDataSource: [],
   currentSocialAuth: [],
-  googleSheetLists: {},
+  googleSheetLists: [],
   isNewJobCreated: false,
   selectedSpreadSheet: [],
   spreadSheetConfig: [],
@@ -137,9 +138,11 @@ const reducer = (state: State, action: any) => {
         currentSocialAuth: action.payload
       };
     case 'SET_GOOGLE_SHEET_LIST':
+      const filterSheetListsByType = state.googleSheetLists.filter(({ type }) => type !== action?.payload?.type);
+      const uniqueSheetsPayload = uniqBy([...filterSheetListsByType, action.payload], 'type');
       return {
         ...state,
-        googleSheetLists: action.payload
+        googleSheetLists: uniqueSheetsPayload
       };
     case 'SET_SPREADSHEET':
       const filterSpreadSheetByType = state.selectedSpreadSheet.filter(({ type }) => type !== action?.payload?.type);
@@ -201,7 +204,6 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       if (jobId) {
         fetchCurrentJobDataSource();
         getSocialAuthByJobId();
-        fetchAllGoogleSheetsForJob();
       }
     } catch (e) {
       console.error(e.stack);
@@ -333,14 +335,14 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
       });
       await getSocialAuthByJobId(social_name);
-      await fetchAllGoogleSheetsForJob();
+      await fetchAllGoogleSheetsForJob(type);
     } catch (e) {
       console.error('saveSocialAuth ', e.stack);
     }
   };
 
-  const fetchAllGoogleSheetsForJob = async () => {
-    const response = await axios.get(`${API_URL}/sheets/list/job/${jobId}`, {
+  const fetchAllGoogleSheetsForJob = async (reqType: SocialAuthTypes) => {
+    const response = await axios.get(`${API_URL}/sheets/list/job/${jobId}?reqType=${reqType}`, {
       headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
     });
     dispatch({ type: actions.SET_GOOGLE_SHEET_LIST, payload: response.data });
@@ -364,13 +366,14 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
     });
   };
 
-  const createNewSpreadSheet = async (spreadSheetName: string, type: SocialAuthTypes = 'target') => {
+  const createNewSpreadSheet = async (spreadSheetName: string, type: SocialAuthTypes) => {
     try {
       if (!jobId) {
         throw new Error('Job id is required!');
       }
       const reqPayload = {
-        spreadsheet_name: spreadSheetName
+        spreadsheet_name: spreadSheetName,
+        type
       };
       dispatch({ type: actions.LOADING });
       const response = await axios.post(`${API_URL}/sheets/create/job/${jobId}`, reqPayload, {
@@ -378,7 +381,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       });
       const sheetId = response?.data?.spreadsheet_id ?? '';
       dispatch({ type: actions.RESET_BOOLEAN_STATES });
-      await fetchAllGoogleSheetsForJob();
+      await fetchAllGoogleSheetsForJob(type);
       if (sheetId) {
         await fetchSpreadSheet(sheetId, type);
       }
@@ -484,6 +487,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       listDatabaseTable,
       resetState,
       saveSocialAuth,
+      fetchAllGoogleSheetsForJob,
       fetchSpreadSheet,
       saveSpreadsheetConfigForJob,
       getSpreadsheetConfigForJob,

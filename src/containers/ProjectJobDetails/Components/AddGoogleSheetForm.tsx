@@ -26,6 +26,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
       fetchSpreadSheet,
       saveSpreadsheetConfigForJob,
       getSpreadsheetConfigForJob,
+      fetchAllGoogleSheetsForJob,
       updateSpreadsheetConfigForJob,
       createNewSpreadSheet,
       saveSocialAuth,
@@ -35,7 +36,8 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
 
   const [authConnection] = currentSocialAuth?.filter(data => data.type === requestType);
 
-  const { files = [], nextPageToken = '' } = googleSheetLists || {};
+  const [googleSpreadsheets] = googleSheetLists.filter(({ type }) => type === requestType);
+  const { files = [], nextPageToken = '', type } = googleSpreadsheets || {};
   const [sheetsData] = selectedSpreadSheet.filter(({ type }) => type === requestType);
 
   const [error, setError] = useState({} as any);
@@ -61,6 +63,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   };
   useEffect(() => {
     getSpreadsheetConfigForJob(requestType);
+    fetchAllGoogleSheetsForJob(requestType);
   }, []);
 
   useEffect(() => {
