@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { toast } from 'react-toastify';
-import { countBy, isEmpty } from 'lodash';
+import { isEmpty } from 'lodash';
 import { GoogleLogin } from 'react-google-login';
 import Field from 'components/common/Field';
 import Select from 'components/common/Select';
 import Button from 'components/common/Button';
-import { SingleSelect } from 'react-select-material-ui';
+import Creatable from 'react-select/creatable';
+import { withAsyncPaginate } from 'react-select-async-paginate';
+
 import { Grid, Radio, RadioGroup, FormControlLabel, Switch, Typography } from '@material-ui/core';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { useSelector } from 'react-redux';
 
 import { GOOGLE_CLIENT_ID } from 'env';
 import { useJobConfig } from '../context';
@@ -17,6 +17,9 @@ import { useJobConfig } from '../context';
 interface Props {
   requestType?: 'target' | 'source';
 }
+
+const CreatableAsyncPaginate = withAsyncPaginate(Creatable);
+const sheetPageSize = 50;
 
 const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   const classes = useStyles();
@@ -43,6 +46,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   const [error, setError] = useState({} as any);
   const [inputObj, setInputObj] = useState({
     spreadsheet_id: '',
+    spreadsheet_name: '',
     sheet: '',
     sheet_name: '',
     range: 'A1',
@@ -51,13 +55,14 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   });
 
   const [configuredData] = spreadSheetConfig.filter(({ type }) => type === requestType);
-  const { sheets = [] } = sheetsData || {};
+  const { sheets = [], spreadsheetName = '' } = sheetsData || {};
 
   const isSheetConfigured = !isEmpty(configuredData);
   const mergedConfigurationData = {
     ...configuredData,
     ...{
       spreadsheet_id: sheetsData?.spreadsheetId,
+      spreadsheet_name: spreadsheetName,
       sheets: sheetsData?.sheets
     }
   };
@@ -72,6 +77,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
         ...inputObj,
         ...{
           spreadsheet_id: mergedConfigurationData.spreadsheet_id,
+          spreadsheet_name: mergedConfigurationData.spreadsheet_name,
           sheet: mergedConfigurationData.sheet || '',
           range: mergedConfigurationData.range || inputObj.range,
           enrich_type: mergedConfigurationData.enrich_type || inputObj.enrich_type,
@@ -118,8 +124,9 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   const submitForm = e => {
     e.preventDefault();
     const selectedSheet = sheets?.find(({ properties }) => properties?.sheetId?.toString() === inputObj?.sheet);
+
     const sheetName = selectedSheet?.properties?.title;
-    const payload = { ...inputObj, type: requestType, sheet_name: sheetName };
+    const payload = { ...inputObj, type: requestType, sheet_name: sheetName, spreadsheet_name: spreadsheetName };
     const errorExists = isError();
     if (!errorExists) {
       if (isSheetConfigured) {
@@ -155,6 +162,34 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
     }
   };
 
+  const sleep = ms =>
+    new Promise(resolve => {
+      setTimeout(() => {
+        resolve(1);
+      }, ms);
+    });
+
+  const loadSpreadSheetOptions = async (search = '', prevOptions) => {
+    await sleep(1000);
+    const searchLower = search?.toLowerCase();
+
+    if (nextPageToken && !search) {
+      fetchAllGoogleSheetsForJob(requestType, nextPageToken);
+    }
+
+    let filteredOptions = files.map(file => ({ key: file.id, value: file.id, label: file.name }));
+
+    if (searchLower) {
+      filteredOptions = filteredOptions.filter(({ label }) => label.toLowerCase().includes(searchLower));
+    }
+
+    const slicedOptions = filteredOptions.slice(prevOptions.length, prevOptions.length + sheetPageSize);
+
+    return {
+      options: slicedOptions,
+      hasMore: !!nextPageToken
+    };
+  };
   return (
     <div>
       {authConnection ? (
@@ -168,31 +203,45 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                 <Grid container>
                   <Grid item xs={12} sm={6}>
                     <Typography className={classes.jobTypeLable}>Select spreadsheet</Typography>
-                    <SingleSelect
-                      value={inputObj.spreadsheet_id}
-                      placeholder="Select spreadsheet"
-                      options={files.map(file => ({ key: file.id, value: file.id, label: file.name }))}
-                      helperText="Select the existing Spreadsheet or create new one"
-                      SelectProps={{
-                        isCreatable: true,
-                        isValidNewOption: (inputValue: string) => inputValue !== '',
-                        formatCreateLabel: (value: string) => `${value} (Creating new...)`
-                      }}
-                      onChange={(value, obj) => {
-                        const { __isNew__ } = obj as any;
-                        if (__isNew__) {
-                          createNewSpreadSheet(value, requestType);
-                        } else {
+                    <div style={{ position: 'relative' }}>
+                      <CreatableAsyncPaginate
+                        placeholder={'Select spreadsheet'}
+                        SelectComponent={Creatable}
+                        // isDisabled={isAddingInProgress}
+                        value={{
+                          label: inputObj.spreadsheet_name,
+                          value: inputObj.spreadsheet_id
+                        }}
+                        options={[
+                          ...files,
+                          ...(inputObj.spreadsheet_id && !files.some(({ id }) => id === inputObj.spreadsheet_id)
+                            ? [{ id: inputObj.spreadsheet_id, name: spreadsheetName }]
+                            : [])
+                        ].map(file => ({ key: file.id, value: file.id, label: file.name }))}
+                        loadOptions={loadSpreadSheetOptions}
+                        onCreateOption={value => createNewSpreadSheet(value, requestType)}
+                        onChange={({ value }) => {
                           handleChange({
                             target: { value, name: 'spreadsheet_id' }
                           });
                           fetchSpreadSheet(value, requestType);
-                        }
-                      }}
-                    />
-                    {isLoading ? (
-                      <CircularProgress size={30} style={{ position: 'absolute', marginLeft: 15 }} color="primary" />
-                    ) : null}
+                        }}
+                      />
+                      {isLoading ? (
+                        <CircularProgress
+                          size={30}
+                          style={{
+                            width: 30,
+                            height: 30,
+                            position: 'absolute',
+                            marginLeft: 15,
+                            top: 5,
+                            right: '-40px'
+                          }}
+                          color="primary"
+                        />
+                      ) : null}
+                    </div>
                     <br />
                     <br />
                   </Grid>

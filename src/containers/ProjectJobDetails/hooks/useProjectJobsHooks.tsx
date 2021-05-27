@@ -33,7 +33,12 @@ export interface JobUpdatePayloadProps {
 type SocialAuthTypes = 'target' | 'source';
 type SocialNameTypes = 'google';
 
-type SelectedSpreadSheetTypes = { type: SocialAuthTypes; spreadsheetId: string; sheets: any[] };
+type SelectedSpreadSheetTypes = {
+  type: SocialAuthTypes;
+  spreadsheetId: string;
+  sheets: any[];
+  spreadsheetName?: string;
+};
 type SaveSpreadsheetConfigForJobTypes = {
   include_column_header: boolean;
   enrich_type: 'append' | 'replace';
@@ -65,7 +70,7 @@ export type Dispatch = {
   checkDatabaseConnection: (dataSourceId: string) => Promise<boolean | void>;
   listDatabaseTable: (dataSourceId: string) => Promise<void>;
   resetState: () => void;
-  fetchAllGoogleSheetsForJob: (type: SocialAuthTypes) => Promise<void>;
+  fetchAllGoogleSheetsForJob: (type: SocialAuthTypes, nextPageToken?: string) => Promise<void>;
   fetchSpreadSheet: (spreadsheetId: string, type: SocialAuthTypes) => void;
   saveSocialAuth: (authCode: string, type: SocialAuthTypes, social_name: SocialNameTypes) => Promise<void>;
   saveSpreadsheetConfigForJob: (reqPayload: SaveSpreadsheetConfigForJobTypes) => Promise<void>;
@@ -139,7 +144,29 @@ const reducer = (state: State, action: any) => {
       };
     case 'SET_GOOGLE_SHEET_LIST':
       const filterSheetListsByType = state.googleSheetLists.filter(({ type }) => type !== action?.payload?.type);
-      const uniqueSheetsPayload = uniqBy([...filterSheetListsByType, action.payload], 'type');
+
+      // merge array of spreadsheets preventing duplicate
+      const { usePreviousTrackingToken = false } = action || {};
+
+      const previousGoogleSheet = state.googleSheetLists.find(({ type }) => type === action?.payload?.type);
+
+      let nextPageToken = action.payload?.nextPageToken ?? '';
+      if (usePreviousTrackingToken) {
+        nextPageToken = previousGoogleSheet?.nextPageToken ?? '';
+      }
+
+      const mergedPayload = {
+        ...action.payload,
+        files: uniqBy([...(previousGoogleSheet?.files ?? []), ...(action.payload?.files ?? [])], 'id'),
+        nextPageToken: nextPageToken
+      };
+
+      const uniqueSheetsPayload = uniqBy([...filterSheetListsByType, mergedPayload], 'type') as {
+        files: any;
+        type: 'target' | 'source';
+        nextPageToken?: string;
+      }[];
+
       return {
         ...state,
         googleSheetLists: uniqueSheetsPayload
@@ -341,8 +368,12 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
     }
   };
 
-  const fetchAllGoogleSheetsForJob = async (reqType: SocialAuthTypes) => {
-    const response = await axios.get(`${API_URL}/sheets/list/job/${jobId}?reqType=${reqType}`, {
+  const fetchAllGoogleSheetsForJob = async (reqType: SocialAuthTypes, nextPageToken = '') => {
+    const queryParams = new URLSearchParams({
+      reqType,
+      nextPageToken
+    });
+    const response = await axios.get(`${API_URL}/sheets/list/job/${jobId}?${queryParams.toString()}`, {
       headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
     });
     dispatch({ type: actions.SET_GOOGLE_SHEET_LIST, payload: response.data });
@@ -361,6 +392,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       payload: {
         sheets: response?.data?.sheets ?? [],
         spreadsheetId: spreadsheetId,
+        spreadsheetName: response?.data?.properties?.title ?? '',
         type: type
       } as SelectedSpreadSheetTypes
     });
@@ -381,7 +413,21 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       });
       const sheetId = response?.data?.spreadsheet_id ?? '';
       dispatch({ type: actions.RESET_BOOLEAN_STATES });
-      await fetchAllGoogleSheetsForJob(type);
+
+      /* Append newly created spreadsheet to the state */
+      dispatch({
+        type: actions.SET_GOOGLE_SHEET_LIST,
+        payload: {
+          files: [
+            {
+              id: sheetId,
+              name: spreadSheetName
+            }
+          ],
+          type: type
+        },
+        usePreviousTrackingToken: true
+      });
       if (sheetId) {
         await fetchSpreadSheet(sheetId, type);
       }
