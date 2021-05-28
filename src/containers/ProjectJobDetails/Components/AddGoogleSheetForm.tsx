@@ -19,12 +19,28 @@ interface Props {
 }
 
 const CreatableAsyncPaginate = withAsyncPaginate(Creatable);
+
+const googleScopes = [
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/spreadsheets'
+];
+const googleAuthIssueErrors = ['Invalid Credentials', 'invalid_grant'];
 const sheetPageSize = 50;
 
 const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   const classes = useStyles();
   const [
-    { currentJob, selectedSpreadSheet, spreadSheetConfig, isLoading, currentSocialAuth, googleSheetLists },
+    {
+      currentJob,
+      selectedSpreadSheet,
+      spreadSheetConfig,
+      isLoading,
+      error: storeError = {},
+      currentSocialAuth,
+      googleSheetLists
+    },
     {
       fetchSpreadSheet,
       saveSpreadsheetConfigForJob,
@@ -38,9 +54,12 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   ] = useJobConfig();
 
   const [authConnection] = currentSocialAuth?.filter(data => data.type === requestType);
+  const currentSpreadsheetError = storeError[`spreadsheet-${requestType}`];
+  const shouldUserReAuthorizeSpreadsheet =
+    googleAuthIssueErrors.includes(currentSpreadsheetError) && !isEmpty(authConnection);
 
   const [googleSpreadsheets] = googleSheetLists.filter(({ type }) => type === requestType);
-  const { files = [], nextPageToken = '', type } = googleSpreadsheets || {};
+  const { files = [], nextPageToken = '' } = googleSpreadsheets || {};
   const [sheetsData] = selectedSpreadSheet.filter(({ type }) => type === requestType);
 
   const [error, setError] = useState({} as any);
@@ -192,7 +211,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
   };
   return (
     <div>
-      {authConnection ? (
+      {authConnection && !shouldUserReAuthorizeSpreadsheet ? (
         <>
           <h3>Connected to Google Spreadsheet</h3>
           <br />
@@ -330,22 +349,27 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
           </form>
         </>
       ) : (
-        <GoogleLogin
-          clientId={GOOGLE_CLIENT_ID}
-          buttonText={'Authorize to Google'}
-          onSuccess={handleSpreadsheetConnectionSuccess}
-          onFailure={handleSpreadsheetConnectionError}
-          cookiePolicy={'single_host_origin'}
-          scope={[
-            'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile',
-            'https://www.googleapis.com/auth/drive',
-            'https://www.googleapis.com/auth/spreadsheets'
-          ].join(' ')}
-          responseType={'code'}
-          accessType={'offline'}
-          prompt={'consent'}
-        />
+        <>
+          {shouldUserReAuthorizeSpreadsheet && (
+            <div className={classes.authorizeBanner}>
+              <Typography>
+                We have noticed the connection issue with your spreadsheet. You must re-authorize the google spreadsheet
+                connection.
+              </Typography>
+            </div>
+          )}
+          <GoogleLogin
+            clientId={GOOGLE_CLIENT_ID}
+            buttonText={'Authorize to Google'}
+            onSuccess={handleSpreadsheetConnectionSuccess}
+            onFailure={handleSpreadsheetConnectionError}
+            cookiePolicy={'single_host_origin'}
+            scope={googleScopes.join(' ')}
+            responseType={'code'}
+            accessType={'offline'}
+            prompt={'consent'}
+          />
+        </>
       )}
     </div>
   );
@@ -359,6 +383,16 @@ const useStyles = makeStyles(() => ({
     margin: '0px 0px 5px 0px',
     padding: 0,
     fontSize: 16
+  },
+  authorizeBanner: {
+    background: '#eee',
+    padding: 16,
+    borderRadius: 4,
+    textAlign: 'left',
+    marginBottom: 16,
+    '& p': {
+      fontSize: 16
+    }
   }
 }));
 

@@ -91,7 +91,8 @@ const actions = {
   SET_SPREAD_SHEET_CONFIG: 'SET_SPREAD_SHEET_CONFIG',
   SET_CURRENT_MANUAL_JOB_RUNNING: 'SET_CURRENT_MANUAL_JOB_RUNNING',
   RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES',
-  SET_DATA_SOURCE_TABLE_LIST: 'SET_DATA_SOURCE_TABLE_LIST'
+  SET_DATA_SOURCE_TABLE_LIST: 'SET_DATA_SOURCE_TABLE_LIST',
+  SET_ERROR: 'SET_ERROR'
 };
 const initialState: State = {
   currentJob: {},
@@ -193,6 +194,14 @@ const reducer = (state: State, action: any) => {
         ...state,
         isNewJobCreated: false,
         isLoading: false
+      };
+    case 'SET_ERROR':
+      return {
+        ...state,
+        error: {
+          ...state.error,
+          [action.payload.key]: action.payload.error
+        }
       };
     default:
       return {
@@ -363,6 +372,14 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       });
       await getSocialAuthByJobId(social_name);
       await fetchAllGoogleSheetsForJob(type);
+
+      dispatch({
+        type: actions.SET_ERROR,
+        payload: {
+          key: 'spreadsheet-' + type,
+          error: null
+        }
+      });
     } catch (e) {
       console.error('saveSocialAuth ', e.stack);
     }
@@ -373,29 +390,51 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       reqType,
       nextPageToken
     });
-    const response = await axios.get(`${API_URL}/sheets/list/job/${jobId}?${queryParams.toString()}`, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
-    });
-    dispatch({ type: actions.SET_GOOGLE_SHEET_LIST, payload: response.data });
-    // res?.data?.files ?? []; res.data.nextPageToken
+    try {
+      const response = await axios.get(`${API_URL}/sheets/list/job/${jobId}?${queryParams.toString()}`, {
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      });
+
+      dispatch({ type: actions.SET_GOOGLE_SHEET_LIST, payload: response.data });
+      // res?.data?.files ?? []; res.data.nextPageToken
+    } catch (e) {
+      console.log('error ', e.response);
+    }
   };
 
   const fetchSpreadSheet = async (spreadsheetId: string, type: SocialAuthTypes = 'target') => {
-    if (!spreadsheetId) {
-      throw new Error('Spreadsheet id is required');
+    try {
+      if (!spreadsheetId) {
+        throw new Error('Spreadsheet id is required');
+      }
+      const response = await axios.get(`${API_URL}/sheets/${spreadsheetId}/job/${jobId}/?data_type=${type}`, {
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      });
+      dispatch({
+        type: actions.SET_SPREADSHEET,
+        payload: {
+          sheets: response?.data?.sheets ?? [],
+          spreadsheetId: spreadsheetId,
+          spreadsheetName: response?.data?.properties?.title ?? '',
+          type: type
+        } as SelectedSpreadSheetTypes
+      });
+      dispatch({
+        type: actions.SET_ERROR,
+        payload: {
+          key: 'spreadsheet-' + type,
+          error: null
+        }
+      });
+    } catch (e) {
+      dispatch({
+        type: actions.SET_ERROR,
+        payload: {
+          key: 'spreadsheet-' + type,
+          error: e?.response?.data?.message ?? 'Something went wrong!'
+        }
+      });
     }
-    const response = await axios.get(`${API_URL}/sheets/${spreadsheetId}/job/${jobId}/?data_type=${type}`, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
-    });
-    dispatch({
-      type: actions.SET_SPREADSHEET,
-      payload: {
-        sheets: response?.data?.sheets ?? [],
-        spreadsheetId: spreadsheetId,
-        spreadsheetName: response?.data?.properties?.title ?? '',
-        type: type
-      } as SelectedSpreadSheetTypes
-    });
   };
 
   const createNewSpreadSheet = async (spreadSheetName: string, type: SocialAuthTypes) => {
