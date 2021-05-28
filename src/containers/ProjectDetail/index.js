@@ -95,10 +95,10 @@ class ProjectDetail extends React.Component {
             <TableHead>
               <TableRow>
                 <TableCell>Job Name</TableCell>
-                <TableCell align="center">Description</TableCell>
-                <TableCell align="center">Type</TableCell>
-                <TableCell align="center">Created By</TableCell>
-                <TableCell align="center"></TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Created By</TableCell>
+                <TableCell></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -109,10 +109,10 @@ class ProjectDetail extends React.Component {
                       {row.name}
                     </Link>
                   </TableCell>
-                  <TableCell align="center">{row.description}</TableCell>
-                  <TableCell align="center">{row.type}</TableCell>
-                  <TableCell align="center">{row.user_email}</TableCell>
-                  <TableCell align="center">
+                  <TableCell>{row.description}</TableCell>
+                  <TableCell>{row.type}</TableCell>
+                  <TableCell>{row.user_email}</TableCell>
+                  <TableCell>
                     <ConfirmDialog
                       ctaToOpenModal={
                         <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
@@ -190,9 +190,9 @@ class ProjectDetail extends React.Component {
           <TableHead>
             <TableRow>
               <TableCell>User</TableCell>
-              <TableCell align="center">Admin</TableCell>
-              <TableCell align="center">Permission</TableCell>
-              <TableCell align="center"></TableCell>
+              <TableCell>Admin</TableCell>
+              <TableCell>Permission</TableCell>
+              <TableCell></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -201,9 +201,9 @@ class ProjectDetail extends React.Component {
                 <TableCell component="th" scope="row">
                   {row.name}
                 </TableCell>
-                <TableCell align="center">{row.description}</TableCell>
-                <TableCell align="center">{row.type}</TableCell>
-                <TableCell align="center">Action</TableCell>
+                <TableCell>{row.description}</TableCell>
+                <TableCell>{row.type}</TableCell>
+                <TableCell>Action</TableCell>
               </TableRow>
             ))}
           </TableBody>
