@@ -120,7 +120,7 @@ const CreateNewJob = (props) => {
               <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px 30px" display="inline-block">
                 {isCreatingNewJob ? 'Add new job' : currentJob.name}
               </HeaderText>
-              {completedSteps.length === 3 && (
+              {completedSteps.length >= 3 && (
                 <ConfirmDialog
                   ctaToOpenModal={
                     <Button
