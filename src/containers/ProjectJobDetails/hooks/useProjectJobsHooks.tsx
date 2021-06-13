@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import { API_URL } from 'env';
 import { isEmpty, uniqBy } from 'lodash';
 
+import {createApiConfig, updateApiConfig} from '../utils/api';
+
 export interface NewJobPayloadProps {
   name: string;
   type: string;
@@ -28,6 +30,17 @@ export interface JobUpdatePayloadProps {
   project?: string;
   is_data_source_configured?: boolean;
   is_data_target_configured?: boolean;
+}
+
+
+export type APIConfigPayloads = {
+  job_id: string;
+  method: 'GET' | 'POST';
+  endpoint: string;
+  params: string;
+  headers: string;
+  body: string;
+  type: 'source' | 'target';
 }
 
 type SocialAuthTypes = 'target' | 'source';
@@ -55,6 +68,7 @@ export type State = {
   currentSocialAuth: { id: string; name: string; type?: string }[];
   selectedSpreadSheet: SelectedSpreadSheetTypes[];
   spreadSheetConfig: any[];
+  apiConfig: any[];
   googleSheetLists: { files: any; type: 'source' | 'target'; nextPageToken?: string }[];
   isNewJobCreated: boolean;
   error?: any;
@@ -78,6 +92,9 @@ export type Dispatch = {
   updateSpreadsheetConfigForJob: (configId: string, reqPayload: any) => Promise<void>;
   createNewSpreadSheet: (spreadsheetName: string, type: 'source' | 'target') => Promise<void>;
   runExportJobManually: () => Promise<void>;
+  createApiConfigForJob: (reqPayload: APIConfigPayloads) => Promise<void>;
+  updateApiConfigForJob: (id:string, reqPayload: APIConfigPayloads) => Promise<void>;
+  getApiConfigForJob: () => Promise<void>;
 };
 
 const actions = {
@@ -89,6 +106,7 @@ const actions = {
   SET_GOOGLE_SHEET_LIST: 'SET_GOOGLE_SHEET_LIST',
   SET_SPREADSHEET: 'SET_SPREADSHEET',
   SET_SPREAD_SHEET_CONFIG: 'SET_SPREAD_SHEET_CONFIG',
+  SET_API_CONFIG: 'SET_API_CONFIG',
   SET_CURRENT_MANUAL_JOB_RUNNING: 'SET_CURRENT_MANUAL_JOB_RUNNING',
   RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES',
   SET_DATA_SOURCE_TABLE_LIST: 'SET_DATA_SOURCE_TABLE_LIST',
@@ -102,6 +120,7 @@ const initialState: State = {
   isNewJobCreated: false,
   selectedSpreadSheet: [],
   spreadSheetConfig: [],
+  apiConfig: [],
   error: {},
   isLoading: false,
   currentManualJobRunning: '',
@@ -183,6 +202,11 @@ const reducer = (state: State, action: any) => {
       return {
         ...state,
         spreadSheetConfig: action.payload
+      };
+    case 'SET_API_CONFIG':
+      return {
+        ...state,
+        apiConfig: action.payload
       };
     case 'SET_CURRENT_MANUAL_JOB_RUNNING':
       return {
@@ -558,6 +582,52 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
     }
   };
 
+  const createApiConfigForJob = async(reqPayload: APIConfigPayloads)=>{
+    try{
+      if (!jobId) {
+        throw new Error('Job id is required!');
+      }
+      await createApiConfig(jobId, reqPayload);
+      await fetchCurrentJob();
+      await getApiConfigForJob();
+      toast.success(`API config created successfully!`);
+    }catch(e){
+      toast.error(`Creating API config for ${jobId} failed!`);
+    }
+  }
+
+  const updateApiConfigForJob = async(id:string, reqPayload: APIConfigPayloads)=>{
+    try{
+      if (!jobId) {
+        throw new Error('Job id is required!');
+      }
+      await updateApiConfig(jobId, id,  reqPayload);
+      await fetchCurrentJob();
+      await getApiConfigForJob();
+      toast.success(`API config updated successfully!`);
+    }catch(e){
+      toast.error(`Creating API config for ${jobId} failed!`);
+    }
+  }
+
+  const getApiConfigForJob = async () => {
+    try {
+      if (!jobId) {
+        throw new Error('Job id is required!');
+      }
+      const response = await axios.get(`${API_URL}/jobs/${jobId}/apiconfig/`, {
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      });
+      dispatch({
+        type: actions.SET_API_CONFIG,
+        payload: response?.data ?? []
+      });            
+    } catch (e) {
+      console.error('saveSpreadsheetConfigForJob ', e.stack);
+    }
+  };
+
+
   const resetState = () => {
     dispatch({ type: actions.RESET_BOOLEAN_STATES });
   };
@@ -578,7 +648,10 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       getSpreadsheetConfigForJob,
       updateSpreadsheetConfigForJob,
       createNewSpreadSheet,
-      runExportJobManually
+      runExportJobManually,
+      createApiConfigForJob,
+      updateApiConfigForJob,
+      getApiConfigForJob
     }
   ];
 }

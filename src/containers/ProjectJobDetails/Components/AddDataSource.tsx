@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { useJobConfig } from '../context';
 import DatabaseForm from './databaseForm';
+import APIEndpointForm from './APIEndpointForm';
 import SpreadSheetForm from './AddGoogleSheetForm';
 
 type Props = {
@@ -25,6 +26,7 @@ const DataConnector: React.FC<Props> = ({ markStepCompleted }) => {
     <div>
       {/* render data source component based on datasource type */}
       {dataSource === 'database' && <DatabaseForm requestType="source" />}
+      {dataSource === 'api' && <APIEndpointForm requestType="source" />}
       {dataSource === 'spreadsheet' && <SpreadSheetForm requestType="source" />}
     </div>
   );

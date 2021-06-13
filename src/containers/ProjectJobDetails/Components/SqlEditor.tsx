@@ -5,6 +5,7 @@ import { Typography } from '@material-ui/core/';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import Button from 'components/common/Button';
 import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-json';
 
 import '../codeEditorStyles/style.css';
 import '../codeEditorStyles/prism.css';
@@ -12,10 +13,12 @@ import '../codeEditorStyles/prism.css';
 type Props = {
   handleSubmit: (script: string) => void;
   defaultScript?: string;
+  language?: string;
+  submitWithButtonOnly?: boolean;
 };
-const SqlEditor: React.FC<Props> = ({ handleSubmit, defaultScript }) => {
+const SqlEditor: React.FC<Props> = ({ handleSubmit, defaultScript, language, submitWithButtonOnly = true }) => {
   const classes = useStyles();
-  const [code, setCode] = useState(`-- SELECT * FROM users; -- get all users` as string);
+  const [code, setCode] = useState(getExampleScriptForGivenLanguage(language) as string);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -29,6 +32,10 @@ const SqlEditor: React.FC<Props> = ({ handleSubmit, defaultScript }) => {
       setError('');
     }
     setCode(text);
+
+    if (!submitWithButtonOnly && text) {
+      handleSubmit(text);
+    }
   };
   const handleSubmitClick = () => {
     if (code) {
@@ -43,20 +50,22 @@ const SqlEditor: React.FC<Props> = ({ handleSubmit, defaultScript }) => {
         className="box"
         value={code}
         onValueChange={(text: string) => handleChange(text)}
-        highlight={jsSample => highlight(jsSample, languages.sql)}
+        highlight={codeScript => highlight(codeScript, getLanguageToEdit(language))}
         padding={20}
       />
       <Typography className={classes.errorLabel}>{error || null}</Typography>
-      <Button
-        rootStyle={{ display: 'inline-block', float: 'right', margin: '10px 0px' }}
-        variant="contained"
-        color="primary"
-        onClick={() => handleSubmitClick()}
-        type="submit"
-        size="xs"
-      >
-        Submit
-      </Button>
+      {submitWithButtonOnly && (
+        <Button
+          rootStyle={{ display: 'inline-block', float: 'right', margin: '10px 0px' }}
+          variant="contained"
+          color="primary"
+          onClick={() => handleSubmitClick()}
+          type="submit"
+          size="xs"
+        >
+          Submit
+        </Button>
+      )}
     </div>
   );
 };
@@ -78,3 +87,21 @@ const useStyles = makeStyles(() => ({
     marginTop: 5
   }
 }));
+
+const getLanguageToEdit = (language: string = 'sql') => {
+  switch (language) {
+    case 'json':
+      return languages.json;
+    default:
+      return languages.sql;
+  }
+};
+
+const getExampleScriptForGivenLanguage = (language: string = 'sql') => {
+  switch (language) {
+    case 'json':
+      return `{"key": "value"}`;
+    default:
+      return `-- SELECT * FROM users; -- get all users`;
+  }
+};
