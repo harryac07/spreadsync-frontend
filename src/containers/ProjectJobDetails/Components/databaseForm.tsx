@@ -44,7 +44,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
 
   const [
     { currentJob, currentJobDataSource, tableList },
-    { updateNewJob, createDataSource, updateDataSource, listDatabaseTable, checkDatabaseConnection }
+    { updateNewJob, createDataSource, updateDataSource, listDatabaseTable, checkDatabaseConnection },
   ] = useJobConfig() || [];
 
   const [defaultData = {}] = currentJobDataSource.filter(({ data_type }) => data_type === requestType);
@@ -52,18 +52,18 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
   const isDataSourceConfigured = !isEmpty(defaultData);
   const filteredTableList = tableList[defaultData.id] || [];
 
-  useEffect(() => {
-    if (currentJob.data_target === 'database' && requestType === 'target' && isDataSourceConfigured) {
-      listDatabaseTable(defaultData.id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // useEffect(() => {
+  //   if (currentJob.data_target === 'database' && requestType === 'target' && isDataSourceConfigured) {
+  //     listDatabaseTable(defaultData.id);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   useEffect(() => {
     if (!isEmpty(defaultData)) {
       setInputObj({
         ...defaultData,
-        database_extra: !!defaultData.is_ssh ? 'ssh' : 'ssl'
+        database_extra: !!defaultData.is_ssh ? 'ssh' : 'ssl',
       });
     }
     if (!isEmpty(defaultData) && defaultData.data_type === 'target') {
@@ -72,11 +72,11 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultData]);
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setInputObj({
       ...inputObj,
-      [name]: value
+      [name]: value,
     });
     setError({ ...error, [name]: !value ? `${startCase(toLower(name))} is required` : '' });
   };
@@ -93,7 +93,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
       ssh_host,
       ssh_username,
       ssh_password,
-      ssh_key
+      ssh_key,
     } = inputObj;
     if (database_type && database_host && database_port && database_name && database_user && database_password) {
       if (database_extra === 'ssl') {
@@ -118,18 +118,18 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
         database_extra === 'ssl' || !database_extra ? '' : ssh_username ? '' : 'Database ssh_username is required',
       ssh_password:
         database_extra === 'ssl' || !database_extra ? '' : ssh_password ? '' : 'Database ssh_password is required',
-      ssh_key: database_extra === 'ssl' || !database_extra ? '' : ssh_key ? '' : 'Database ssh_key is required'
+      ssh_key: database_extra === 'ssl' || !database_extra ? '' : ssh_key ? '' : 'Database ssh_key is required',
     });
     return true;
   };
 
-  const submitForm = e => {
+  const submitForm = (e) => {
     e.preventDefault();
     const errorExists = isError();
     const payload = {
       ...inputObj,
       data_type: requestType,
-      ...(requestType === 'target' && !inputObj.enrich_type ? { enrich_type: 'replace' } : {})
+      ...(requestType === 'target' && !inputObj.enrich_type ? { enrich_type: 'replace' } : {}),
     };
     if (!errorExists) {
       if (isEmpty(defaultData)) {
@@ -140,7 +140,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
     }
   };
 
-  const handleCheckDatabaseConnection = async dataSourceId => {
+  const handleCheckDatabaseConnection = async (dataSourceId) => {
     if (dataSourceId) {
       const connectionStatus = await checkDatabaseConnection(dataSourceId);
       if (connectionStatus) {
@@ -234,7 +234,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
     'database_user',
     'ssh_host',
     'ssh_username',
-    'ssh_port'
+    'ssh_port',
   ];
   return (
     <div>
@@ -252,7 +252,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
                 options={[
                   { key: 'PostgreSQL', value: 'PostgreSQL', label: 'PostgreSQL' },
                   { key: 'MySQL', value: 'MySQL', label: 'MySQL' },
-                  { key: 'SQL Server', value: 'SQL Server', label: 'SQL Server' }
+                  { key: 'SQL Server', value: 'SQL Server', label: 'SQL Server' },
                 ]}
                 onChange={handleChange}
                 size="small"
@@ -380,7 +380,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
                 <span
                   style={{
                     marginLeft: 10,
-                    color: databaseConnectionMessage.includes('success') ? 'green' : 'red'
+                    color: databaseConnectionMessage.includes('success') ? 'green' : 'red',
                   }}
                 >
                   {databaseConnectionMessage}
@@ -449,14 +449,14 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
             <div>
               <h4>Add script to run</h4>
               <SqlEditor
-                handleSubmit={script => {
+                handleSubmit={(script) => {
                   updateDataSource(defaultData.id, {
-                    script
+                    script,
                   });
                   updateNewJob({
                     data_source: currentJob?.data_source,
                     data_target: currentJob?.data_target,
-                    is_data_source_configured: true
+                    is_data_source_configured: true,
                   });
                 }}
                 defaultScript={defaultData?.script}
@@ -474,18 +474,18 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
                   <SingleSelect
                     value={inputObj.tablename || ''}
                     placeholder="Select existing table"
-                    options={filteredTableList.map(table => ({
+                    options={filteredTableList.map((table) => ({
                       key: table.tablename,
                       value: table.tablename,
-                      label: table.tablename
+                      label: table.tablename,
                     }))}
                     helperText="Select the existing tablename"
-                    onChange={value => {
+                    onChange={(value) => {
                       handleChange({
                         target: {
                           name: 'tablename',
-                          value
-                        }
+                          value,
+                        },
                       });
                     }}
                   />
@@ -506,16 +506,16 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
                     className={classes.submitButton}
                     variant="contained"
                     color="primary"
-                    onClick={e => {
+                    onClick={(e) => {
                       submitForm(e);
                       const updateJobCompletedPayload = {
                         is_data_target_configured: true,
-                        is_data_source_configured: true
+                        is_data_source_configured: true,
                       };
                       updateNewJob({
                         data_source: currentJob?.data_source,
                         data_target: currentJob?.data_target,
-                        ...updateJobCompletedPayload
+                        ...updateJobCompletedPayload,
                       });
                     }}
                     type="submit"
@@ -537,50 +537,50 @@ export default DatabaseForm;
 const useStyles = makeStyles(() => ({
   header: {
     fontSize: 18,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   inviteMoreUserButton: {
     fontSize: 12,
     paddingTop: 6,
-    marginBottom: 10
+    marginBottom: 10,
   },
   inviteMoreField: {
-    marginBottom: 10
+    marginBottom: 10,
   },
   submitButton: {
-    display: 'inline-block'
+    display: 'inline-block',
   },
   cancelButton: {
-    display: 'inline-block'
+    display: 'inline-block',
   },
   buttonWrapper: {
     float: 'right',
     display: 'inline-block',
-    margin: '20px 0px'
+    margin: '20px 0px',
   },
   selectedCountSpan: {
-    fontWeight: 500
+    fontWeight: 500,
   },
   step: {
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   radio: {
-    padding: '9px 9px 9px 0px'
+    padding: '9px 9px 9px 0px',
   },
   radioLabel: {
     margin: '0px 15px 5px 0px',
     padding: 0,
-    fontSize: 16
+    fontSize: 16,
   },
   selectTableLabel: {
     margin: '0px 0px 5px 0px',
     padding: 0,
-    fontSize: 16
+    fontSize: 16,
   },
   targetConfiguration: {
     padding: '10px 30px 30px 30px',
     background: '#fafafa',
     marginTop: '15px',
-    marginBottom: '0px'
-  }
+    marginBottom: '0px',
+  },
 }));

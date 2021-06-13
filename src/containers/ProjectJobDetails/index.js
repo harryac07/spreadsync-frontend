@@ -26,7 +26,7 @@ import { API_URL } from 'env';
 
 const steps = jobSteps;
 
-const CreateNewJob = props => {
+const CreateNewJob = (props) => {
   const { id: projectId, jobid: jobId } = props?.match?.params ?? {};
 
   const [state, { updateNewJob, resetState, runExportJobManually }] = useProjectJobsHooks(jobId);
@@ -80,14 +80,14 @@ const CreateNewJob = props => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentManualJobRunning]);
 
-  const handleStepChange = step => {
+  const handleStepChange = (step) => {
     setActiveStep(step);
   };
 
-  const createNewJob = async reqPayload => {
+  const createNewJob = async (reqPayload) => {
     try {
       const response = await axios.post(`${API_URL}/jobs/`, reqPayload, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       history.push(`/projects/${projectId}/job/${response.data[0].id}`);
       toast.success(`Job created successfully!`);
@@ -120,37 +120,39 @@ const CreateNewJob = props => {
               <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px 30px" display="inline-block">
                 {isCreatingNewJob ? 'Add new job' : currentJob.name}
               </HeaderText>
-              <ConfirmDialog
-                ctaToOpenModal={
-                  <Button
-                    rootStyle={{
-                      position: 'absolute',
-                      display: 'inline-block',
-                      right: 62,
-                      marginTop: 15
-                    }}
-                    variant="outlined"
-                    color="primary"
-                    type="submit"
-                    startIcon={isManualJobRunning ? <CircularProgress size={24} /> : <ExportIcon />}
-                    disabled={isManualJobRunning}
-                    className={classes.manualJobButton}
-                  >
-                    Run job manually
-                  </Button>
-                }
-                header={<span>Are you sure to run the job manually?</span>}
-                bodyContent={
-                  'Running the job updates the changes the data depending on append or replace setting you have set in data target stage. This cannot be undone with this app.'
-                }
-                cancelText="Cancel"
-                cancelCallback={() => null}
-                confirmText="Confirm"
-                confirmCallback={() => {
-                  setIsManualJobRunning(true);
-                  runExportJobManually();
-                }}
-              />
+              {completedSteps.length === 3 && (
+                <ConfirmDialog
+                  ctaToOpenModal={
+                    <Button
+                      rootStyle={{
+                        position: 'absolute',
+                        display: 'inline-block',
+                        right: 62,
+                        marginTop: 15,
+                      }}
+                      variant="outlined"
+                      color="primary"
+                      type="submit"
+                      startIcon={isManualJobRunning ? <CircularProgress size={24} /> : <ExportIcon />}
+                      disabled={isManualJobRunning}
+                      className={classes.manualJobButton}
+                    >
+                      Run job manually
+                    </Button>
+                  }
+                  header={<span>Are you sure to run the job manually?</span>}
+                  bodyContent={
+                    'Running the job updates the changes the data depending on append or replace setting you have set in data target stage. This cannot be undone with this app.'
+                  }
+                  cancelText="Cancel"
+                  cancelCallback={() => null}
+                  confirmText="Confirm"
+                  confirmCallback={() => {
+                    setIsManualJobRunning(true);
+                    runExportJobManually();
+                  }}
+                />
+              )}
 
               <Divider light />
 
@@ -163,7 +165,7 @@ const CreateNewJob = props => {
                     return (
                       <Step
                         key={label}
-                        onClick={e => {
+                        onClick={(e) => {
                           e.preventDefault();
                           if (isNavigationClickable) {
                             handleStepChange(id);
@@ -174,7 +176,7 @@ const CreateNewJob = props => {
                           style={{ marginLeft: index === 0 ? -8 : 'inherit' }}
                           {...(isCompleted ? { icon: <CheckCircleIcon className={classes.completedStepLabel} /> } : {})}
                           StepIconProps={{
-                            classes: { root: classes.remainingSteps }
+                            classes: { root: classes.remainingSteps },
                           }}
                         >
                           <span
@@ -194,7 +196,7 @@ const CreateNewJob = props => {
                         projectId={id}
                         updateStep={() => null}
                         defaultData={currentJob}
-                        handleSubmit={data => {
+                        handleSubmit={(data) => {
                           if (isCreatingNewJob) {
                             createNewJob(data);
                           } else {
@@ -232,25 +234,25 @@ const useStyles = makeStyles(() => ({
     color: '#000',
     margin: '0 auto',
     position: 'relative',
-    marginBottom: 0
+    marginBottom: 0,
   },
   HeaderText: {},
   userGroup: {
     display: 'inline-block',
     right: 20,
     verticalAlign: 'middle',
-    marginLeft: 20
+    marginLeft: 20,
   },
   manualJobButton: {
     border: '1px solid #3A3C67',
     '& :hover': {
-      color: '#3A3C67'
-    }
+      color: '#3A3C67',
+    },
   },
   headerWrapper: {
     backgroundColor: '#fff',
     padding: '12px 32px 5px 32px',
-    boxShadow: '0px 0px 1px 0px #888888'
+    boxShadow: '0px 0px 1px 0px #888888',
   },
   rightColHeading: {
     display: 'inline-block',
@@ -262,78 +264,78 @@ const useStyles = makeStyles(() => ({
       fontSize: 13,
       textTransform: 'none',
       top: -14,
-      marginRight: 10
+      marginRight: 10,
     },
     '& svg': {
       position: 'relative',
       top: -3,
-      cursor: 'pointer'
-    }
+      cursor: 'pointer',
+    },
   },
   iconSmall: {
-    height: 20
+    height: 20,
   },
   userCount: {
     verticalAlign: 'middle',
     position: 'relative',
     top: -8,
     paddingLeft: 5,
-    fontWeight: 500
+    fontWeight: 500,
   },
   projectDescription: {
     fontSize: 14,
     background: '#eee',
     padding: 20,
     borderRadius: '10px',
-    margin: '0px 20px 10px 20px'
+    margin: '0px 20px 10px 20px',
   },
   divider: {
-    margin: '10px auto'
+    margin: '10px auto',
   },
   createButton: {
     display: 'inline-block',
-    textTransform: 'none'
+    textTransform: 'none',
   },
   noJobWrapper: {
     textAlign: 'left',
     margin: '0px auto',
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   contentWrapper: {
-    margin: 32
+    margin: 32,
   },
   content: {
-    padding: '20px 30px'
+    padding: '20px 30px',
   },
   formWrapper: {
-    padding: 20
+    padding: 20,
   },
   table: {
-    border: '1px solid #eee'
+    border: '1px solid #eee',
   },
   createJobRightbar: {
     backgroundColor: '#eee',
     minHeight: '70vh',
-    maxHeight: '80vh'
+    maxHeight: '80vh',
   },
   completedStepLabel: {
     color: '#3CB371',
-    height: 30
+    height: 30,
   },
   remainingSteps: {
-    height: 26
-  }
+    height: 26,
+  },
 }));
 
 export default CreateNewJob;
 
 export const HeaderText = styled.div`
   font-weight: bold;
-  font-size: ${props => (props.fontsize ? props.fontsize : '22px')};
-  display: ${props => (props.display ? props.display : 'flex')};
+  font-size: ${(props) => (props.fontsize ? props.fontsize : '22px')};
+  display: ${(props) => (props.display ? props.display : 'flex')};
   align-items: center;
   justify-content: flex-start;
-  padding: ${props => (props.padding ? props.padding : '0px')};
+  padding: ${(props) => (props.padding ? props.padding : '0px')};
 `;
 
 export const NewJobRightbarWrapper = styled.div`
@@ -357,12 +359,12 @@ export const NewJobRightbarWrapper = styled.div`
 const StyledStepLabel = muiStyled(StepLabel)(({ theme }) => {
   return {
     '& .MuiStepLabel-active': {
-      fontWeight: 'bold'
+      fontWeight: 'bold',
     },
     cursor: 'pointer !important',
     whiteSpace: 'nowrap',
     [theme.breakpoints.down('sm')]: {
-      whiteSpace: 'normal'
-    }
+      whiteSpace: 'normal',
+    },
   };
 });
