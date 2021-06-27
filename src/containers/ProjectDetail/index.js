@@ -16,6 +16,7 @@ import {
   TablePagination,
   TableRow,
   TableHead,
+  Chip,
 } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import { fetchProjectById, fetchAllJobsForProject, deleteAJobByJobId, fetchAllProjectMembers } from './action';
@@ -26,6 +27,9 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
+
+import Tooltip from '../../components/common/Tooltip';
+import { permissions } from '../../utils/permissions';
 
 class ProjectDetail extends React.Component {
   constructor(props) {
@@ -186,8 +190,13 @@ class ProjectDetail extends React.Component {
     );
   };
   renderProjectMembers = () => {
-    const { classes, projectDetail } = this.props;
+    const { classes, projectDetail, account } = this.props;
     const { teamMembers = [] } = projectDetail || {};
+    const [currentAccountObj] = account;
+    const isCurrentUserProjectAdmin = teamMembers.some(({ email, project_permission }) => {
+      return toLower(project_permission).includes('admin') && email === currentAccountObj?.email;
+    });
+
     return (
       <Paper elevation={3} className={classes.contentWrapper}>
         <HeaderText className={classes.HeaderText} padding="20px" fontsize={'18px'}>
@@ -207,19 +216,38 @@ class ProjectDetail extends React.Component {
                 <TableRow>
                   <TableCell>User</TableCell>
                   <TableCell>Is project admin?</TableCell>
-                  <TableCell>Permissions</TableCell>
+                  {isCurrentUserProjectAdmin && <TableCell>Permissions</TableCell>}
                   <TableCell></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {teamMembers.map((row) => {
+                  // permissions
+                  const isAdmin = toLower(row.project_permission).includes('admin');
+                  const projectPermissions = row.project_permission?.split(',');
                   return (
                     <TableRow hover key={row.id}>
                       <TableCell component="th" scope="row">
                         {row.email}
                       </TableCell>
-                      <TableCell>{row.permission_name === 'admin' ? 'Yes' : 'No'}</TableCell>
-                      <TableCell>{row.permission_name || 'N/A'}</TableCell>
+                      <TableCell>{isAdmin ? 'Yes' : 'No'}</TableCell>
+                      <TableCell>
+                        {isCurrentUserProjectAdmin &&
+                          projectPermissions?.map((each) => {
+                            const formattedPermission = startCase(each).replace(/_/g, ' ');
+                            const permissionObj = permissions.find(({ value }) => value === each);
+                            return (
+                              <Tooltip arrow placement="top" title={permissionObj.description} key={each}>
+                                <Chip
+                                  size="small"
+                                  label={formattedPermission}
+                                  className={classes.chipLabel}
+                                  color="secondary"
+                                />
+                              </Tooltip>
+                            );
+                          })}
+                      </TableCell>
                       <TableCell></TableCell>
                     </TableRow>
                   );
@@ -304,6 +332,7 @@ class ProjectDetail extends React.Component {
 const mapStateToProps = (state) => {
   return {
     projectDetail: state.projectDetail,
+    account: state.app.accounts,
   };
 };
 
@@ -395,6 +424,14 @@ const styles = (theme) => ({
   },
   paginationSelect: {
     fontSize: 14,
+  },
+  chipLabel: {
+    fontSize: 11,
+    marginRight: 5,
+    '&:hover': {
+      backgroundColor: theme.palette.primary.main,
+      color: '#fff',
+    },
   },
 });
 
