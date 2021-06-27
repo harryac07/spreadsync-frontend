@@ -24,7 +24,7 @@ const googleScopes = [
   'https://www.googleapis.com/auth/userinfo.email',
   'https://www.googleapis.com/auth/userinfo.profile',
   'https://www.googleapis.com/auth/drive.file',
-  'https://www.googleapis.com/auth/spreadsheets'
+  'https://www.googleapis.com/auth/spreadsheets',
 ];
 const googleAuthIssueErrors = ['Invalid Credentials', 'invalid_grant'];
 const sheetPageSize = 50;
@@ -39,7 +39,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
       isLoading,
       error: storeError = {},
       currentSocialAuth,
-      googleSheetLists
+      googleSheetLists,
     },
     {
       fetchSpreadSheet,
@@ -49,11 +49,11 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
       updateSpreadsheetConfigForJob,
       createNewSpreadSheet,
       saveSocialAuth,
-      updateNewJob
-    }
+      updateNewJob,
+    },
   ] = useJobConfig();
 
-  const [authConnection] = currentSocialAuth?.filter(data => data.type === requestType);
+  const [authConnection] = currentSocialAuth?.filter((data) => data.type === requestType);
   const currentSpreadsheetError = storeError[`spreadsheet-${requestType}`];
   const shouldUserReAuthorizeSpreadsheet =
     googleAuthIssueErrors.includes(currentSpreadsheetError) && !isEmpty(authConnection);
@@ -70,7 +70,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
     sheet_name: '',
     range: 'A1',
     enrich_type: 'replace' as 'append' | 'replace', // append or replace
-    include_column_header: true
+    include_column_header: false,
   });
 
   const [configuredData] = spreadSheetConfig.filter(({ type }) => type === requestType);
@@ -82,8 +82,8 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
     ...{
       spreadsheet_id: sheetsData?.spreadsheetId,
       spreadsheet_name: spreadsheetName,
-      sheets: sheetsData?.sheets
-    }
+      sheets: sheetsData?.sheets,
+    },
   };
   useEffect(() => {
     getSpreadsheetConfigForJob(requestType);
@@ -100,29 +100,29 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
           sheet: mergedConfigurationData.sheet || '',
           range: mergedConfigurationData.range || inputObj.range,
           enrich_type: mergedConfigurationData.enrich_type || inputObj.enrich_type,
-          include_column_header: mergedConfigurationData.include_column_header || inputObj.include_column_header
-        }
+          include_column_header: mergedConfigurationData.include_column_header || inputObj.include_column_header,
+        },
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configuredData, sheetsData]);
 
-  const handleInputChange = data => {
+  const handleInputChange = (data) => {
     setInputObj({
       ...inputObj,
-      ...data
+      ...data,
     });
   };
-  const handleError = data => {
+  const handleError = (data) => {
     setError({ ...error, ...data });
   };
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     handleInputChange({
-      [name]: value
+      [name]: value,
     });
     handleError({
-      [name]: !value ? `${name} is required` : ''
+      [name]: !value ? `${name} is required` : '',
     });
   };
   const isError = () => {
@@ -136,11 +136,11 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
     handleError({
       spreadsheet_id: spreadsheet_id ? '' : 'spreadsheet is required',
       sheet: isSheetSelected ? '' : 'sheet is required',
-      range: range ? '' : 'range is required'
+      range: range ? '' : 'range is required',
     });
     return true;
   };
-  const submitForm = e => {
+  const submitForm = (e) => {
     e.preventDefault();
     const selectedSheet = sheets?.find(({ properties }) => properties?.sheetId?.toString() === inputObj?.sheet);
 
@@ -162,27 +162,27 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
       updateNewJob({
         data_source: currentJob?.data_source,
         data_target: currentJob?.data_target,
-        ...updateJobCompletedPayload
+        ...updateJobCompletedPayload,
       });
     }
   };
 
-  const handleSpreadsheetConnectionSuccess = response => {
+  const handleSpreadsheetConnectionSuccess = (response) => {
     const code = response?.code ?? '';
     if (code) {
       const socialName = 'google';
       saveSocialAuth(code, requestType, socialName);
     }
   };
-  const handleSpreadsheetConnectionError = response => {
+  const handleSpreadsheetConnectionError = (response) => {
     const error = response?.error ?? '';
     if (error) {
       alert(error);
     }
   };
 
-  const sleep = ms =>
-    new Promise(resolve => {
+  const sleep = (ms) =>
+    new Promise((resolve) => {
       setTimeout(() => {
         resolve(1);
       }, ms);
@@ -196,7 +196,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
       fetchAllGoogleSheetsForJob(requestType, nextPageToken);
     }
 
-    let filteredOptions = files.map(file => ({ key: file.id, value: file.id, label: file.name }));
+    let filteredOptions = files.map((file) => ({ key: file.id, value: file.id, label: file.name }));
 
     if (searchLower) {
       filteredOptions = filteredOptions.filter(({ label }) => label.toLowerCase().includes(searchLower));
@@ -206,7 +206,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
 
     return {
       options: slicedOptions,
-      hasMore: !!nextPageToken
+      hasMore: !!nextPageToken,
     };
   };
   return (
@@ -229,19 +229,19 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                         // isDisabled={isAddingInProgress}
                         value={{
                           label: inputObj.spreadsheet_name,
-                          value: inputObj.spreadsheet_id
+                          value: inputObj.spreadsheet_id,
                         }}
                         options={[
                           ...files,
                           ...(inputObj.spreadsheet_id && !files.some(({ id }) => id === inputObj.spreadsheet_id)
                             ? [{ id: inputObj.spreadsheet_id, name: spreadsheetName }]
-                            : [])
-                        ].map(file => ({ key: file.id, value: file.id, label: file.name }))}
+                            : []),
+                        ].map((file) => ({ key: file.id, value: file.id, label: file.name }))}
                         loadOptions={loadSpreadSheetOptions}
-                        onCreateOption={value => createNewSpreadSheet(value, requestType)}
+                        onCreateOption={(value) => createNewSpreadSheet(value, requestType)}
                         onChange={({ value }) => {
                           handleChange({
-                            target: { value, name: 'spreadsheet_id' }
+                            target: { value, name: 'spreadsheet_id' },
                           });
                           fetchSpreadSheet(value, requestType);
                         }}
@@ -255,7 +255,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                             position: 'absolute',
                             marginLeft: 15,
                             top: 5,
-                            right: '-40px'
+                            right: '-40px',
                           }}
                           color="primary"
                         />
@@ -279,7 +279,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                         sheets?.map(({ properties }) => ({
                           label: properties?.title,
                           value: properties?.sheetId?.toString(),
-                          key: properties?.sheetId
+                          key: properties?.sheetId,
                         })) as any
                       }
                       onChange={handleChange}
@@ -314,20 +314,47 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                         </RadioGroup>
                       </Grid>
                       <Grid item xs={12} sm={6} md={6}>
-                        <Typography className={classes.jobTypeLable}>Include column headers</Typography>
+                        <Typography className={classes.jobTypeLable}>
+                          Include column headers if the export contains header?
+                        </Typography>
                         <Switch
                           checked={inputObj.include_column_header}
                           color="primary"
-                          onChange={e => {
+                          onChange={(e) => {
                             setInputObj({
                               ...inputObj,
-                              include_column_header: e.target.checked
+                              include_column_header: e.target.checked,
                             });
                           }}
                           name="include_column_header"
                         />
                       </Grid>
                     </>
+                  )}
+
+                  {requestType === 'source' && (
+                    <Grid item xs={12} sm={6} md={6}>
+                      <Typography className={classes.jobTypeLable}>Does the sheet contain column header?</Typography>
+                      <Switch
+                        checked={inputObj.include_column_header}
+                        color="primary"
+                        onChange={(e) => {
+                          setInputObj({
+                            ...inputObj,
+                            include_column_header: e.target.checked,
+                          });
+                        }}
+                        name="include_column_header"
+                      />
+
+                      <Typography className={`${classes.jobTypeLable} ${classes.colorSecondary}`}>
+                        <span style={{ color: '#0A0A0A' }}>Note:</span>
+                        <i>
+                          Turn on this option if the selected sheet contains column header. Column headers are excluded
+                          as a part of payload wile exporting to database tables.
+                        </i>
+                      </Typography>
+                    </Grid>
                   )}
 
                   <Grid container justify="flex-end">
@@ -377,12 +404,15 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
 
 const useStyles = makeStyles(() => ({
   submitButton: {
-    margin: '20px auto'
+    margin: '20px auto',
   },
   jobTypeLable: {
     margin: '0px 0px 5px 0px',
     padding: 0,
-    fontSize: 16
+    fontSize: 16,
+  },
+  colorSecondary: {
+    color: '#898989',
   },
   authorizeBanner: {
     background: '#eee',
@@ -391,9 +421,9 @@ const useStyles = makeStyles(() => ({
     textAlign: 'left',
     marginBottom: 16,
     '& p': {
-      fontSize: 16
-    }
-  }
+      fontSize: 16,
+    },
+  },
 }));
 
 export default AddGoogleSheetForm;
