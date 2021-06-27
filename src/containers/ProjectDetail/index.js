@@ -15,10 +15,10 @@ import {
   TableContainer,
   TablePagination,
   TableRow,
-  TableHead
+  TableHead,
 } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
-import { fetchProjectById, fetchAllJobsForProject, deleteAJobByJobId } from './action';
+import { fetchProjectById, fetchAllJobsForProject, deleteAJobByJobId, fetchAllProjectMembers } from './action';
 
 import GroupIcon from '@material-ui/icons/Group';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
@@ -34,23 +34,24 @@ class ProjectDetail extends React.Component {
       currentView: 'job', // job or setting or newjob
       newJobInput: {},
       page: 0,
-      rowsPerPage: 10
+      rowsPerPage: 10,
     };
   }
   componentDidMount() {
     const { id } = this.props.match.params;
     this.props.fetchProjectById(id);
     this.props.fetchAllJobsForProject(id);
+    this.props.fetchAllProjectMembers(id);
   }
   componentDidUpdate(prevProps, prevState) {
     const store = this.props.projectDetail;
     const {
       error: { DELETE_JOB: currentDeleteJobError },
-      isJobDeleted
+      isJobDeleted,
     } = store;
     const {
       error: { DELETE_JOB: prevDeleteJobError },
-      isJobDeleted: prevIsJobDeleted
+      isJobDeleted: prevIsJobDeleted,
     } = prevProps.projectDetail;
     if (currentDeleteJobError !== prevDeleteJobError && currentDeleteJobError) {
       toast.error(`${currentDeleteJobError}`);
@@ -62,15 +63,15 @@ class ProjectDetail extends React.Component {
   updateCurrentView = (selectedView = 'job') => {
     this.setState({ currentView: selectedView });
   };
-  createNewJob = payload => {
+  createNewJob = (payload) => {
     console.log(payload);
   };
   submitNewJobChange = (name, value) => {
     this.setState({
       newJobInput: {
         ...this.state.newJobInput,
-        [name]: value
-      }
+        [name]: value,
+      },
     });
   };
   renderJobs = () => {
@@ -102,37 +103,39 @@ class ProjectDetail extends React.Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(rowsPerPage > 0 ? jobs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : jobs).map(row => (
-                <TableRow hover key={row.id}>
-                  <TableCell component="th" scope="row">
-                    <Link to={`/projects/${projectId}/job/${row.id}`} className={classes.jobName}>
-                      {row.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{row.description}</TableCell>
-                  <TableCell>{row.type}</TableCell>
-                  <TableCell>{row.user_email}</TableCell>
-                  <TableCell>
-                    <ConfirmDialog
-                      ctaToOpenModal={
-                        <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
-                      }
-                      header={
-                        <span>
-                          Confirm deleting the job: <u>{row.name}</u>?
-                        </span>
-                      }
-                      bodyContent={
-                        'Deleting the job deletes everything connected to the job and you can not undone this later. This action deletes the job history, configured data source and target'
-                      }
-                      cancelText="Cancel"
-                      cancelCallback={() => null}
-                      confirmText="Confirm"
-                      confirmCallback={() => deleteAJobByJobId(row.id, projectId)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+              {(rowsPerPage > 0 ? jobs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : jobs).map(
+                (row) => (
+                  <TableRow hover key={row.id}>
+                    <TableCell component="th" scope="row">
+                      <Link to={`/projects/${projectId}/job/${row.id}`} className={classes.jobName}>
+                        {row.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{row.description}</TableCell>
+                    <TableCell>{row.type}</TableCell>
+                    <TableCell>{row.user_email}</TableCell>
+                    <TableCell>
+                      <ConfirmDialog
+                        ctaToOpenModal={
+                          <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
+                        }
+                        header={
+                          <span>
+                            Confirm deleting the job: <u>{row.name}</u>?
+                          </span>
+                        }
+                        bodyContent={
+                          'Deleting the job deletes everything connected to the job and you can not undone this later. This action deletes the job history, configured data source and target'
+                        }
+                        cancelText="Cancel"
+                        cancelCallback={() => null}
+                        confirmText="Confirm"
+                        confirmCallback={() => deleteAJobByJobId(row.id, projectId)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                )
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -144,7 +147,7 @@ class ProjectDetail extends React.Component {
             rowsPerPage={rowsPerPage}
             page={page}
             onChangePage={(e, page) => this.setState({ page })}
-            onChangeRowsPerPage={e => {
+            onChangeRowsPerPage={(e) => {
               const selectedRowsPerPage = parseInt(e.target.value);
               if (jobs.length >= selectedRowsPerPage * page) {
                 this.setState({ rowsPerPage: selectedRowsPerPage });
@@ -153,13 +156,13 @@ class ProjectDetail extends React.Component {
             classes={{
               caption: classes.caption,
               selectIcon: classes.paginationSelectIcon,
-              select: classes.paginationSelect
+              select: classes.paginationSelect,
             }}
             backIconButtonProps={{
-              size: 'small'
+              size: 'small',
             }}
             nextIconButtonProps={{
-              size: 'small'
+              size: 'small',
             }}
           />
         )}
@@ -183,32 +186,49 @@ class ProjectDetail extends React.Component {
     );
   };
   renderProjectMembers = () => {
-    const { classes } = this.props;
+    const { classes, projectDetail } = this.props;
+    const { teamMembers = [] } = projectDetail || {};
     return (
-      <div>
-        <Table className={classes.table} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell>User</TableCell>
-              <TableCell>Admin</TableCell>
-              <TableCell>Permission</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {[].map(row => (
-              <TableRow hover key={row.id}>
-                <TableCell component="th" scope="row">
-                  {row.name}
-                </TableCell>
-                <TableCell>{row.description}</TableCell>
-                <TableCell>{row.type}</TableCell>
-                <TableCell>Action</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <Paper elevation={3} className={classes.contentWrapper}>
+        <HeaderText className={classes.HeaderText} padding="20px" fontsize={'18px'}>
+          Team Members ({teamMembers?.length})
+          <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
+            <Button startIcon={<GroupAddIcon className={classes.iconSmall} color="white" />} size="xs">
+              Invite user
+            </Button>
+          </div>
+        </HeaderText>
+        <Divider light className={classes.dividers} />
+
+        <div className={classes.content}>
+          <div>
+            <Table className={classes.table} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>User</TableCell>
+                  <TableCell>Is project admin?</TableCell>
+                  <TableCell>Permissions</TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {teamMembers.map((row) => {
+                  return (
+                    <TableRow hover key={row.id}>
+                      <TableCell component="th" scope="row">
+                        {row.email}
+                      </TableCell>
+                      <TableCell>{row.permission_name === 'admin' ? 'Yes' : 'No'}</TableCell>
+                      <TableCell>{row.permission_name || 'N/A'}</TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </Paper>
     );
   };
   render() {
@@ -273,19 +293,7 @@ class ProjectDetail extends React.Component {
             </Paper>
 
             {/* Team members view */}
-            <Paper elevation={3} className={classes.contentWrapper}>
-              <HeaderText className={classes.HeaderText} padding="20px" fontsize={'18px'}>
-                Team Members (5)
-                <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
-                  <Button startIcon={<GroupAddIcon className={classes.iconSmall} color="white" />} size="xs">
-                    Invite user
-                  </Button>
-                </div>
-              </HeaderText>
-              <Divider light className={classes.dividers} />
-
-              <div className={classes.content}>{this.renderProjectMembers()}</div>
-            </Paper>
+            {this.renderProjectMembers()}
           </React.Fragment>
         ) : null}
       </div>
@@ -293,32 +301,32 @@ class ProjectDetail extends React.Component {
   }
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return {
-    projectDetail: state.projectDetail
+    projectDetail: state.projectDetail,
   };
 };
 
-const styles = theme => ({
+const styles = (theme) => ({
   projectWrapper: {
     border: 0,
     borderRadius: 3,
     color: '#000',
     margin: '0 auto',
     position: 'relative',
-    marginBottom: 0
+    marginBottom: 0,
   },
   HeaderText: {},
   userGroup: {
     display: 'inline-block',
     right: 20,
     verticalAlign: 'middle',
-    marginLeft: 20
+    marginLeft: 20,
   },
   headerWrapper: {
     backgroundColor: '#fff',
     padding: '12px 32px 5px 32px',
-    boxShadow: '0px 0px 1px 0px #888888'
+    boxShadow: '0px 0px 1px 0px #888888',
   },
   rightColHeading: {
     display: 'inline-block',
@@ -330,79 +338,80 @@ const styles = theme => ({
       fontSize: 13,
       textTransform: 'none',
       top: -14,
-      marginRight: 10
+      marginRight: 10,
     },
     '& svg': {
       position: 'relative',
       top: -3,
-      cursor: 'pointer'
-    }
+      cursor: 'pointer',
+    },
   },
   iconSmall: {
-    height: 20
+    height: 20,
   },
   userCount: {
     verticalAlign: 'middle',
     position: 'relative',
     top: -8,
     paddingLeft: 5,
-    fontWeight: 500
+    fontWeight: 500,
   },
   projectDescription: {
     fontSize: 14,
     background: '#eee',
     padding: 20,
     borderRadius: '10px',
-    margin: '0px 20px 10px 20px'
+    margin: '0px 20px 10px 20px',
   },
   divider: {
-    margin: '10px auto'
+    margin: '10px auto',
   },
   createButton: {
     display: 'inline-block',
-    textTransform: 'none'
+    textTransform: 'none',
   },
   noJobWrapper: {
     textAlign: 'left',
     margin: '0px auto',
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   contentWrapper: {
-    margin: 32
+    margin: 32,
   },
   content: {
-    padding: 20
+    padding: 20,
   },
   table: {
-    border: '1px solid #eee'
+    border: '1px solid #eee',
   },
   jobName: { fontSize: 16, textDecoration: 'none', color: '#3A3C67', fontWeight: 500 },
   caption: {
     color: '#000',
     padding: 8,
-    fontSize: 14
+    fontSize: 14,
   },
   paginationSelectIcon: {
-    marginTop: -5
+    marginTop: -5,
   },
   paginationSelect: {
-    fontSize: 14
-  }
+    fontSize: 14,
+  },
 });
 
 export default connect(mapStateToProps, {
   fetchProjectById,
   fetchAllJobsForProject,
-  deleteAJobByJobId
+  deleteAJobByJobId,
+  fetchAllProjectMembers,
 })(withStyles(styles)(ProjectDetail));
 
 export const HeaderText = styled.div`
   font-weight: bold;
-  font-size: ${props => (props.fontsize ? props.fontsize : '22px')};
-  display: ${props => (props.display ? props.display : 'flex')};
+  font-size: ${(props) => (props.fontsize ? props.fontsize : '22px')};
+  display: ${(props) => (props.display ? props.display : 'flex')};
   align-items: center;
   justify-content: flex-start;
-  padding: ${props => (props.padding ? props.padding : '0px')};
+  padding: ${(props) => (props.padding ? props.padding : '0px')};
 `;
 
 export const NewJobRightbarWrapper = styled.div`

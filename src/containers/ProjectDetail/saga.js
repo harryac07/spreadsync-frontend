@@ -13,15 +13,18 @@ import {
   CREATE_JOB_FAILED,
   DELETE_JOB,
   DELETE_JOB_SUCCEED,
-  DELETE_JOB_FAILED
+  DELETE_JOB_FAILED,
+  FETCH_ALL_TEAM_MEMBERS,
+  FETCH_ALL_TEAM_MEMBERS_SUCCEED,
+  FETCH_ALL_TEAM_MEMBERS_FAILED,
 } from './constant';
 
-const fetchProject = projectId => {
+const fetchProject = (projectId) => {
   return axios
     .get(`${API_URL}/projects/${projectId}/`, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
     })
-    .then(response => {
+    .then((response) => {
       return response.data;
     });
 };
@@ -30,22 +33,22 @@ export function* fetchProjectSaga(action) {
     const data = yield call(fetchProject, action.id);
     yield put({
       type: FETCH_PROJECT_SUCCEED,
-      payload: data
+      payload: data,
     });
   } catch (error) {
     yield put({
       type: FETCH_PROJECT_FAILED,
-      error: error.response ? error.response.data : 'Something went wrong!'
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }
 
-const fetchAllProjectJobs = projectId => {
+const fetchAllProjectJobs = (projectId) => {
   return axios
     .get(`${API_URL}/projects/${projectId}/jobs/`, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
     })
-    .then(response => {
+    .then((response) => {
       return response.data;
     });
 };
@@ -54,22 +57,22 @@ export function* fetchAllProjectJobsSaga(action) {
     const data = yield call(fetchAllProjectJobs, action.id);
     yield put({
       type: FETCH_ALL_JOBS_SUCCEED,
-      payload: data
+      payload: data,
     });
   } catch (error) {
     yield put({
       type: FETCH_ALL_JOBS_FAILED,
-      error: error.response ? error.response.data : 'Something went wrong!'
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }
 
-const createJobForProject = payload => {
+const createJobForProject = (payload) => {
   return axios
     .post(`${API_URL}/jobs/`, payload, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
     })
-    .then(response => {
+    .then((response) => {
       return response.data;
     });
 };
@@ -77,22 +80,22 @@ export function* createJobForProjectSaga(action) {
   try {
     const data = yield call(createJobForProject, action.payload);
     yield put({
-      type: CREATE_JOB_SUCCEED
+      type: CREATE_JOB_SUCCEED,
     });
   } catch (error) {
     yield put({
       type: CREATE_JOB_FAILED,
-      error: error.response ? error.response.data : 'Something went wrong!'
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }
 
-const deleteAJob = jobId => {
+const deleteAJob = (jobId) => {
   return axios
     .delete(`${API_URL}/jobs/${jobId}`, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
     })
-    .then(response => {
+    .then((response) => {
       return response.data;
     });
 };
@@ -101,19 +104,44 @@ export function* deleteAJobSaga(action) {
     yield call(deleteAJob, action.jobId);
 
     yield put({
-      type: DELETE_JOB_SUCCEED
+      type: DELETE_JOB_SUCCEED,
     });
     if (action.projectId) {
       // refetch project jobs
       yield put({
         type: FETCH_ALL_JOBS,
-        id: action.projectId
+        id: action.projectId,
       });
     }
   } catch (error) {
     yield put({
       type: DELETE_JOB_FAILED,
-      error: error?.response?.data?.message ?? 'Something went wrong!'
+      error: error?.response?.data?.message ?? 'Something went wrong!',
+    });
+  }
+}
+
+const fetchProjectMembers = (projectId) => {
+  return axios
+    .get(`${API_URL}/projects/${projectId}/teams`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      return response.data;
+    });
+};
+export function* fetchProjectMembersSaga(action) {
+  try {
+    const data = yield call(fetchProjectMembers, action.id);
+    yield put({
+      type: FETCH_ALL_TEAM_MEMBERS_SUCCEED,
+      payload: data,
+    });
+  } catch (error) {
+    console.error(error);
+    yield put({
+      type: FETCH_ALL_TEAM_MEMBERS_FAILED,
+      error: error.response ? error.response.data : 'Something went wrong!',
     });
   }
 }
@@ -121,5 +149,6 @@ export function* deleteAJobSaga(action) {
 export const projectDetailSaga = [
   takeEvery(FETCH_PROJECT, fetchProjectSaga),
   takeEvery(FETCH_ALL_JOBS, fetchAllProjectJobsSaga),
-  takeEvery(DELETE_JOB, deleteAJobSaga)
+  takeEvery(DELETE_JOB, deleteAJobSaga),
+  takeEvery(FETCH_ALL_TEAM_MEMBERS, fetchProjectMembersSaga),
 ];
