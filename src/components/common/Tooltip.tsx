@@ -3,7 +3,6 @@ import { Tooltip } from '@material-ui/core';
 import { withStyles } from '@material-ui/styles';
 
 const StyledTooltip = withStyles((theme) => {
-  console.log('theme ', theme);
   return {
     tooltip: {
       fontSize: 12,

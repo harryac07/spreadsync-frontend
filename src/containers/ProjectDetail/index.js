@@ -223,7 +223,7 @@ class ProjectDetail extends React.Component {
   renderProjectMembers = () => {
     const { classes, projectDetail, account } = this.props;
     const { teamMembers = [] } = projectDetail || {};
-    const [currentAccountObj] = account;
+    const currentAccountObj = account?.find(({ id }) => id === localStorage.getItem('account_id'));
     const isCurrentUserProjectAdmin = teamMembers.some(({ email, project_permission }) => {
       return toLower(project_permission).includes('admin') && email === currentAccountObj?.email;
     });
