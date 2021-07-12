@@ -17,6 +17,9 @@ import {
   FETCH_ALL_TEAM_MEMBERS,
   FETCH_ALL_TEAM_MEMBERS_SUCCEED,
   FETCH_ALL_TEAM_MEMBERS_FAILED,
+  INVITE_TEAM_MEMBERS,
+  INVITE_TEAM_MEMBERS_SUCCEED,
+  INVITE_TEAM_MEMBERS_FAILED,
 } from './constant';
 
 const fetchProject = (projectId) => {
@@ -146,9 +149,40 @@ export function* fetchProjectMembersSaga(action) {
   }
 }
 
+const inviteProjectMembers = (payload) => {
+  return axios
+    .post(`${API_URL}/projects/${payload.projectId}/teams`, payload, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      return response.data;
+    });
+};
+export function* inviteProjectMembersSaga(action) {
+  try {
+    const data = yield call(inviteProjectMembers, action.data);
+    yield put({
+      type: INVITE_TEAM_MEMBERS_SUCCEED,
+      payload: data,
+    });
+    // Re-fetch project memebers
+    yield put({
+      type: FETCH_ALL_TEAM_MEMBERS,
+      id: action.data.projectId,
+    });
+  } catch (error) {
+    console.error(error);
+    yield put({
+      type: INVITE_TEAM_MEMBERS_FAILED,
+      error: error.response ? error.response?.data?.message : 'Something went wrong!',
+    });
+  }
+}
+
 export const projectDetailSaga = [
   takeEvery(FETCH_PROJECT, fetchProjectSaga),
   takeEvery(FETCH_ALL_JOBS, fetchAllProjectJobsSaga),
   takeEvery(DELETE_JOB, deleteAJobSaga),
   takeEvery(FETCH_ALL_TEAM_MEMBERS, fetchProjectMembersSaga),
+  takeEvery(INVITE_TEAM_MEMBERS, inviteProjectMembersSaga),
 ];

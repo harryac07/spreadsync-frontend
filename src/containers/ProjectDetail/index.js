@@ -19,16 +19,22 @@ import {
   Chip,
 } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
-import { fetchProjectById, fetchAllJobsForProject, deleteAJobByJobId, fetchAllProjectMembers } from './action';
+import {
+  fetchProjectById,
+  fetchAllJobsForProject,
+  deleteAJobByJobId,
+  fetchAllProjectMembers,
+  inviteProjectMembers,
+} from './action';
 
 import GroupIcon from '@material-ui/icons/Group';
-import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import SettingsIcon from '@material-ui/icons/Settings';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import Tooltip from '../../components/common/Tooltip';
+import InviteUsersWithPermissions from './Components/InviteUsersWithPermissions';
 import { permissions } from '../../utils/permissions';
 
 class ProjectDetail extends React.Component {
@@ -50,18 +56,29 @@ class ProjectDetail extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     const store = this.props.projectDetail;
     const {
-      error: { DELETE_JOB: currentDeleteJobError },
+      error: { DELETE_JOB: currentDeleteJobError, INVITE_TEAM_MEMBERS: currentUserInviteError },
       isJobDeleted,
+      isUserInvited,
     } = store;
     const {
-      error: { DELETE_JOB: prevDeleteJobError },
+      error: { DELETE_JOB: prevDeleteJobError, INVITE_TEAM_MEMBERS: prevUserInviteError },
       isJobDeleted: prevIsJobDeleted,
+      isUserInvited: prevIsUserInvited,
     } = prevProps.projectDetail;
     if (currentDeleteJobError !== prevDeleteJobError && currentDeleteJobError) {
       toast.error(`${currentDeleteJobError}`);
     }
+
+    if (currentUserInviteError !== prevUserInviteError && currentUserInviteError) {
+      toast.error(`${currentUserInviteError}`);
+    }
+
     if (isJobDeleted !== prevIsJobDeleted && isJobDeleted) {
       toast.success(`Job deleted successfully!`);
+    }
+
+    if (isUserInvited !== prevIsUserInvited && isUserInvited) {
+      toast.success(`User invited successfully!`);
     }
   }
   updateCurrentView = (selectedView = 'job') => {
@@ -77,6 +94,20 @@ class ProjectDetail extends React.Component {
         [name]: value,
       },
     });
+  };
+  inviteUsersToTheProject = (userList = []) => {
+    const projectId = this.props?.match?.params?.id;
+    const projectName = this.props?.projectDetail?.project?.find(({ id }) => id === projectId)?.name;
+    const accountId = localStorage?.getItem('account_id');
+    if (accountId && projectId) {
+      const payload = {
+        accountId,
+        projectId,
+        projectName,
+        invitedUsers: userList,
+      };
+      this.props.inviteProjectMembers(payload);
+    }
   };
   renderJobs = () => {
     const { classes, projectDetail, deleteAJobByJobId } = this.props;
@@ -196,15 +227,16 @@ class ProjectDetail extends React.Component {
     const isCurrentUserProjectAdmin = teamMembers.some(({ email, project_permission }) => {
       return toLower(project_permission).includes('admin') && email === currentAccountObj?.email;
     });
-
     return (
       <Paper elevation={3} className={classes.contentWrapper}>
         <HeaderText className={classes.HeaderText} padding="20px" fontsize={'18px'}>
           Team Members ({teamMembers?.length})
           <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
-            <Button startIcon={<GroupAddIcon className={classes.iconSmall} color="white" />} size="xs">
-              Invite user
-            </Button>
+            <InviteUsersWithPermissions
+              onSubmit={(data) => this.inviteUsersToTheProject(data)}
+              onModalClose={() => null}
+              forceClose={this.props.projectDetail.isUserInvited}
+            />
           </div>
         </HeaderText>
         <Divider light className={classes.dividers} />
@@ -236,6 +268,9 @@ class ProjectDetail extends React.Component {
                           projectPermissions?.map((each) => {
                             const formattedPermission = startCase(each).replace(/_/g, ' ');
                             const permissionObj = permissions.find(({ value }) => value === each);
+                            if (!permissionObj?.description) {
+                              return 'N/A';
+                            }
                             return (
                               <Tooltip arrow placement="top" title={permissionObj.description} key={each}>
                                 <Chip
@@ -440,6 +475,7 @@ export default connect(mapStateToProps, {
   fetchAllJobsForProject,
   deleteAJobByJobId,
   fetchAllProjectMembers,
+  inviteProjectMembers,
 })(withStyles(styles)(ProjectDetail));
 
 export const HeaderText = styled.div`

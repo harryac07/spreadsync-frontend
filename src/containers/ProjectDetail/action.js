@@ -1,4 +1,4 @@
-import { FETCH_PROJECT, FETCH_ALL_JOBS, DELETE_JOB, FETCH_ALL_TEAM_MEMBERS } from './constant';
+import { FETCH_PROJECT, FETCH_ALL_JOBS, DELETE_JOB, FETCH_ALL_TEAM_MEMBERS, INVITE_TEAM_MEMBERS } from './constant';
 
 /**
  * fetchProjectById
@@ -43,5 +43,19 @@ export const fetchAllProjectMembers = (projectId) => {
   return {
     type: FETCH_ALL_TEAM_MEMBERS,
     id: projectId,
+  };
+};
+/**
+ * inviteProjectMembers
+ * @param {Object}payload - req payload for inviting users
+ * @param {String}payload.accountId - current account id
+ * @param {String}payload.projectId - current project id
+ * @param {String}payload.projectName - current project name
+ * @param {Object}payload.invitedUsers - List of users and permissions
+ */
+export const inviteProjectMembers = (payload) => {
+  return {
+    type: INVITE_TEAM_MEMBERS,
+    data: payload,
   };
 };

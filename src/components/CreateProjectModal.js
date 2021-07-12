@@ -9,7 +9,7 @@ import Modal from 'components/common/ModalWithButton';
 import Field from 'components/common/Field';
 import { Divider } from '@material-ui/core';
 
-const CreateProjectModal = props => {
+const CreateProjectModal = (props) => {
   const classes = useStyles();
   const { handleSubmit, onModalClose } = props;
   const [inputObj, handleInputChange] = useState({});
@@ -21,18 +21,18 @@ const CreateProjectModal = props => {
   const addUser = (index, value) => {
     invitedUsers[index] = value;
     handleAddInvitationUserChange(invitedUsers);
-    handleSelectedCount(invitedUsers.filter(each => each).length);
+    handleSelectedCount(invitedUsers.filter((each) => each).length);
   };
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     handleInputChange({
       ...inputObj,
-      [name]: value
+      [name]: value,
     });
     handleError({
       ...error,
-      [name]: !value ? `${startCase(toLower(name))} is required` : ''
+      [name]: !value ? `${startCase(toLower(name))} is required` : '',
     });
   };
 
@@ -44,7 +44,7 @@ const CreateProjectModal = props => {
     handleError({
       ...error,
       name: name ? '' : 'Name is required',
-      description: description ? '' : 'Description is required'
+      description: description ? '' : 'Description is required',
     });
     return true;
   };
@@ -53,11 +53,11 @@ const CreateProjectModal = props => {
     const { name, description } = inputObj;
     const projectPayload = {
       name,
-      description
+      description,
     };
     const payload = {
-      invitedUsers: invitedUsers.filter(each => each),
-      projectPayload
+      invitedUsers: invitedUsers.filter((each) => each),
+      projectPayload,
     };
     const errorExists = isError();
     if (!errorExists) {
@@ -71,7 +71,7 @@ const CreateProjectModal = props => {
       <Modal onClose={onModalClose} modalTitle={'Create Project'} modalWidth={'50%'}>
         <form>
           <Grid container spacing={8}>
-            <Grid item xs={12} sm={6} md={6}>
+            <Grid item xs={12} sm={12} md={12}>
               <p className={classes.header}>Project Detail</p>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={12} md={12}>
@@ -100,42 +100,6 @@ const CreateProjectModal = props => {
                 </Grid>
               </Grid>
             </Grid>
-            <Grid item xs={12} sm={6} md={6}>
-              <div>
-                <p className={classes.header}>
-                  Invite Users <span className={classes.selectedCountSpan}>({selectedCount})</span>
-                </p>
-                {Array.from(Array(inviteCount).keys()).map(each => {
-                  return (
-                    <Field
-                      key={each}
-                      required={false}
-                      size="small"
-                      placeholder="Invite email"
-                      className={classes.inviteMoreField}
-                      onChange={e => {
-                        e.preventDefault();
-                        const { value } = e.target;
-                        addUser(each, value);
-                      }}
-                    />
-                  );
-                })}
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<AddIcon fontSize={'small'} color="primary" />}
-                  size="small"
-                  onClick={() => {
-                    let prevCount = inviteCount;
-                    handleInviteMoreCount(prevCount + 1);
-                  }}
-                  className={classes.inviteMoreUserButton}
-                >
-                  Invite more
-                </Button>
-              </div>
-            </Grid>
           </Grid>
           <Button
             className={classes.submitButton}
@@ -152,25 +116,25 @@ const CreateProjectModal = props => {
   );
 };
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   header: {
     fontSize: 18,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   inviteMoreUserButton: {
     fontSize: 12,
     paddingTop: 6,
-    marginBottom: 10
+    marginBottom: 10,
   },
   inviteMoreField: {
-    marginBottom: 10
+    marginBottom: 10,
   },
   submitButton: {
-    margin: '20px auto'
+    margin: '20px auto',
   },
   selectedCountSpan: {
-    fontWeight: 500
-  }
+    fontWeight: 500,
+  },
 }));
 
 export default CreateProjectModal;

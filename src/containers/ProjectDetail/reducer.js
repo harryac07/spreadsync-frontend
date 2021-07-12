@@ -8,6 +8,9 @@ import {
   DELETE_JOB_SUCCEED,
   DELETE_JOB_FAILED,
   FETCH_ALL_TEAM_MEMBERS_SUCCEED,
+  INVITE_TEAM_MEMBERS,
+  INVITE_TEAM_MEMBERS_SUCCEED,
+  INVITE_TEAM_MEMBERS_FAILED,
 } from './constant';
 
 const initialState = {
@@ -16,6 +19,8 @@ const initialState = {
   jobs: [],
   error: {},
   teamMembers: [],
+  isJobDeleted: false,
+  isUserInvited: false,
 };
 const reducer = (state = initialState, action) => {
   switch (action.type) {
@@ -76,6 +81,33 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         teamMembers: action.payload,
+      };
+    case INVITE_TEAM_MEMBERS:
+      return {
+        ...state,
+        isUserInvited: false,
+        error: {
+          ...state.error,
+          INVITE_TEAM_MEMBERS: null,
+        },
+      };
+    case INVITE_TEAM_MEMBERS_SUCCEED:
+      return {
+        ...state,
+        isUserInvited: true,
+        error: {
+          ...state.error,
+          INVITE_TEAM_MEMBERS: null,
+        },
+      };
+    case INVITE_TEAM_MEMBERS_FAILED:
+      return {
+        ...state,
+        isUserInvited: false,
+        error: {
+          ...state.error,
+          INVITE_TEAM_MEMBERS: action.error,
+        },
       };
     default:
       return state;
