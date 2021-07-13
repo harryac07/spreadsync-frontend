@@ -25,6 +25,7 @@ import {
   deleteAJobByJobId,
   fetchAllProjectMembers,
   inviteProjectMembers,
+  removeProjectMember,
 } from './action';
 
 import GroupIcon from '@material-ui/icons/Group';
@@ -32,6 +33,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
 
 import Tooltip from '../../components/common/Tooltip';
 import InviteUsersWithPermissions from './Components/InviteUsersWithPermissions';
@@ -56,14 +58,24 @@ class ProjectDetail extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     const store = this.props.projectDetail;
     const {
-      error: { DELETE_JOB: currentDeleteJobError, INVITE_TEAM_MEMBERS: currentUserInviteError },
+      error: {
+        DELETE_JOB: currentDeleteJobError,
+        INVITE_TEAM_MEMBERS: currentUserInviteError,
+        REMOVE_TEAM_MEMBER: currentUserRemoveError,
+      },
       isJobDeleted,
       isUserInvited,
+      isUserRemoved,
     } = store;
     const {
-      error: { DELETE_JOB: prevDeleteJobError, INVITE_TEAM_MEMBERS: prevUserInviteError },
+      error: {
+        DELETE_JOB: prevDeleteJobError,
+        INVITE_TEAM_MEMBERS: prevUserInviteError,
+        REMOVE_TEAM_MEMBER: prevUserRemoveError,
+      },
       isJobDeleted: prevIsJobDeleted,
       isUserInvited: prevIsUserInvited,
+      isUserRemoved: prevIsUserRemoved,
     } = prevProps.projectDetail;
     if (currentDeleteJobError !== prevDeleteJobError && currentDeleteJobError) {
       toast.error(`${currentDeleteJobError}`);
@@ -73,12 +85,19 @@ class ProjectDetail extends React.Component {
       toast.error(`${currentUserInviteError}`);
     }
 
+    if (currentUserRemoveError !== prevUserRemoveError && currentUserRemoveError) {
+      toast.error(`${currentUserRemoveError}`);
+    }
+
     if (isJobDeleted !== prevIsJobDeleted && isJobDeleted) {
       toast.success(`Job deleted successfully!`);
     }
 
     if (isUserInvited !== prevIsUserInvited && isUserInvited) {
       toast.success(`User invited successfully!`);
+    }
+    if (isUserRemoved !== prevIsUserRemoved && isUserRemoved) {
+      toast.success(`User removed successfully!`);
     }
   }
   updateCurrentView = (selectedView = 'job') => {
@@ -108,6 +127,12 @@ class ProjectDetail extends React.Component {
       };
       this.props.inviteProjectMembers(payload);
     }
+  };
+  removeUserFromTheProject = (userInvolvementId) => {
+    this.props.removeProjectMember({
+      projectId: this.props?.match?.params?.id,
+      userInvolvementId,
+    });
   };
   renderJobs = () => {
     const { classes, projectDetail, deleteAJobByJobId } = this.props;
@@ -283,7 +308,26 @@ class ProjectDetail extends React.Component {
                             );
                           })}
                       </TableCell>
-                      <TableCell></TableCell>
+                      <TableCell>
+                        <ConfirmDialog
+                          ctaToOpenModal={
+                            <DeleteIcon
+                              fontSize="small"
+                              style={{ color: 'red', marginRight: 8 }}
+                              className={classes.teamCtaIcon}
+                            />
+                          }
+                          header={<span>Confirm removing project member?</span>}
+                          bodyContent={
+                            'Removing the users from the project removes all permissions and prevents user from accessing the project.'
+                          }
+                          cancelText="Cancel"
+                          cancelCallback={() => null}
+                          confirmText="Confirm"
+                          confirmCallback={() => this.removeUserFromTheProject(row.id)}
+                        />
+                        <EditIcon fontSize="small" className={classes.teamCtaIcon} />
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -468,6 +512,7 @@ const styles = (theme) => ({
       color: '#fff',
     },
   },
+  teamCtaIcon: { fontSize: 18, cursor: 'pointer' },
 });
 
 export default connect(mapStateToProps, {
@@ -476,6 +521,7 @@ export default connect(mapStateToProps, {
   deleteAJobByJobId,
   fetchAllProjectMembers,
   inviteProjectMembers,
+  removeProjectMember,
 })(withStyles(styles)(ProjectDetail));
 
 export const HeaderText = styled.div`
