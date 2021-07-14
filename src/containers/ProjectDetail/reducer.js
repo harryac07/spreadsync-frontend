@@ -14,6 +14,9 @@ import {
   REMOVE_TEAM_MEMBER,
   REMOVE_TEAM_MEMBER_SUCCEED,
   REMOVE_TEAM_MEMBER_FAILED,
+  UPDATE_TEAM_MEMBER,
+  UPDATE_TEAM_MEMBER_SUCCEED,
+  UPDATE_TEAM_MEMBER_FAILED,
 } from './constant';
 
 const initialState = {
@@ -25,6 +28,7 @@ const initialState = {
   isJobDeleted: false,
   isUserInvited: false,
   isUserRemoved: false,
+  isUserUpdated: false,
 };
 const reducer = (state = initialState, action) => {
   switch (action.type) {
@@ -138,6 +142,33 @@ const reducer = (state = initialState, action) => {
         error: {
           ...state.error,
           REMOVE_TEAM_MEMBER: action.error,
+        },
+      };
+    case UPDATE_TEAM_MEMBER:
+      return {
+        ...state,
+        isUserUpdated: false,
+        error: {
+          ...state.error,
+          UPDATE_TEAM_MEMBER: null,
+        },
+      };
+    case UPDATE_TEAM_MEMBER_SUCCEED:
+      return {
+        ...state,
+        isUserUpdated: true,
+        error: {
+          ...state.error,
+          UPDATE_TEAM_MEMBER: null,
+        },
+      };
+    case UPDATE_TEAM_MEMBER_FAILED:
+      return {
+        ...state,
+        isUserUpdated: false,
+        error: {
+          ...state.error,
+          UPDATE_TEAM_MEMBER: action.error,
         },
       };
     default:

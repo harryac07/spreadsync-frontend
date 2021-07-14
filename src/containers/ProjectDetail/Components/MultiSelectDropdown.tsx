@@ -1,16 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toLower, truncate } from 'lodash';
 import styled from 'styled-components';
-import {
-  Select,
-  TextField,
-  OutlinedInput,
-  Checkbox,
-  MenuItem,
-  Grid,
-  FormControlLabel,
-  InputLabel,
-} from '@material-ui/core';
+import { Select, TextField, OutlinedInput, Checkbox, MenuItem, Grid, FormControlLabel } from '@material-ui/core';
 import { makeStyles, withStyles } from '@material-ui/styles';
 import Tooltip from 'components/common/Tooltip';
 
@@ -26,14 +17,28 @@ type Props = {
   onChange: (selectedValues: string[]) => void;
   fullWidth?: boolean;
   defaultLabel: string;
+  defaultSelectedValues?: string[];
 };
 
-const MultiSelectDropdown: React.FC<Props> = ({ options, onChange, fullWidth = false, defaultLabel = 'Select' }) => {
+const MultiSelectDropdown: React.FC<Props> = ({
+  options,
+  onChange,
+  fullWidth = false,
+  defaultLabel = 'Select',
+  defaultSelectedValues = [],
+}) => {
   const classes = useStyles();
 
   const [selectedValues, setSelectedValues] = useState([]);
   const [openMenu, setOpenMenu] = React.useState(false);
   const [searchValue, setSearchValue] = useState('');
+
+  useEffect(() => {
+    if (defaultSelectedValues?.length && !selectedValues?.length) {
+      setSelectedValues(defaultSelectedValues);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultSelectedValues]);
 
   const filterOptionsByKeyword = (array = []) => {
     return array.filter(({ label, value }) => {
@@ -61,7 +66,7 @@ const MultiSelectDropdown: React.FC<Props> = ({ options, onChange, fullWidth = f
       <Tooltip arrow placement="top" title={val}>
         <div>
           {truncate(val, {
-            length: 36,
+            length: 28,
           })}
         </div>
       </Tooltip>

@@ -26,6 +26,7 @@ import {
   fetchAllProjectMembers,
   inviteProjectMembers,
   removeProjectMember,
+  updateProjectMember,
 } from './action';
 
 import GroupIcon from '@material-ui/icons/Group';
@@ -62,20 +63,24 @@ class ProjectDetail extends React.Component {
         DELETE_JOB: currentDeleteJobError,
         INVITE_TEAM_MEMBERS: currentUserInviteError,
         REMOVE_TEAM_MEMBER: currentUserRemoveError,
+        UPDATE_TEAM_MEMBER: currentUserUpdateError,
       },
       isJobDeleted,
       isUserInvited,
       isUserRemoved,
+      isUserUpdated,
     } = store;
     const {
       error: {
         DELETE_JOB: prevDeleteJobError,
         INVITE_TEAM_MEMBERS: prevUserInviteError,
         REMOVE_TEAM_MEMBER: prevUserRemoveError,
+        UPDATE_TEAM_MEMBER: prevUserUpdateError,
       },
       isJobDeleted: prevIsJobDeleted,
       isUserInvited: prevIsUserInvited,
       isUserRemoved: prevIsUserRemoved,
+      isUserUpdated: prevIsUserUpdated,
     } = prevProps.projectDetail;
     if (currentDeleteJobError !== prevDeleteJobError && currentDeleteJobError) {
       toast.error(`${currentDeleteJobError}`);
@@ -88,6 +93,9 @@ class ProjectDetail extends React.Component {
     if (currentUserRemoveError !== prevUserRemoveError && currentUserRemoveError) {
       toast.error(`${currentUserRemoveError}`);
     }
+    if (currentUserUpdateError !== prevUserUpdateError && currentUserUpdateError) {
+      toast.error(`${currentUserUpdateError}`);
+    }
 
     if (isJobDeleted !== prevIsJobDeleted && isJobDeleted) {
       toast.success(`Job deleted successfully!`);
@@ -98,6 +106,9 @@ class ProjectDetail extends React.Component {
     }
     if (isUserRemoved !== prevIsUserRemoved && isUserRemoved) {
       toast.success(`User removed successfully!`);
+    }
+    if (isUserUpdated !== prevIsUserUpdated && isUserUpdated) {
+      toast.success(`Project team member updated successfully!`);
     }
   }
   updateCurrentView = (selectedView = 'job') => {
@@ -133,6 +144,16 @@ class ProjectDetail extends React.Component {
       projectId: this.props?.match?.params?.id,
       userInvolvementId,
     });
+  };
+  updateProjectMemberPermission = (userInvolvementId, data) => {
+    const projectId = this.props?.match?.params?.id;
+    const { permission } = data[0];
+
+    const payload = {
+      permission,
+      projectId,
+    };
+    this.props.updateProjectMember(userInvolvementId, payload);
   };
   renderJobs = () => {
     const { classes, projectDetail, deleteAJobByJobId } = this.props;
@@ -326,7 +347,17 @@ class ProjectDetail extends React.Component {
                           confirmText="Confirm"
                           confirmCallback={() => this.removeUserFromTheProject(row.id)}
                         />
-                        <EditIcon fontSize="small" className={classes.teamCtaIcon} />
+                        <InviteUsersWithPermissions
+                          onSubmit={(data) => this.updateProjectMemberPermission(row.id, data)}
+                          onModalClose={() => null}
+                          forceClose={this.props.projectDetail.isUserUpdated}
+                          defaultValue={{
+                            email: row.email,
+                            permission: projectPermissions,
+                          }}
+                          ctaButton={<EditIcon fontSize="small" className={classes.teamCtaIcon} />}
+                          style={{ display: 'inline-block' }}
+                        />
                       </TableCell>
                     </TableRow>
                   );
@@ -522,6 +553,7 @@ export default connect(mapStateToProps, {
   fetchAllProjectMembers,
   inviteProjectMembers,
   removeProjectMember,
+  updateProjectMember,
 })(withStyles(styles)(ProjectDetail));
 
 export const HeaderText = styled.div`

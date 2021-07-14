@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { isEmpty } from 'lodash';
 import { makeStyles } from '@material-ui/core/styles';
 import AddIcon from '@material-ui/icons/Add';
 import Grid from '@material-ui/core/Grid';
@@ -10,9 +11,16 @@ import MultiSelectDropdown from './MultiSelectDropdown';
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import { permissions } from 'utils/permissions';
 
-const InviteUsersWithPermissions = (props) => {
+const InviteUsersWithPermissions = ({
+  onSubmit,
+  onModalClose,
+  forceClose,
+  ctaButton = null,
+  defaultValue = {},
+  customHeader = '',
+  ...props
+}) => {
   const classes = useStyles();
-  const { onSubmit, onModalClose, forceClose } = props;
 
   const [modelOpen, setModalOpen] = useState(false);
   const [inviteCount, handleInviteMoreCount] = useState(1); // counting number of users to render Input element
@@ -26,6 +34,15 @@ const InviteUsersWithPermissions = (props) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forceClose]);
+
+  useEffect(() => {
+    if (!isEmpty(defaultValue) && isEmpty(invitedUsers)) {
+      handleAddInvitationUserChange({
+        0: defaultValue,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultValue]);
 
   const addUserOrPermission = (index, key, value) => {
     let userObj = {};
@@ -42,7 +59,14 @@ const InviteUsersWithPermissions = (props) => {
   };
 
   const handleSubmit = () => {
-    const fitleredInvitedUsers = Object.values(invitedUsers)?.filter(({ email }) => email);
+    const fitleredInvitedUsers = !isEmpty(defaultValue)
+      ? [
+          {
+            ...defaultValue,
+            permission: invitedUsers['0'].permission,
+          },
+        ]
+      : Object.values(invitedUsers)?.filter(({ email }) => email);
 
     if (!fitleredInvitedUsers?.length) {
       handleModalClose(true);
@@ -62,23 +86,35 @@ const InviteUsersWithPermissions = (props) => {
   };
 
   return (
-    <div>
-      <Button
-        onClick={() => setModalOpen(true)}
-        startIcon={<GroupAddIcon className={classes.iconSmall} color="white" />}
-        size="xs"
-      >
-        Invite user
-      </Button>
+    <div {...props}>
+      {ctaButton ? (
+        React.cloneElement(ctaButton, { onClick: () => setModalOpen(true) })
+      ) : (
+        <Button
+          onClick={() => setModalOpen(true)}
+          startIcon={<GroupAddIcon className={classes.iconSmall} color="white" />}
+          size="xs"
+        >
+          Invite user
+        </Button>
+      )}
       {modelOpen && (
-        <Modal modalTitle={'Invite users to the project'} onClose={() => handleModalClose()} modalWidth={'60%'}>
+        <Modal
+          modalTitle={customHeader || 'Invite users to the project'}
+          onClose={() => handleModalClose()}
+          modalWidth={'60%'}
+        >
           <form>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={12} md={12}>
                 <div>
-                  <p className={classes.header}>
-                    Invite Users <span className={classes.selectedCountSpan}>({selectedCount})</span>
-                  </p>
+                  {isEmpty(defaultValue) ? (
+                    <p className={classes.header}>
+                      Invite Users <span className={classes.selectedCountSpan}>({selectedCount})</span>
+                    </p>
+                  ) : (
+                    <p className={classes.header} />
+                  )}
                   {Array.from(Array(inviteCount).keys()).map((each) => {
                     return (
                       <Grid container spacing={2} key={each}>
@@ -94,6 +130,8 @@ const InviteUsersWithPermissions = (props) => {
                               const { value } = e.target;
                               addUserOrPermission(each, 'email', value);
                             }}
+                            defaultValue={defaultValue?.email}
+                            disabled={!!defaultValue?.email}
                           />
                         </Grid>
                         <Grid item xs={6}>
@@ -104,24 +142,28 @@ const InviteUsersWithPermissions = (props) => {
                             options={permissions}
                             fullWidth
                             defaultLabel="Permissions"
+                            defaultSelectedValues={defaultValue?.permission ?? []}
                           />
                         </Grid>
                       </Grid>
                     );
                   })}
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<AddIcon fontSize={'small'} color="primary" />}
-                    size="small"
-                    onClick={() => {
-                      let prevCount = inviteCount;
-                      handleInviteMoreCount(prevCount + 1);
-                    }}
-                    className={classes.inviteMoreUserButton}
-                  >
-                    Invite more
-                  </Button>
+
+                  {isEmpty(defaultValue) && (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<AddIcon fontSize={'small'} color="primary" />}
+                      size="small"
+                      onClick={() => {
+                        let prevCount = inviteCount;
+                        handleInviteMoreCount(prevCount + 1);
+                      }}
+                      className={classes.inviteMoreUserButton}
+                    >
+                      Invite more
+                    </Button>
+                  )}
                 </div>
               </Grid>
             </Grid>
