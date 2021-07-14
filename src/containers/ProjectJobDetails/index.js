@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { startCase, toLower, isEmpty } from 'lodash';
 import { Grid, Paper, Divider, Stepper, Step, StepLabel } from '@material-ui/core/';
 import { makeStyles, styled as muiStyled } from '@material-ui/core/styles';
-import { fetchProjectById } from 'containers/ProjectDetail/action';
+import { fetchProjectById, fetchAllProjectMembers } from 'containers/ProjectDetail/action';
 import CreateNewJobForm from './Components/CreateNewJobForm';
 import GroupIcon from '@material-ui/icons/Group';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
@@ -29,8 +29,8 @@ const steps = jobSteps;
 const CreateNewJob = (props) => {
   const { id: projectId, jobid: jobId } = props?.match?.params ?? {};
 
-  const [state, { updateNewJob, resetState, runExportJobManually }] = useProjectJobsHooks(jobId);
-  const { currentJob = {}, currentProject, isNewJobCreated, currentManualJobRunning } = state;
+  const [state, { updateNewJob, resetState, runExportJobManually, hasPermission }] = useProjectJobsHooks(jobId);
+  const { currentJob = {}, currentProject, isNewJobCreated, currentManualJobRunning, permissions } = state;
 
   const [activeStep, setActiveStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
@@ -38,11 +38,15 @@ const CreateNewJob = (props) => {
   const dispatch = useDispatch();
   const history = useHistory();
   const classes = useStyles();
+
   const isCreatingNewJob = props?.match?.path?.includes('/job/new');
 
   useEffect(() => {
     if (isEmpty(currentProject)) {
       dispatch(fetchProjectById(projectId));
+    }
+    if (isEmpty(permissions)) {
+      dispatch(fetchAllProjectMembers(projectId));
     }
   }, []);
 
@@ -134,7 +138,7 @@ const CreateNewJob = (props) => {
                       color="primary"
                       type="submit"
                       startIcon={isManualJobRunning ? <CircularProgress size={24} /> : <ExportIcon />}
-                      disabled={isManualJobRunning}
+                      disabled={isManualJobRunning || !hasPermission(['job_all', 'job_write'])}
                       className={classes.manualJobButton}
                     >
                       Run job manually
@@ -203,6 +207,7 @@ const CreateNewJob = (props) => {
                             updateNewJob(data);
                           }
                         }}
+                        isDisabled={!hasPermission(['job_all', 'job_write'])}
                       />
                     )}
 

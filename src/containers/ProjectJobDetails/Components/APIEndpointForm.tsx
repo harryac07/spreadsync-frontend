@@ -14,6 +14,7 @@ import { useJobConfig } from '../context';
 
 type Props = {
   requestType: 'target' | 'source';
+  isDisabled?: boolean;
 };
 type InputPayloadProps = {
   alias?: string;
@@ -28,7 +29,7 @@ type ErrorProps = {
   endpoint: string;
 };
 
-const APIEndpointForm: React.FC<Props> = ({ requestType }) => {
+const APIEndpointForm: React.FC<Props> = ({ requestType, isDisabled }) => {
   const classes = useStyles();
   const [inputObj, setInputObj] = useState({ method: 'GET' } as InputPayloadProps);
   const [error, setError] = useState({} as ErrorProps);
@@ -55,8 +56,6 @@ const APIEndpointForm: React.FC<Props> = ({ requestType }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultData]);
-
-  console.log('defaultData ', defaultData, inputObj);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -114,7 +113,6 @@ const APIEndpointForm: React.FC<Props> = ({ requestType }) => {
       type: requestType,
     };
     if (!errorExists) {
-      console.log('API endpoint payload ', payload);
       if (defaultData?.id) {
         // update
         updateApiConfigForJob(defaultData.id, payload);
@@ -273,7 +271,7 @@ const APIEndpointForm: React.FC<Props> = ({ requestType }) => {
             color="primary"
             onClick={() => handleCheckDatabaseConnection(defaultData.id)}
             type="submit"
-            disabled={isChangedInput}
+            disabled={isChangedInput || isDisabled}
           >
             Test Connection
           </Button>
@@ -296,6 +294,7 @@ const APIEndpointForm: React.FC<Props> = ({ requestType }) => {
             color="primary"
             onClick={submitForm}
             type="submit"
+            disabled={isDisabled}
           >
             {isEmpty(defaultData) ? 'Save and continue' : 'Update'}
           </Button>

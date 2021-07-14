@@ -16,6 +16,7 @@ import { useJobConfig } from '../context';
 
 interface Props {
   requestType?: 'target' | 'source';
+  isDisabled?: boolean;
 }
 
 const CreatableAsyncPaginate = withAsyncPaginate(Creatable);
@@ -29,7 +30,7 @@ const googleScopes = [
 const googleAuthIssueErrors = ['Invalid Credentials', 'invalid_grant'];
 const sheetPageSize = 50;
 
-const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
+const AddGoogleSheetForm: React.FC<Props> = ({ requestType, isDisabled }) => {
   const classes = useStyles();
   const [
     {
@@ -365,6 +366,7 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
                         color="primary"
                         onClick={submitForm}
                         type="submit"
+                        disabled={isDisabled}
                       >
                         {isSheetConfigured ? 'Update' : 'Save'}
                       </Button>
@@ -385,17 +387,21 @@ const AddGoogleSheetForm: React.FC<Props> = ({ requestType }) => {
               </Typography>
             </div>
           )}
-          <GoogleLogin
-            clientId={GOOGLE_CLIENT_ID}
-            buttonText={'Authorize to Google'}
-            onSuccess={handleSpreadsheetConnectionSuccess}
-            onFailure={handleSpreadsheetConnectionError}
-            cookiePolicy={'single_host_origin'}
-            scope={googleScopes.join(' ')}
-            responseType={'code'}
-            accessType={'offline'}
-            prompt={'consent'}
-          />
+          {!isDisabled ? (
+            <GoogleLogin
+              clientId={GOOGLE_CLIENT_ID}
+              buttonText={'Authorize to Google'}
+              onSuccess={handleSpreadsheetConnectionSuccess}
+              onFailure={handleSpreadsheetConnectionError}
+              cookiePolicy={'single_host_origin'}
+              scope={googleScopes.join(' ')}
+              responseType={'code'}
+              accessType={'offline'}
+              prompt={'consent'}
+            />
+          ) : (
+            'Access denied! Please contact the project admin.'
+          )}
         </>
       )}
     </div>

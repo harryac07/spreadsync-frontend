@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import styled from 'styled-components';
-import { startCase, toLower } from 'lodash';
+import { startCase, toLower, intersection } from 'lodash';
 import Button from 'components/common/Button';
 import ConfirmDialog from 'components/common/ConfirmDialog';
 import {
@@ -39,6 +39,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import Tooltip from '../../components/common/Tooltip';
 import InviteUsersWithPermissions from './Components/InviteUsersWithPermissions';
 import { permissions } from '../../utils/permissions';
+import { getPermissionsForCurrentProject } from 'store/selectors';
 
 class ProjectDetail extends React.Component {
   constructor(props) {
@@ -155,11 +156,35 @@ class ProjectDetail extends React.Component {
     };
     this.props.updateProjectMember(userInvolvementId, payload);
   };
+
+  hasPermission = (permissionToCheck) => {
+    const { projectPermissions = '' } = this.props;
+    if (projectPermissions.includes('admin')) {
+      return true;
+    }
+
+    if (typeof permissionToCheck === 'string') {
+      return projectPermissions.includes(permissionToCheck);
+    } else {
+      const permissionFound = intersection(permissionToCheck, projectPermissions?.split(','));
+      return !!permissionFound?.length;
+    }
+  };
   renderJobs = () => {
     const { classes, projectDetail, deleteAJobByJobId } = this.props;
     const { jobs } = projectDetail;
     const projectId = this.props?.match?.params?.id ?? '';
     const { rowsPerPage, page } = this.state;
+
+    if (!this.hasPermission(['job_all', 'job_read'])) {
+      return (
+        <div className={classes.noJobWrapper}>
+          <div>
+            <p>Access denied! Please contact the admin of this project for the access.</p>
+          </div>
+        </div>
+      );
+    }
 
     if (jobs.length === 0) {
       return (
@@ -196,23 +221,25 @@ class ProjectDetail extends React.Component {
                     <TableCell>{row.type}</TableCell>
                     <TableCell>{row.user_email}</TableCell>
                     <TableCell>
-                      <ConfirmDialog
-                        ctaToOpenModal={
-                          <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
-                        }
-                        header={
-                          <span>
-                            Confirm deleting the job: <u>{row.name}</u>?
-                          </span>
-                        }
-                        bodyContent={
-                          'Deleting the job deletes everything connected to the job and you can not undone this later. This action deletes the job history, configured data source and target'
-                        }
-                        cancelText="Cancel"
-                        cancelCallback={() => null}
-                        confirmText="Confirm"
-                        confirmCallback={() => deleteAJobByJobId(row.id, projectId)}
-                      />
+                      {this.hasPermission(['job_all', 'job_delete']) && (
+                        <ConfirmDialog
+                          ctaToOpenModal={
+                            <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
+                          }
+                          header={
+                            <span>
+                              Confirm deleting the job: <u>{row.name}</u>?
+                            </span>
+                          }
+                          bodyContent={
+                            'Deleting the job deletes everything connected to the job and you can not undone this later. This action deletes the job history, configured data source and target'
+                          }
+                          cancelText="Cancel"
+                          cancelCallback={() => null}
+                          confirmText="Confirm"
+                          confirmCallback={() => deleteAJobByJobId(row.id, projectId)}
+                        />
+                      )}
                     </TableCell>
                   </TableRow>
                 )
@@ -267,23 +294,24 @@ class ProjectDetail extends React.Component {
     );
   };
   renderProjectMembers = () => {
-    const { classes, projectDetail, account } = this.props;
+    const { classes, projectDetail } = this.props;
     const { teamMembers = [] } = projectDetail || {};
-    const currentAccountObj = account?.find(({ id }) => id === localStorage.getItem('account_id'));
-    const isCurrentUserProjectAdmin = teamMembers.some(({ email, project_permission }) => {
-      return toLower(project_permission).includes('admin') && email === currentAccountObj?.email;
+    const isCurrentUserProjectAdmin = teamMembers.some(({ user, project_permission }) => {
+      return toLower(project_permission).includes('admin') && user === localStorage.getItem('user_id');
     });
     return (
       <Paper elevation={3} className={classes.contentWrapper}>
         <HeaderText className={classes.HeaderText} padding="20px" fontsize={'18px'}>
           Team Members ({teamMembers?.length})
-          <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
-            <InviteUsersWithPermissions
-              onSubmit={(data) => this.inviteUsersToTheProject(data)}
-              onModalClose={() => null}
-              forceClose={this.props.projectDetail.isUserInvited}
-            />
-          </div>
+          {this.hasPermission(['user_all', 'user_write']) && (
+            <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
+              <InviteUsersWithPermissions
+                onSubmit={(data) => this.inviteUsersToTheProject(data)}
+                onModalClose={() => null}
+                forceClose={this.props.projectDetail.isUserInvited}
+              />
+            </div>
+          )}
         </HeaderText>
         <Divider light className={classes.dividers} />
 
@@ -309,9 +337,9 @@ class ProjectDetail extends React.Component {
                         {row.email}
                       </TableCell>
                       <TableCell>{isAdmin ? 'Yes' : 'No'}</TableCell>
-                      <TableCell>
-                        {isCurrentUserProjectAdmin &&
-                          projectPermissions?.map((each) => {
+                      {isCurrentUserProjectAdmin && (
+                        <TableCell>
+                          {projectPermissions?.map((each) => {
                             const formattedPermission = startCase(each).replace(/_/g, ' ');
                             const permissionObj = permissions.find(({ value }) => value === each);
                             if (!permissionObj?.description) {
@@ -328,36 +356,41 @@ class ProjectDetail extends React.Component {
                               </Tooltip>
                             );
                           })}
-                      </TableCell>
+                        </TableCell>
+                      )}
                       <TableCell>
-                        <ConfirmDialog
-                          ctaToOpenModal={
-                            <DeleteIcon
-                              fontSize="small"
-                              style={{ color: 'red', marginRight: 8 }}
-                              className={classes.teamCtaIcon}
-                            />
-                          }
-                          header={<span>Confirm removing project member?</span>}
-                          bodyContent={
-                            'Removing the users from the project removes all permissions and prevents user from accessing the project.'
-                          }
-                          cancelText="Cancel"
-                          cancelCallback={() => null}
-                          confirmText="Confirm"
-                          confirmCallback={() => this.removeUserFromTheProject(row.id)}
-                        />
-                        <InviteUsersWithPermissions
-                          onSubmit={(data) => this.updateProjectMemberPermission(row.id, data)}
-                          onModalClose={() => null}
-                          forceClose={this.props.projectDetail.isUserUpdated}
-                          defaultValue={{
-                            email: row.email,
-                            permission: projectPermissions,
-                          }}
-                          ctaButton={<EditIcon fontSize="small" className={classes.teamCtaIcon} />}
-                          style={{ display: 'inline-block' }}
-                        />
+                        {this.hasPermission(['user_all', 'user_delete']) && (
+                          <ConfirmDialog
+                            ctaToOpenModal={
+                              <DeleteIcon
+                                fontSize="small"
+                                style={{ color: 'red', marginRight: 8 }}
+                                className={classes.teamCtaIcon}
+                              />
+                            }
+                            header={<span>Confirm removing project member?</span>}
+                            bodyContent={
+                              'Removing the users from the project removes all permissions and prevents user from accessing the project.'
+                            }
+                            cancelText="Cancel"
+                            cancelCallback={() => null}
+                            confirmText="Confirm"
+                            confirmCallback={() => this.removeUserFromTheProject(row.id)}
+                          />
+                        )}
+                        {this.hasPermission(['user_all', 'user_write']) && (
+                          <InviteUsersWithPermissions
+                            onSubmit={(data) => this.updateProjectMemberPermission(row.id, data)}
+                            onModalClose={() => null}
+                            forceClose={this.props.projectDetail.isUserUpdated}
+                            defaultValue={{
+                              email: row.email,
+                              permission: projectPermissions,
+                            }}
+                            ctaButton={<EditIcon fontSize="small" className={classes.teamCtaIcon} />}
+                            style={{ display: 'inline-block' }}
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
                   );
@@ -409,19 +442,21 @@ class ProjectDetail extends React.Component {
             <Paper elevation={3} className={classes.contentWrapper}>
               <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
                 Jobs ({jobs.length})
-                <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
-                  <Button
-                    startIcon={<AddIcon className={classes.iconSmall} />}
-                    size="xs"
-                    onClick={() => {
-                      localStorage.setItem('current_project', this.props.match.params.id);
-                      localStorage.removeItem('new_job_object');
-                      history.push(`job/new`);
-                    }}
-                  >
-                    Create job
-                  </Button>
-                </div>
+                {this.hasPermission(['job_all', 'job_write']) && (
+                  <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
+                    <Button
+                      startIcon={<AddIcon className={classes.iconSmall} />}
+                      size="xs"
+                      onClick={() => {
+                        localStorage.setItem('current_project', this.props.match.params.id);
+                        localStorage.removeItem('new_job_object');
+                        history.push(`job/new`);
+                      }}
+                    >
+                      Create job
+                    </Button>
+                  </div>
+                )}
               </HeaderText>
               <Divider light className={classes.dividers} />
 
@@ -442,6 +477,7 @@ class ProjectDetail extends React.Component {
 const mapStateToProps = (state) => {
   return {
     projectDetail: state.projectDetail,
+    projectPermissions: getPermissionsForCurrentProject(state),
     account: state.app.accounts,
   };
 };

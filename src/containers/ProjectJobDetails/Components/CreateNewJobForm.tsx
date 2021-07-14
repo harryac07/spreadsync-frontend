@@ -14,16 +14,17 @@ interface Props {
   projectId: string;
   defaultData?: any;
   handleSubmit: (data) => void;
+  isDisabled?: boolean;
 }
 type FormProps = Omit<NewJobPayloadProps, 'project'>;
 
-const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId, handleSubmit }) => {
+const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId, handleSubmit, isDisabled }) => {
   const classes = useStyles();
 
   const [error, setError] = useState({} as FormProps);
   const [inputObj, setInputObj] = useState({
     unit: 'hours',
-    value: 1
+    value: 1,
   } as FormProps);
   useEffect(() => {
     if (!isEmpty(defaultData)) {
@@ -31,22 +32,22 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
     }
   }, [defaultData]);
 
-  const handleInputChange = data => {
+  const handleInputChange = (data) => {
     setInputObj({
       ...inputObj,
-      ...data
+      ...data,
     });
   };
-  const handleError = data => {
+  const handleError = (data) => {
     setError({ ...error, ...data });
   };
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     handleInputChange({
-      [name]: value
+      [name]: value,
     });
     handleError({
-      [name]: !value ? `${startCase(toLower(name))} is required` : ''
+      [name]: !value ? `${startCase(toLower(name))} is required` : '',
     });
   };
   const isError = () => {
@@ -63,12 +64,12 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
       value: Number(value) ? '' : 'Frequency value is required',
       data_source: data_source ? '' : 'Data source is required',
       data_target: data_target ? '' : 'Data target is required',
-      description: description ? '' : 'Job description is required'
+      description: description ? '' : 'Job description is required',
     });
     return true;
   };
 
-  const submitForm = e => {
+  const submitForm = (e) => {
     e.preventDefault();
     const payload: NewJobPayloadProps = { ...inputObj, project: projectId };
     const errorExists = isError();
@@ -101,7 +102,7 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             error={error.type ? true : false}
             options={
               [
-                { key: 'export', value: 'export', label: 'Export' }
+                { key: 'export', value: 'export', label: 'Export' },
                 // { key: 'sync', value: 'sync', label: 'sync' },
               ] as any
             }
@@ -120,7 +121,7 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             options={[
               { value: 'database', label: 'Sql Database' },
               { value: 'spreadsheet', label: 'Spreadsheet' },
-              { value: 'api', label: 'API endpoint' }
+              { value: 'api', label: 'API endpoint' },
             ]}
             onChange={handleChange}
             size="small"
@@ -136,7 +137,7 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             error={!!error.data_target}
             options={[
               { value: 'spreadsheet', label: 'Spreadsheet' },
-              { value: 'database', label: 'Sql Database' }
+              { value: 'database', label: 'Sql Database' },
               // { value: 'slack', label: 'Slack' },
               // { value: 'email', label: 'Email' }
             ]}
@@ -177,6 +178,7 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             color="primary"
             onClick={submitForm}
             type="submit"
+            disabled={isDisabled}
           >
             {isEmpty(defaultData) ? 'Save and continue' : 'Update'}
           </Button>
@@ -188,8 +190,8 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
 
 const useStyles = makeStyles(() => ({
   submitButton: {
-    margin: '20px auto'
-  }
+    margin: '20px auto',
+  },
 }));
 
 export default CreateNewJobForm;

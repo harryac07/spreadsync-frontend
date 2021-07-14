@@ -11,7 +11,7 @@ type Props = {
 
 const DataConnector: React.FC<Props> = ({ markStepCompleted }) => {
   // const classes = useStyles();
-  const [{ currentJob }] = useJobConfig() || [];
+  const [{ currentJob }, { hasPermission }] = useJobConfig() || [];
   const dataSource = currentJob?.data_source;
   const { is_data_source_configured } = currentJob || {};
 
@@ -22,12 +22,16 @@ const DataConnector: React.FC<Props> = ({ markStepCompleted }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [is_data_source_configured]);
 
+  const isJobUpdateOrCreateDisabled = !hasPermission(['job_all', 'job_write']);
+
   return (
     <div>
       {/* render data source component based on datasource type */}
-      {dataSource === 'database' && <DatabaseForm requestType="source" />}
-      {dataSource === 'api' && <APIEndpointForm requestType="source" />}
-      {dataSource === 'spreadsheet' && <SpreadSheetForm requestType="source" />}
+      {dataSource === 'database' && <DatabaseForm isDisabled={isJobUpdateOrCreateDisabled} requestType="source" />}
+      {dataSource === 'api' && <APIEndpointForm isDisabled={isJobUpdateOrCreateDisabled} requestType="source" />}
+      {dataSource === 'spreadsheet' && (
+        <SpreadSheetForm isDisabled={isJobUpdateOrCreateDisabled} requestType="source" />
+      )}
     </div>
   );
 };
@@ -37,6 +41,6 @@ export default DataConnector;
 const useStyles = makeStyles(() => ({
   header: {
     fontSize: 18,
-    fontWeight: 'bold'
-  }
+    fontWeight: 'bold',
+  },
 }));

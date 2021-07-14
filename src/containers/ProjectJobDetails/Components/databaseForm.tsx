@@ -14,6 +14,7 @@ import SqlEditor from './SqlEditor';
 
 type Props = {
   requestType: 'target' | 'source';
+  isDisabled?: boolean;
 };
 type InputPayloadProps = {
   alias_name: string;
@@ -35,7 +36,7 @@ type InputPayloadProps = {
 };
 type ErrorProps = InputPayloadProps;
 
-const DatabaseForm: React.FC<Props> = ({ requestType }) => {
+const DatabaseForm: React.FC<Props> = ({ requestType, isDisabled }) => {
   const classes = useStyles();
   const [inputObj, setInputObj] = useState({ database_extra: 'ssl' } as InputPayloadProps);
   const [isEditingConnection, setIsEditingConnection] = useState(false);
@@ -373,6 +374,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
                 color="primary"
                 onClick={() => handleCheckDatabaseConnection(defaultData.id)}
                 type="submit"
+                disabled={isDisabled}
               >
                 Test Connection
               </Button>
@@ -407,6 +409,7 @@ const DatabaseForm: React.FC<Props> = ({ requestType }) => {
                 color="primary"
                 onClick={submitForm}
                 type="submit"
+                disabled={isDisabled}
               >
                 {isEmpty(defaultData) ? 'Save and continue' : 'Update'}
               </Button>

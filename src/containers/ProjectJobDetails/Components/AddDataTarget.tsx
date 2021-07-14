@@ -8,7 +8,7 @@ type Props = {
   dataTargetType: 'spreadsheet' | 'database';
 };
 const DataConnector: React.FC<Props> = ({ targetConfigurationCompleted, dataTargetType }) => {
-  const [{ currentJob }] = useJobConfig() || [];
+  const [{ currentJob }, { hasPermission }] = useJobConfig() || [];
   const { is_data_target_configured } = currentJob || {};
 
   useEffect(() => {
@@ -18,10 +18,14 @@ const DataConnector: React.FC<Props> = ({ targetConfigurationCompleted, dataTarg
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [is_data_target_configured]);
 
+  const isJobUpdateOrCreateDisabled = !hasPermission(['job_all', 'job_write']);
+
   return (
     <div>
-      {dataTargetType === 'spreadsheet' && <AddGoogleSheetForm requestType="target" />}
-      {dataTargetType === 'database' && <DatabaseForm requestType="target" />}
+      {dataTargetType === 'spreadsheet' && (
+        <AddGoogleSheetForm isDisabled={isJobUpdateOrCreateDisabled} requestType="target" />
+      )}
+      {dataTargetType === 'database' && <DatabaseForm isDisabled={isJobUpdateOrCreateDisabled} requestType="target" />}
       <div />
     </div>
   );

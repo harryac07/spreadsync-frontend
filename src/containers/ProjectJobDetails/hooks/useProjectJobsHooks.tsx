@@ -3,9 +3,10 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { API_URL } from 'env';
-import { isEmpty, uniqBy } from 'lodash';
+import { isEmpty, uniqBy, intersection } from 'lodash';
 
-import {createApiConfig, updateApiConfig} from '../utils/api';
+import { createApiConfig, updateApiConfig } from '../utils/api';
+import { getPermissionsForCurrentProject } from 'store/selectors';
 
 export interface NewJobPayloadProps {
   name: string;
@@ -32,7 +33,6 @@ export interface JobUpdatePayloadProps {
   is_data_target_configured?: boolean;
 }
 
-
 export type APIConfigPayloads = {
   job_id: string;
   method: 'GET' | 'POST';
@@ -41,7 +41,7 @@ export type APIConfigPayloads = {
   headers: string;
   body: string;
   type: 'source' | 'target';
-}
+};
 
 type SocialAuthTypes = 'target' | 'source';
 type SocialNameTypes = 'google';
@@ -73,6 +73,7 @@ export type State = {
   isNewJobCreated: boolean;
   error?: any;
   currentProject?: any;
+  permissions?: string;
   currentManualJobRunning: string;
   isLoading?: boolean;
 };
@@ -93,8 +94,9 @@ export type Dispatch = {
   createNewSpreadSheet: (spreadsheetName: string, type: 'source' | 'target') => Promise<void>;
   runExportJobManually: () => Promise<void>;
   createApiConfigForJob: (reqPayload: APIConfigPayloads) => Promise<void>;
-  updateApiConfigForJob: (id:string, reqPayload: APIConfigPayloads) => Promise<void>;
+  updateApiConfigForJob: (id: string, reqPayload: APIConfigPayloads) => Promise<void>;
   getApiConfigForJob: () => Promise<void>;
+  hasPermission: (permission: string | string[]) => boolean;
 };
 
 const actions = {
@@ -110,7 +112,7 @@ const actions = {
   SET_CURRENT_MANUAL_JOB_RUNNING: 'SET_CURRENT_MANUAL_JOB_RUNNING',
   RESET_BOOLEAN_STATES: 'RESET_BOOLEAN_STATES',
   SET_DATA_SOURCE_TABLE_LIST: 'SET_DATA_SOURCE_TABLE_LIST',
-  SET_ERROR: 'SET_ERROR'
+  SET_ERROR: 'SET_ERROR',
 };
 const initialState: State = {
   currentJob: {},
@@ -124,7 +126,7 @@ const initialState: State = {
   error: {},
   isLoading: false,
   currentManualJobRunning: '',
-  tableList: {}
+  tableList: {},
 };
 
 const reducer = (state: State, action: any) => {
@@ -132,35 +134,35 @@ const reducer = (state: State, action: any) => {
     case 'LOADING':
       return {
         ...state,
-        isLoading: true
+        isLoading: true,
       };
     case 'SET_CURRENT_JOB':
       return {
         ...state,
-        currentJob: action.payload
+        currentJob: action.payload,
       };
     case 'CREATE_NEW_JOB':
       return {
         ...state,
-        isNewJobCreated: true
+        isNewJobCreated: true,
       };
     case 'SET_DATA_SOURCE':
       return {
         ...state,
-        currentJobDataSource: action.payload
+        currentJobDataSource: action.payload,
       };
     case 'SET_DATA_SOURCE_TABLE_LIST':
       return {
         ...state,
         tableList: {
           ...state.tableList,
-          [action.id]: action.payload
-        }
+          [action.id]: action.payload,
+        },
       };
     case 'SET_SOCIAL_AUTH':
       return {
         ...state,
-        currentSocialAuth: action.payload
+        currentSocialAuth: action.payload,
       };
     case 'SET_GOOGLE_SHEET_LIST':
       const filterSheetListsByType = state.googleSheetLists.filter(({ type }) => type !== action?.payload?.type);
@@ -178,7 +180,7 @@ const reducer = (state: State, action: any) => {
       const mergedPayload = {
         ...action.payload,
         files: uniqBy([...(previousGoogleSheet?.files ?? []), ...(action.payload?.files ?? [])], 'id'),
-        nextPageToken: nextPageToken
+        nextPageToken: nextPageToken,
       };
 
       const uniqueSheetsPayload = uniqBy([...filterSheetListsByType, mergedPayload], 'type') as {
@@ -189,57 +191,62 @@ const reducer = (state: State, action: any) => {
 
       return {
         ...state,
-        googleSheetLists: uniqueSheetsPayload
+        googleSheetLists: uniqueSheetsPayload,
       };
     case 'SET_SPREADSHEET':
       const filterSpreadSheetByType = state.selectedSpreadSheet.filter(({ type }) => type !== action?.payload?.type);
       const uniqueSheetPayload = uniqBy([...filterSpreadSheetByType, action.payload], 'type');
       return {
         ...state,
-        selectedSpreadSheet: uniqueSheetPayload
+        selectedSpreadSheet: uniqueSheetPayload,
       };
     case 'SET_SPREAD_SHEET_CONFIG':
       return {
         ...state,
-        spreadSheetConfig: action.payload
+        spreadSheetConfig: action.payload,
       };
     case 'SET_API_CONFIG':
       return {
         ...state,
-        apiConfig: action.payload
+        apiConfig: action.payload,
       };
     case 'SET_CURRENT_MANUAL_JOB_RUNNING':
       return {
         ...state,
-        currentManualJobRunning: action.payload
+        currentManualJobRunning: action.payload,
       };
     case 'RESET_BOOLEAN_STATES':
       return {
         ...state,
         isNewJobCreated: false,
-        isLoading: false
+        isLoading: false,
       };
     case 'SET_ERROR':
       return {
         ...state,
         error: {
           ...state.error,
-          [action.payload.key]: action.payload.error
-        }
+          [action.payload.key]: action.payload.error,
+        },
       };
     default:
       return {
-        ...state
+        ...state,
       };
   }
 };
 
 export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
   const [state, dispatch] = useReducer(reducer, { ...initialState });
-  const { currentProject = {}, job = {} } = useSelector((states: any) => {
+  const {
+    currentProject = {},
+    job = {},
+    permissions = '',
+  } = useSelector((states: any) => {
     return {
       currentProject: states.projectDetail.project[0] || {},
-      job: states.projectDetail.jobs.find(each => each.id === jobId)
+      job: states.projectDetail.jobs.find((each) => each.id === jobId),
+      permissions: getPermissionsForCurrentProject(states),
     };
   });
 
@@ -272,7 +279,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
 
   const fetchCurrentJob = async (id = '') => {
     const response = await axios.get(`${API_URL}/jobs/${id || jobId}`, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
     });
     const [job] = response?.data ?? [];
     dispatch({ type: actions.SET_CURRENT_JOB, payload: job });
@@ -280,7 +287,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
 
   const fetchCurrentJobDataSource = async () => {
     const response = await axios.get(`${API_URL}/jobs/${jobId}/datasource/`, {
-      headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
     });
     const dataSource = response?.data ?? [];
     dispatch({ type: actions.SET_DATA_SOURCE, payload: dataSource });
@@ -289,7 +296,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
   const createNewJob = async (reqPayload: NewJobPayloadProps) => {
     try {
       const response = await axios.post(`${API_URL}/jobs/`, reqPayload, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       await fetchCurrentJob(response.data[0].id);
       dispatch({ type: actions.CREATE_NEW_JOB });
@@ -305,7 +312,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         throw new Error('Job id is required!');
       }
       await axios.patch(`${API_URL}/jobs/${jobId}`, reqPayload, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       await fetchCurrentJob();
 
@@ -322,7 +329,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
   const createDataSource = async (reqPayload: any) => {
     try {
       await axios.post(`${API_URL}/jobs/${jobId}/datasource/`, reqPayload, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       toast.success(`Data source created successfully!`);
       await fetchCurrentJobDataSource();
@@ -334,7 +341,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
   const updateDataSource = async (dataSourceId: string, reqPayload: any) => {
     try {
       await axios.patch(`${API_URL}/jobs/${jobId}/datasource/${dataSourceId}`, reqPayload, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       toast.success(`Data source updated successfully!`);
       await fetchCurrentJobDataSource();
@@ -349,7 +356,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         `${API_URL}/jobs/${jobId}/datasource/${dataSourceId}/connection-check`,
         {},
         {
-          headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
         }
       );
       return true;
@@ -361,7 +368,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
   const listDatabaseTable = async (dataSourceId: string) => {
     try {
       const res = await axios.get(`${API_URL}/jobs/${jobId}/datasource/${dataSourceId}/list-table`, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       dispatch({ type: actions.SET_DATA_SOURCE_TABLE_LIST, id: dataSourceId, payload: res.data });
     } catch (e) {
@@ -372,7 +379,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
   const getSocialAuthByJobId = async (social_name: SocialNameTypes = 'google') => {
     try {
       const response = await axios.get(`${API_URL}/auth/social/${social_name}/job/${jobId}`, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       const socialAuth = response?.data ?? [];
       dispatch({ type: actions.SET_SOCIAL_AUTH, payload: socialAuth });
@@ -389,10 +396,10 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       const reqPayload = {
         authCode,
         jobId,
-        type
+        type,
       };
       await axios.post(`${API_URL}/auth/social/${social_name}/`, reqPayload, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       await getSocialAuthByJobId(social_name);
       await fetchAllGoogleSheetsForJob(type);
@@ -401,8 +408,8 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         type: actions.SET_ERROR,
         payload: {
           key: 'spreadsheet-' + type,
-          error: null
-        }
+          error: null,
+        },
       });
     } catch (e) {
       console.error('saveSocialAuth ', e.stack);
@@ -412,11 +419,11 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
   const fetchAllGoogleSheetsForJob = async (reqType: SocialAuthTypes, nextPageToken = '') => {
     const queryParams = new URLSearchParams({
       reqType,
-      nextPageToken
+      nextPageToken,
     });
     try {
       const response = await axios.get(`${API_URL}/sheets/list/job/${jobId}?${queryParams.toString()}`, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
 
       dispatch({ type: actions.SET_GOOGLE_SHEET_LIST, payload: response.data });
@@ -432,7 +439,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         throw new Error('Spreadsheet id is required');
       }
       const response = await axios.get(`${API_URL}/sheets/${spreadsheetId}/job/${jobId}/?data_type=${type}`, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       dispatch({
         type: actions.SET_SPREADSHEET,
@@ -440,23 +447,23 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
           sheets: response?.data?.sheets ?? [],
           spreadsheetId: spreadsheetId,
           spreadsheetName: response?.data?.properties?.title ?? '',
-          type: type
-        } as SelectedSpreadSheetTypes
+          type: type,
+        } as SelectedSpreadSheetTypes,
       });
       dispatch({
         type: actions.SET_ERROR,
         payload: {
           key: 'spreadsheet-' + type,
-          error: null
-        }
+          error: null,
+        },
       });
     } catch (e) {
       dispatch({
         type: actions.SET_ERROR,
         payload: {
           key: 'spreadsheet-' + type,
-          error: e?.response?.data?.message ?? 'Something went wrong!'
-        }
+          error: e?.response?.data?.message ?? 'Something went wrong!',
+        },
       });
     }
   };
@@ -468,11 +475,11 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       }
       const reqPayload = {
         spreadsheet_name: spreadSheetName,
-        type
+        type,
       };
       dispatch({ type: actions.LOADING });
       const response = await axios.post(`${API_URL}/sheets/create/job/${jobId}`, reqPayload, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       const sheetId = response?.data?.spreadsheet_id ?? '';
       dispatch({ type: actions.RESET_BOOLEAN_STATES });
@@ -484,12 +491,12 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
           files: [
             {
               id: sheetId,
-              name: spreadSheetName
-            }
+              name: spreadSheetName,
+            },
           ],
-          type: type
+          type: type,
         },
-        usePreviousTrackingToken: true
+        usePreviousTrackingToken: true,
       });
       if (sheetId) {
         await fetchSpreadSheet(sheetId, type);
@@ -505,7 +512,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         throw new Error('Job id is required!');
       }
       await axios.post(`${API_URL}/jobs/${jobId}/sheets/config`, reqPayload, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       await getSpreadsheetConfigForJob(reqPayload.type);
       toast.success(`Spreadsheet configured successfully!`);
@@ -523,7 +530,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         throw new Error('Spreadsheet config id is required!');
       }
       await axios.patch(`${API_URL}/jobs/${jobId}/sheets/config/${configId}`, reqPayload, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       await getSpreadsheetConfigForJob(reqPayload.type);
       toast.success(`Spreadsheet configuration updated successfully!`);
@@ -538,11 +545,11 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         throw new Error('Job id is required!');
       }
       const response = await axios.get(`${API_URL}/jobs/${jobId}/sheets/config/?type=${type}`, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       dispatch({
         type: actions.SET_SPREAD_SHEET_CONFIG,
-        payload: response?.data ?? []
+        payload: response?.data ?? [],
       });
       /* fetch spreadsheet */
       const [spreadsheetResponse] = response?.data?.filter(({ type: reqType }) => reqType === type);
@@ -558,18 +565,18 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
     try {
       dispatch({
         type: actions.SET_CURRENT_MANUAL_JOB_RUNNING,
-        payload: jobId
+        payload: jobId,
       });
       await axios.post(
         `${API_URL}/jobs/${jobId}/export`,
         {},
         {
-          headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
         }
       );
       dispatch({
         type: actions.SET_CURRENT_MANUAL_JOB_RUNNING,
-        payload: ''
+        payload: '',
       });
       toast.success(`Data export job completed successfully!`);
     } catch (e) {
@@ -577,13 +584,13 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       console.error('runExportJobManually ', e?.response?.data);
       dispatch({
         type: actions.SET_CURRENT_MANUAL_JOB_RUNNING,
-        payload: ''
+        payload: '',
       });
     }
   };
 
-  const createApiConfigForJob = async(reqPayload: APIConfigPayloads)=>{
-    try{
+  const createApiConfigForJob = async (reqPayload: APIConfigPayloads) => {
+    try {
       if (!jobId) {
         throw new Error('Job id is required!');
       }
@@ -591,24 +598,24 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       await fetchCurrentJob();
       await getApiConfigForJob();
       toast.success(`API config created successfully!`);
-    }catch(e){
+    } catch (e) {
       toast.error(`Creating API config for ${jobId} failed!`);
     }
-  }
+  };
 
-  const updateApiConfigForJob = async(id:string, reqPayload: APIConfigPayloads)=>{
-    try{
+  const updateApiConfigForJob = async (id: string, reqPayload: APIConfigPayloads) => {
+    try {
       if (!jobId) {
         throw new Error('Job id is required!');
       }
-      await updateApiConfig(jobId, id,  reqPayload);
+      await updateApiConfig(jobId, id, reqPayload);
       await fetchCurrentJob();
       await getApiConfigForJob();
       toast.success(`API config updated successfully!`);
-    }catch(e){
+    } catch (e) {
       toast.error(`Creating API config for ${jobId} failed!`);
     }
-  }
+  };
 
   const getApiConfigForJob = async () => {
     try {
@@ -616,23 +623,35 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
         throw new Error('Job id is required!');
       }
       const response = await axios.get(`${API_URL}/jobs/${jobId}/apiconfig/`, {
-        headers: { Authorization: `bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
       });
       dispatch({
         type: actions.SET_API_CONFIG,
-        payload: response?.data ?? []
-      });            
+        payload: response?.data ?? [],
+      });
     } catch (e) {
       console.error('saveSpreadsheetConfigForJob ', e.stack);
     }
   };
 
+  const hasPermission = (permissionToCheck: string | string[]): boolean => {
+    if (permissions.includes('admin')) {
+      return true;
+    }
+
+    if (typeof permissionToCheck === 'string') {
+      return permissions.includes(permissionToCheck);
+    } else {
+      const permissionFound = intersection(permissionToCheck, permissions?.split(','));
+      return !!permissionFound?.length;
+    }
+  };
 
   const resetState = () => {
     dispatch({ type: actions.RESET_BOOLEAN_STATES });
   };
   return [
-    { ...state, currentProject },
+    { ...state, currentProject, permissions },
     {
       createNewJob,
       updateNewJob,
@@ -651,7 +670,8 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       runExportJobManually,
       createApiConfigForJob,
       updateApiConfigForJob,
-      getApiConfigForJob
-    }
+      getApiConfigForJob,
+      hasPermission,
+    },
   ];
 }
