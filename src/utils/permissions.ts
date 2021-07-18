@@ -2,22 +2,17 @@ export const permissions = [
   {
     label: 'Project read',
     value: 'project_read',
-    description: 'Read project including all jobs'
+    description: 'Read project including all jobs. This permission must be provided for the user to be able to view the project.'
   },
   {
     label: 'Project write',
     value: 'project_write',
-    description: 'Create and update projects'
+    description: 'Create and update the project.'
   },
   {
     label: 'Project delete',
     value: 'project_delete',
-    description: 'Delete projects'
-  },
-  {
-    label: 'Project all',
-    value: 'project_all',
-    description: 'All permission to project (CRUD) including jobs'
+    description: 'Delete the project.'
   },
   {
     label: 'Job read',
@@ -27,42 +22,42 @@ export const permissions = [
   {
     label: 'Job write',
     value: 'job_write',
-    description: 'Create and update jobs'
+    description: 'Create and update jobs under the project.'
   },
   {
     label: 'Job delete',
     value: 'job_delete',
-    description: 'Delete jobs'
+    description: 'Delete jobs under the project.'
   },
   {
     label: 'Job all',
     value: 'job_all',
-    description: 'All permissions related to jobs (CRUD)'
+    description: 'All permissions related to jobs (READ, WRITE AND CREATE) under the project.'
   },
-  // {
-  //   label: 'User read',
-  //   value: 'user_read',
-  //   description: 'Read only permission on all team members under the project.'
-  // },
+  {
+    label: 'User read',
+    value: 'user_read',
+    description: 'Read only permission on all team members under the project.'
+  },
   {
     label: 'User write',
     value: 'user_write',
-    description: 'Invite and update team member permissions'
+    description: 'Invite and update team members under the project.'
   },
   {
     label: 'User delete',
     value: 'user_delete',
-    description: 'Remove user or team members from the project'
+    description: 'Remove user or team members from the project.'
   },
   {
     label: 'User all',
     value: 'user_all',
-    description: 'All permissions related to team members inside the project'
+    description: 'All permissions related to team members inside the project.'
   },
   {
     label: 'Project Admin',
     value: 'admin',
-    description: 'Admin of the project. Has all rights under the project'
+    description: 'Admin of the project. Has all rights under the project.'
   },
 ]
 

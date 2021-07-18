@@ -63,7 +63,7 @@ const InviteUsersWithPermissions = ({
       ? [
           {
             ...defaultValue,
-            permission: invitedUsers['0'].permission,
+            permission: invitedUsers['0']?.permission?.filter((each) => each),
           },
         ]
       : Object.values(invitedUsers)?.filter(({ email }) => email);

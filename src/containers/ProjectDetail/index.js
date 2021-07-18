@@ -299,6 +299,7 @@ class ProjectDetail extends React.Component {
     const isCurrentUserProjectAdmin = teamMembers.some(({ user, project_permission }) => {
       return toLower(project_permission).includes('admin') && user === localStorage.getItem('user_id');
     });
+    const defaultPermissionToNewUser = ['project_read', 'job_read', 'user_read'];
     return (
       <Paper elevation={3} className={classes.contentWrapper}>
         <HeaderText className={classes.HeaderText} padding="20px" fontsize={'18px'}>
@@ -309,6 +310,10 @@ class ProjectDetail extends React.Component {
                 onSubmit={(data) => this.inviteUsersToTheProject(data)}
                 onModalClose={() => null}
                 forceClose={this.props.projectDetail.isUserInvited}
+                defaultValue={{
+                  email: '',
+                  permission: defaultPermissionToNewUser,
+                }}
               />
             </div>
           )}
@@ -316,88 +321,92 @@ class ProjectDetail extends React.Component {
         <Divider light className={classes.dividers} />
 
         <div className={classes.content}>
-          <div>
-            <Table className={classes.table} aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>User</TableCell>
-                  <TableCell>Is project admin?</TableCell>
-                  {isCurrentUserProjectAdmin && <TableCell>Permissions</TableCell>}
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {teamMembers.map((row) => {
-                  // permissions
-                  const isAdmin = toLower(row.project_permission).includes('admin');
-                  const projectPermissions = row.project_permission?.split(',');
-                  return (
-                    <TableRow hover key={row.id}>
-                      <TableCell component="th" scope="row">
-                        {row.email}
-                      </TableCell>
-                      <TableCell>{isAdmin ? 'Yes' : 'No'}</TableCell>
-                      {isCurrentUserProjectAdmin && (
-                        <TableCell>
-                          {projectPermissions?.map((each) => {
-                            const formattedPermission = startCase(each).replace(/_/g, ' ');
-                            const permissionObj = permissions.find(({ value }) => value === each);
-                            if (!permissionObj?.description) {
-                              return 'N/A';
-                            }
-                            return (
-                              <Tooltip arrow placement="top" title={permissionObj.description} key={each}>
-                                <Chip
-                                  size="small"
-                                  label={formattedPermission}
-                                  className={classes.chipLabel}
-                                  color="secondary"
-                                />
-                              </Tooltip>
-                            );
-                          })}
+          {this.hasPermission(['user_all', 'user_write', 'user_read']) ? (
+            <div>
+              <Table className={classes.table} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>User</TableCell>
+                    <TableCell>Is project admin?</TableCell>
+                    {isCurrentUserProjectAdmin && <TableCell>Permissions</TableCell>}
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {teamMembers.map((row) => {
+                    // permissions
+                    const isAdmin = toLower(row.project_permission).includes('admin');
+                    const projectPermissions = row.project_permission?.split(',');
+                    return (
+                      <TableRow hover key={row.id}>
+                        <TableCell component="th" scope="row">
+                          {row.email}
                         </TableCell>
-                      )}
-                      <TableCell>
-                        {this.hasPermission(['user_all', 'user_delete']) && (
-                          <ConfirmDialog
-                            ctaToOpenModal={
-                              <DeleteIcon
-                                fontSize="small"
-                                style={{ color: 'red', marginRight: 8 }}
-                                className={classes.teamCtaIcon}
-                              />
-                            }
-                            header={<span>Confirm removing project member?</span>}
-                            bodyContent={
-                              'Removing the users from the project removes all permissions and prevents user from accessing the project.'
-                            }
-                            cancelText="Cancel"
-                            cancelCallback={() => null}
-                            confirmText="Confirm"
-                            confirmCallback={() => this.removeUserFromTheProject(row.id)}
-                          />
+                        <TableCell>{isAdmin ? 'Yes' : 'No'}</TableCell>
+                        {isCurrentUserProjectAdmin && (
+                          <TableCell>
+                            {projectPermissions?.map((each) => {
+                              const formattedPermission = startCase(each).replace(/_/g, ' ');
+                              const permissionObj = permissions.find(({ value }) => value === each);
+                              if (!permissionObj?.description) {
+                                return 'N/A';
+                              }
+                              return (
+                                <Tooltip arrow placement="top" title={permissionObj.description} key={each}>
+                                  <Chip
+                                    size="small"
+                                    label={formattedPermission}
+                                    className={classes.chipLabel}
+                                    color="secondary"
+                                  />
+                                </Tooltip>
+                              );
+                            })}
+                          </TableCell>
                         )}
-                        {this.hasPermission(['user_all', 'user_write']) && (
-                          <InviteUsersWithPermissions
-                            onSubmit={(data) => this.updateProjectMemberPermission(row.id, data)}
-                            onModalClose={() => null}
-                            forceClose={this.props.projectDetail.isUserUpdated}
-                            defaultValue={{
-                              email: row.email,
-                              permission: projectPermissions,
-                            }}
-                            ctaButton={<EditIcon fontSize="small" className={classes.teamCtaIcon} />}
-                            style={{ display: 'inline-block' }}
-                          />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                        <TableCell>
+                          {this.hasPermission(['user_all', 'user_delete']) && (
+                            <ConfirmDialog
+                              ctaToOpenModal={
+                                <DeleteIcon
+                                  fontSize="small"
+                                  style={{ color: 'red', marginRight: 8 }}
+                                  className={classes.teamCtaIcon}
+                                />
+                              }
+                              header={<span>Confirm removing project member?</span>}
+                              bodyContent={
+                                'Removing the users from the project removes all permissions and prevents user from accessing the project.'
+                              }
+                              cancelText="Cancel"
+                              cancelCallback={() => null}
+                              confirmText="Confirm"
+                              confirmCallback={() => this.removeUserFromTheProject(row.id)}
+                            />
+                          )}
+                          {this.hasPermission(['user_all', 'user_write']) && (
+                            <InviteUsersWithPermissions
+                              onSubmit={(data) => this.updateProjectMemberPermission(row.id, data)}
+                              onModalClose={() => null}
+                              forceClose={this.props.projectDetail.isUserUpdated}
+                              defaultValue={{
+                                email: row.email,
+                                permission: projectPermissions,
+                              }}
+                              ctaButton={<EditIcon fontSize="small" className={classes.teamCtaIcon} />}
+                              style={{ display: 'inline-block' }}
+                            />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div>Access denied! Please contact the admin of this project for the access.</div>
+          )}
         </div>
       </Paper>
     );
