@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { API_URL } from 'env';
@@ -7,6 +7,7 @@ import { isEmpty, uniqBy, intersection } from 'lodash';
 
 import { createApiConfig, updateApiConfig } from '../utils/api';
 import { getPermissionsForCurrentProject } from 'store/selectors';
+import { fetchProjectById } from 'containers/ProjectDetail/action';
 
 export interface NewJobPayloadProps {
   name: string;
@@ -81,6 +82,7 @@ export type Dispatch = {
   createNewJob: (newjobPayload: NewJobPayloadProps) => Promise<void>;
   updateNewJob: (updatejobPayload: JobUpdatePayloadProps) => Promise<void>;
   createDataSource: (dataSourcePayload: any) => Promise<void>;
+  cloneExistingJob: () => Promise<void>;
   updateDataSource: (dataSourceId: string, dataSourcePayload: any) => Promise<void>;
   checkDatabaseConnection: (dataSourceId: string) => Promise<boolean | void>;
   listDatabaseTable: (dataSourceId: string) => Promise<void>;
@@ -249,6 +251,8 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       permissions: getPermissionsForCurrentProject(states),
     };
   });
+  console.log('currentProject ', currentProject);
+  const storeDispatch = useDispatch();
 
   useEffect(() => {
     if (jobId) {
@@ -323,6 +327,25 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       }
     } catch (e) {
       console.error(': (newjobPayload:NewJobPayloadProps)=> Promise<void>;: ', e.stack);
+    }
+  };
+
+  const cloneExistingJob = async () => {
+    try {
+      if (!jobId) {
+        throw new Error('Job id is required!');
+      }
+      await axios.post(
+        `${API_URL}/jobs/${jobId}/clone`,
+        {},
+        {
+          headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+        }
+      );
+      storeDispatch(fetchProjectById(currentProject.id));
+      toast.success(`Job cloned successfully!`);
+    } catch (e) {
+      toast.error(`Job cloned failed! ${e?.message}`);
     }
   };
 
@@ -655,6 +678,7 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
     {
       createNewJob,
       updateNewJob,
+      cloneExistingJob,
       createDataSource,
       updateDataSource,
       checkDatabaseConnection,

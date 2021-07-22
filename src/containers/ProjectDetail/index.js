@@ -22,6 +22,7 @@ import { withStyles } from '@material-ui/core/styles';
 import {
   fetchProjectById,
   fetchAllJobsForProject,
+  cloneJobById,
   deleteAJobByJobId,
   fetchAllProjectMembers,
   inviteProjectMembers,
@@ -34,6 +35,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import CancelIcon from '@material-ui/icons/Cancel';
 import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
+import CloneIcon from '@material-ui/icons/FileCopy';
 import EditIcon from '@material-ui/icons/Edit';
 
 import Tooltip from '../../components/common/Tooltip';
@@ -171,7 +173,7 @@ class ProjectDetail extends React.Component {
     }
   };
   renderJobs = () => {
-    const { classes, projectDetail, deleteAJobByJobId } = this.props;
+    const { classes, projectDetail, deleteAJobByJobId, cloneJobById } = this.props;
     const { jobs } = projectDetail;
     const projectId = this.props?.match?.params?.id ?? '';
     const { rowsPerPage, page } = this.state;
@@ -221,6 +223,25 @@ class ProjectDetail extends React.Component {
                     <TableCell>{row.type}</TableCell>
                     <TableCell>{row.user_email}</TableCell>
                     <TableCell>
+                      {this.hasPermission(['job_all', 'job_write']) && (
+                        <ConfirmDialog
+                          ctaToOpenModal={
+                            <CloneIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'black' }} />
+                          }
+                          header={
+                            <span>
+                              Clone the job: <u>{row.name}</u>?
+                            </span>
+                          }
+                          bodyContent={
+                            'Cloning the job makes exact replica of the selected job coyping the configuration and data source aand target setups. This feature helps you to save time creating similar job that exists already. '
+                          }
+                          cancelText="Cancel"
+                          cancelCallback={() => null}
+                          confirmText="Clone"
+                          confirmCallback={() => cloneJobById(row.id, projectId)}
+                        />
+                      )}
                       {this.hasPermission(['job_all', 'job_delete']) && (
                         <ConfirmDialog
                           ctaToOpenModal={
@@ -595,6 +616,7 @@ export default connect(mapStateToProps, {
   fetchProjectById,
   fetchAllJobsForProject,
   deleteAJobByJobId,
+  cloneJobById,
   fetchAllProjectMembers,
   inviteProjectMembers,
   removeProjectMember,

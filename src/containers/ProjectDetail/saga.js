@@ -1,5 +1,6 @@
 import { call, put, takeEvery } from 'redux-saga/effects';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { API_URL } from 'env';
 
 import {
@@ -26,6 +27,9 @@ import {
   UPDATE_TEAM_MEMBER,
   UPDATE_TEAM_MEMBER_SUCCEED,
   UPDATE_TEAM_MEMBER_FAILED,
+  CLONE_JOB,
+  CLONE_JOB_SUCCEED,
+  CLONE_JOB_FAILED,
 } from './constant';
 
 const fetchProject = (projectId) => {
@@ -125,6 +129,43 @@ export function* deleteAJobSaga(action) {
   } catch (error) {
     yield put({
       type: DELETE_JOB_FAILED,
+      error: error?.response?.data?.message ?? 'Something went wrong!',
+    });
+  }
+}
+
+const cloneJob = (jobId) => {
+  return axios
+    .post(
+      `${API_URL}/jobs/${jobId}/clone`,
+      {},
+      {
+        headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+      }
+    )
+    .then((response) => {
+      return response.data;
+    });
+};
+export function* cloneJobSaga(action) {
+  try {
+    yield call(cloneJob, action.jobId);
+
+    yield put({
+      type: CLONE_JOB_SUCCEED,
+    });
+    if (action.projectId) {
+      // refetch project jobs
+      yield put({
+        type: FETCH_ALL_JOBS,
+        id: action.projectId,
+      });
+    }
+    toast.info(`Job cloned successfully.`);
+  } catch (error) {
+    toast.info(`Job clone failed. ${error?.response?.data?.message}`);
+    yield put({
+      type: CLONE_JOB_FAILED,
       error: error?.response?.data?.message ?? 'Something went wrong!',
     });
   }
@@ -249,6 +290,7 @@ export const projectDetailSaga = [
   takeEvery(FETCH_PROJECT, fetchProjectSaga),
   takeEvery(FETCH_ALL_JOBS, fetchAllProjectJobsSaga),
   takeEvery(DELETE_JOB, deleteAJobSaga),
+  takeEvery(CLONE_JOB, cloneJobSaga),
   takeEvery(FETCH_ALL_TEAM_MEMBERS, fetchProjectMembersSaga),
   takeEvery(INVITE_TEAM_MEMBERS, inviteProjectMembersSaga),
   takeEvery(REMOVE_TEAM_MEMBER, removeProjectMemberSaga),

@@ -2,6 +2,7 @@ import {
   FETCH_PROJECT,
   FETCH_ALL_JOBS,
   DELETE_JOB,
+  CLONE_JOB,
   FETCH_ALL_TEAM_MEMBERS,
   INVITE_TEAM_MEMBERS,
   REMOVE_TEAM_MEMBER,
@@ -38,6 +39,20 @@ export const fetchAllJobsForProject = (projectId) => {
 export const deleteAJobByJobId = (jobId, projectId) => {
   return {
     type: DELETE_JOB,
+    jobId,
+    projectId,
+  };
+};
+
+/**
+ * cloneJobById
+ * @param {String}jobId - Job id to delete
+ * @param {String}projectId - projectId of the job
+ */
+export const cloneJobById = (jobId, projectId) => {
+  console.log('cloneJobById');
+  return {
+    type: CLONE_JOB,
     jobId,
     projectId,
   };
