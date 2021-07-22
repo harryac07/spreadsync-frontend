@@ -23,9 +23,10 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
 
   const [error, setError] = useState({} as FormProps);
   const [inputObj, setInputObj] = useState({
+    type: 'export',
     unit: 'hours',
     value: 1,
-  } as FormProps);
+  } as FormProps & { type: 'export' });
   useEffect(() => {
     if (!isEmpty(defaultData)) {
       setInputObj(defaultData);
@@ -110,6 +111,7 @@ const CreateNewJobForm: React.FC<Props> = ({ defaultData, updateStep, projectId,
             size="small"
             fullWidth={true}
             value={inputObj.type}
+            disabled
           />
         </Grid>
         <Grid item xs={12} sm={6} md={6}>
