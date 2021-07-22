@@ -36,30 +36,30 @@ const theme = createMuiTheme({
     },
   },
   typography: {
-    fontSize: 12,
-    htmlFontSize: 10,
+    fontSize: 14,
+    htmlFontSize: 14,
   },
   overrides: {
     MuiTableCell: {
       root: {
-        fontSize: 12,
+        fontSize: 14,
       },
       head: {
         fontWeight: 700,
-        fontSize: 12,
+        fontSize: 14,
       },
       body: {
-        fontSize: 12,
+        fontSize: 14,
       },
     },
     MuiTableBody: {
       root: {
-        fontSize: 12,
+        fontSize: 14,
       },
     },
     MuiTooltip: {
       tooltip: {
-        fontSize: 11,
+        fontSize: 12,
         backgroundColor: colors.black,
       },
     },
