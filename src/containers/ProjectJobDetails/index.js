@@ -4,12 +4,11 @@ import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
 import { toast } from 'react-toastify';
-import { startCase, toLower, isEmpty } from 'lodash';
+import { startCase, toLower, isEmpty, truncate } from 'lodash';
 import { Grid, Paper, Divider, Stepper, Step, StepLabel } from '@material-ui/core/';
 import { makeStyles, styled as muiStyled } from '@material-ui/core/styles';
 import { fetchProjectById, fetchAllProjectMembers } from 'containers/ProjectDetail/action';
 import CreateNewJobForm from './Components/CreateNewJobForm';
-import GroupIcon from '@material-ui/icons/Group';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ExportIcon from '@material-ui/icons/FlashOn';
@@ -101,18 +100,23 @@ const CreateNewJob = (props) => {
     }
   };
 
-  const { id, name, total_members } = currentProject || {};
+  const { id, name } = currentProject || {};
   const projectName = startCase(toLower(name)) || 'Loading...';
+  const truncatedJobName = truncate(currentJob.name);
 
   return (
     <div>
       <div className={classes.headerWrapper}>
-        <HeaderText className={classes.HeaderText} display="inline-block">
-          {projectName}
-        </HeaderText>
-        <div className={classes.userGroup}>
-          <GroupIcon fontSize={'small'} />
-          <span className={classes.userCount}>{total_members || 0}</span>
+        <div>
+          <div className={classes.jobNavHeader} display="inline-block">
+            <span className={classes.projectClickable} onClick={() => props.history.goBack()}>
+              {projectName}
+            </span>
+            <span style={{ fontSize: 20 }}>
+              {' '}
+              {'>'} job {'>'} {truncatedJobName}
+            </span>
+          </div>{' '}
         </div>
       </div>
 
@@ -121,7 +125,7 @@ const CreateNewJob = (props) => {
         <Paper elevation={3} className={classes.contentWrapper}>
           <Grid container spacing={0}>
             <Grid item xs={12}>
-              <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px 30px" display="inline-block">
+              <HeaderText fontsize={'18px'} padding="20px 30px" display="inline-block">
                 {isCreatingNewJob ? 'Add new job' : currentJob.name}
               </HeaderText>
               {completedSteps.length >= 3 && (
@@ -241,12 +245,25 @@ const useStyles = makeStyles(() => ({
     position: 'relative',
     marginBottom: 0,
   },
-  HeaderText: {},
+  jobNavHeader: {
+    fontSize: 22,
+  },
+  projectClickable: {
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    '&:hover': {
+      color: '#3A3C67',
+      textDecoration: 'underline',
+    },
+  },
   userGroup: {
     display: 'inline-block',
     right: 20,
     verticalAlign: 'middle',
     marginLeft: 20,
+  },
+  backIcon: {
+    marginLeft: -10,
   },
   manualJobButton: {
     border: '1px solid #3A3C67',

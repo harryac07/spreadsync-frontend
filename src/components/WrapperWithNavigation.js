@@ -18,7 +18,6 @@ import {
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import PeopleIcon from '@material-ui/icons/People';
 import BuildIcon from '@material-ui/icons/Build';
-import KeyboardArrowLeftIcon from '@material-ui/icons/KeyboardArrowLeft';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 
@@ -80,22 +79,6 @@ const Navigition = (props) => {
       <Divider />
       <List className={classes.leftNavList}>
         {routesWithIcons.map((each, key) => {
-          if (toLower(each.name) !== toLower(pathname) && toLower(pathname).includes(toLower(each.name))) {
-            return (
-              <ListItem
-                selected={true}
-                button
-                key={each.name}
-                classes={{ selected: classes.active }}
-                onClick={() => props.history.goBack()}
-              >
-                <ListItemIcon style={{ color: key + 1 === activeTabFinal ? '#7ED7DA' : '#fff' }}>
-                  {each.icon}
-                </ListItemIcon>
-                <KeyboardArrowLeftIcon className={classes.backIcon} /> Back
-              </ListItem>
-            );
-          }
           return (
             <Link
               key={each.name}
@@ -104,7 +87,7 @@ const Navigition = (props) => {
               to={`/${each.name.toLowerCase()}`}
             >
               <ListItem
-                selected={key + 1 === activeTabFinal}
+                selected={key + 1 === activeTabFinal || toLower(pathname).includes(toLower(each.name))}
                 button
                 key={each.name}
                 classes={{ selected: classes.active }}
