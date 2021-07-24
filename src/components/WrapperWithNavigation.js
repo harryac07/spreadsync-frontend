@@ -56,7 +56,7 @@ const Navigition = (props) => {
 
   /* Active tab setup */
   const [activeTab, handleTabChange] = useState(0);
-  const { children, location } = props;
+  const { children, location, handleMainSearch } = props;
 
   const pathname = location.pathname.replace('/', '');
   let activeTabOnPageLoad = 0;
@@ -70,6 +70,22 @@ const Navigition = (props) => {
     activeTabOnPageLoad = 3;
   }
   const activeTabFinal = activeTab > 0 ? activeTab : activeTabOnPageLoad;
+
+  const getSearchBarLabel = () => {
+    if (pathname === 'projects' || pathname === 'projects/') {
+      return 'Search projects';
+    }
+    if (pathname.includes('projects')) {
+      return 'Search jobs';
+    }
+    if (pathname.includes('teams')) {
+      return 'Search members';
+    }
+    if (pathname.includes('integrations')) {
+      return 'Search integrations';
+    }
+    return 'Search';
+  };
 
   const drawer = (
     <div>
@@ -104,6 +120,7 @@ const Navigition = (props) => {
     </div>
   );
   const container = window !== undefined ? () => window().document.body : undefined;
+
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -121,7 +138,14 @@ const Navigition = (props) => {
             <MenuIcon />
           </IconButton>
           <span className={classes.searchTop}>
-            <Search size="small" />
+            <Search
+              size="small"
+              handleSearch={(e) => {
+                e.preventDefault();
+                handleMainSearch(e.target.value);
+              }}
+              placeholder={getSearchBarLabel()}
+            />
           </span>
           <TopRightNav>
             <TopNavigation {...props} />

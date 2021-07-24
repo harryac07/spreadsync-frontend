@@ -1,9 +1,15 @@
-import { FETCH_ALL_USER_ACCOUNTS, FETCH_ALL_USER_ACCOUNTS_SUCCEED, FETCH_ALL_USER_ACCOUNTS_FAILED } from './constant';
+import {
+  FETCH_ALL_USER_ACCOUNTS,
+  FETCH_ALL_USER_ACCOUNTS_SUCCEED,
+  FETCH_ALL_USER_ACCOUNTS_FAILED,
+  SET_SEARCH_KEYWORD,
+} from './constant';
 
 const initialState = {
   fetching: false,
   selectedAccount: '',
   accounts: [],
+  searchKeyword: '',
 };
 const appReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -23,6 +29,11 @@ const appReducer = (state = initialState, action) => {
         ...state,
         fetching: false,
         error: action.error,
+      };
+    case SET_SEARCH_KEYWORD:
+      return {
+        ...state,
+        searchKeyword: action.data,
       };
     default:
       return state;

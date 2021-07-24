@@ -173,10 +173,17 @@ class ProjectDetail extends React.Component {
     }
   };
   renderJobs = () => {
-    const { classes, projectDetail, deleteAJobByJobId, cloneJobById } = this.props;
+    const { classes, searchKeyword, projectDetail, deleteAJobByJobId, cloneJobById } = this.props;
     const { jobs } = projectDetail;
     const projectId = this.props?.match?.params?.id ?? '';
     const { rowsPerPage, page } = this.state;
+
+    const filteredJobs = jobs.filter(({ name, description }) => {
+      if (searchKeyword) {
+        return toLower(name).includes(searchKeyword) || toLower(description).includes(searchKeyword);
+      }
+      return true;
+    });
 
     if (!this.hasPermission(['job_all', 'job_read'])) {
       return (
@@ -188,11 +195,11 @@ class ProjectDetail extends React.Component {
       );
     }
 
-    if (jobs.length === 0) {
+    if (filteredJobs.length === 0) {
       return (
         <div className={classes.noJobWrapper}>
           <div>
-            <p>Jobs not available.</p>
+            <p>Jobs not found.</p>
           </div>
         </div>
       );
@@ -211,74 +218,75 @@ class ProjectDetail extends React.Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(rowsPerPage > 0 ? jobs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : jobs).map(
-                (row) => (
-                  <TableRow hover key={row.id}>
-                    <TableCell component="th" scope="row">
-                      <Link to={`/projects/${projectId}/job/${row.id}`} className={classes.jobName}>
-                        {row.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{row.description}</TableCell>
-                    <TableCell>{row.type}</TableCell>
-                    <TableCell>{row.user_email}</TableCell>
-                    <TableCell>
-                      {this.hasPermission(['job_all', 'job_write']) && (
-                        <ConfirmDialog
-                          ctaToOpenModal={
-                            <CloneIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'black' }} />
-                          }
-                          header={
-                            <span>
-                              Clone the job: <u>{row.name}</u>?
-                            </span>
-                          }
-                          bodyContent={
-                            'Cloning the job makes exact replica of the selected job coyping the configuration and data source aand target setups. This feature helps you to save time creating similar job that exists already. '
-                          }
-                          cancelText="Cancel"
-                          cancelCallback={() => null}
-                          confirmText="Clone"
-                          confirmCallback={() => cloneJobById(row.id, projectId)}
-                        />
-                      )}
-                      {this.hasPermission(['job_all', 'job_delete']) && (
-                        <ConfirmDialog
-                          ctaToOpenModal={
-                            <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
-                          }
-                          header={
-                            <span>
-                              Confirm deleting the job: <u>{row.name}</u>?
-                            </span>
-                          }
-                          bodyContent={
-                            'Deleting the job deletes everything connected to the job and you can not undone this later. This action deletes the job history, configured data source and target'
-                          }
-                          cancelText="Cancel"
-                          cancelCallback={() => null}
-                          confirmText="Confirm"
-                          confirmCallback={() => deleteAJobByJobId(row.id, projectId)}
-                        />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )
-              )}
+              {(rowsPerPage > 0
+                ? filteredJobs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                : filteredJobs
+              ).map((row) => (
+                <TableRow hover key={row.id}>
+                  <TableCell component="th" scope="row">
+                    <Link to={`/projects/${projectId}/job/${row.id}`} className={classes.jobName}>
+                      {row.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{row.description}</TableCell>
+                  <TableCell>{row.type}</TableCell>
+                  <TableCell>{row.user_email}</TableCell>
+                  <TableCell>
+                    {this.hasPermission(['job_all', 'job_write']) && (
+                      <ConfirmDialog
+                        ctaToOpenModal={
+                          <CloneIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'black' }} />
+                        }
+                        header={
+                          <span>
+                            Clone the job: <u>{row.name}</u>?
+                          </span>
+                        }
+                        bodyContent={
+                          'Cloning the job makes exact replica of the selected job coyping the configuration and data source aand target setups. This feature helps you to save time creating similar job that exists already. '
+                        }
+                        cancelText="Cancel"
+                        cancelCallback={() => null}
+                        confirmText="Clone"
+                        confirmCallback={() => cloneJobById(row.id, projectId)}
+                      />
+                    )}
+                    {this.hasPermission(['job_all', 'job_delete']) && (
+                      <ConfirmDialog
+                        ctaToOpenModal={
+                          <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
+                        }
+                        header={
+                          <span>
+                            Confirm deleting the job: <u>{row.name}</u>?
+                          </span>
+                        }
+                        bodyContent={
+                          'Deleting the job deletes everything connected to the job and you can not undone this later. This action deletes the job history, configured data source and target'
+                        }
+                        cancelText="Cancel"
+                        cancelCallback={() => null}
+                        confirmText="Confirm"
+                        confirmCallback={() => deleteAJobByJobId(row.id, projectId)}
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
-        {jobs.length > rowsPerPage && (
+        {filteredJobs.length > rowsPerPage && (
           <TablePagination
-            rowsPerPageOptions={[10, 20, jobs.length]}
+            rowsPerPageOptions={[10, 20, filteredJobs.length]}
             component="div"
-            count={jobs.length}
+            count={filteredJobs.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onChangePage={(e, page) => this.setState({ page })}
             onChangeRowsPerPage={(e) => {
               const selectedRowsPerPage = parseInt(e.target.value);
-              if (jobs.length >= selectedRowsPerPage * page) {
+              if (filteredJobs.length >= selectedRowsPerPage * page) {
                 this.setState({ rowsPerPage: selectedRowsPerPage });
               }
             }}
@@ -509,6 +517,7 @@ const mapStateToProps = (state) => {
     projectDetail: state.projectDetail,
     projectPermissions: getPermissionsForCurrentProject(state),
     account: state.app.accounts,
+    searchKeyword: state.app.searchKeyword,
   };
 };
 

@@ -1,4 +1,4 @@
-import { CHECK_AUTH_REQUEST, FETCH_ALL_USER_ACCOUNTS } from './constant';
+import { CHECK_AUTH_REQUEST, FETCH_ALL_USER_ACCOUNTS, SET_SEARCH_KEYWORD } from './constant';
 
 /**
  * checkUserAuth
@@ -19,5 +19,16 @@ export const fetchAllAccountsForUser = (userId) => {
   return {
     type: FETCH_ALL_USER_ACCOUNTS,
     id: userId,
+  };
+};
+
+/**
+ * setSearchKeyword
+ * @param {String}keyword
+ */
+export const setSearchKeyword = (keyword) => {
+  return {
+    type: SET_SEARCH_KEYWORD,
+    data: keyword,
   };
 };
