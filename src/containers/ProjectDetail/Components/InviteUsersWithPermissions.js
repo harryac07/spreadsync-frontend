@@ -59,7 +59,7 @@ const InviteUsersWithPermissions = ({
   };
 
   const handleSubmit = () => {
-    const fitleredInvitedUsers = !isEmpty(defaultValue)
+    const fitleredInvitedUsers = !isEmpty(defaultValue?.email)
       ? [
           {
             ...defaultValue,
