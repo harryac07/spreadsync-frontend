@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { startCase, toLower } from 'lodash';
 import jwt from 'jsonwebtoken';
 import { Switch, Route } from 'react-router-dom';
-import { fetchAllAccountsForUser, setSearchKeyword } from './action';
+import { fetchAllAccountsForUser, fetchCurrentUser, setSearchKeyword } from './action';
 
 import { Button, Paper, Divider } from '@material-ui/core/';
 import { withStyles } from '@material-ui/core/styles';
@@ -14,6 +14,7 @@ import WrapperWithNavigation from 'components/WrapperWithNavigation';
 import Projects from 'containers/Projects';
 import ProjectDetail from 'containers/ProjectDetail';
 import JobDetails from 'containers/ProjectJobDetails';
+import Profile from 'containers/Profile';
 
 import logo from '../../utils/spreadsync_logo_black.png';
 import Background from '../../utils/bgnew.png';
@@ -43,10 +44,12 @@ class Main extends React.Component {
       this.redirectToProjectPage();
       if (accounts.length === 0) {
         this.props.fetchAllAccountsForUser(user.id);
+        this.props.fetchCurrentUser(user.id);
       }
     } else {
       // Fetch all accounts for user
       this.props.fetchAllAccountsForUser(user.id);
+      this.props.fetchCurrentUser(user.id);
     }
   }
   redirectToProjectPage = () => {
@@ -160,7 +163,14 @@ class Main extends React.Component {
               </MainWrapper>
             )}
           />
-          <Route path="/profile">Profile and Account</Route>
+          <Route
+            path="/profile"
+            render={(props) => (
+              <MainWrapper nopadding>
+                <Profile {...props} />
+              </MainWrapper>
+            )}
+          />
           <Route path="/statistics">Account statistics</Route>
           <Route path="/setting">Setting</Route>
         </Switch>
@@ -229,6 +239,7 @@ const styles = (theme) => ({
 export default connect(mapStateToProps, {
   fetchAllAccountsForUser,
   setSearchKeyword,
+  fetchCurrentUser,
 })(withStyles(styles)(Main));
 
 const LoadingProject = styled.p`

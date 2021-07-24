@@ -2,6 +2,7 @@ import {
   FETCH_ALL_USER_ACCOUNTS,
   FETCH_ALL_USER_ACCOUNTS_SUCCEED,
   FETCH_ALL_USER_ACCOUNTS_FAILED,
+  FETCH_CURRENT_USER_BY_ID_SUCCEED,
   SET_SEARCH_KEYWORD,
 } from './constant';
 
@@ -10,6 +11,7 @@ const initialState = {
   selectedAccount: '',
   accounts: [],
   searchKeyword: '',
+  currentUser: [],
 };
 const appReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -29,6 +31,11 @@ const appReducer = (state = initialState, action) => {
         ...state,
         fetching: false,
         error: action.error,
+      };
+    case FETCH_CURRENT_USER_BY_ID_SUCCEED:
+      return {
+        ...state,
+        currentUser: action.payload,
       };
     case SET_SEARCH_KEYWORD:
       return {

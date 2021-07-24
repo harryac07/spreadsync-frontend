@@ -1,4 +1,4 @@
-import { CHECK_AUTH_REQUEST, FETCH_ALL_USER_ACCOUNTS, SET_SEARCH_KEYWORD } from './constant';
+import { CHECK_AUTH_REQUEST, FETCH_CURRENT_USER_BY_ID, FETCH_ALL_USER_ACCOUNTS, SET_SEARCH_KEYWORD } from './constant';
 
 /**
  * checkUserAuth
@@ -18,6 +18,17 @@ export const checkUserAuth = (userToken) => {
 export const fetchAllAccountsForUser = (userId) => {
   return {
     type: FETCH_ALL_USER_ACCOUNTS,
+    id: userId,
+  };
+};
+
+/**
+ * fetchCurrentUser
+ * @param {String}userId
+ */
+export const fetchCurrentUser = (userId) => {
+  return {
+    type: FETCH_CURRENT_USER_BY_ID,
     id: userId,
   };
 };

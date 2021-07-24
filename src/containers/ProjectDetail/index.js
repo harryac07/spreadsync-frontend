@@ -539,7 +539,7 @@ const styles = (theme) => ({
   },
   headerWrapper: {
     backgroundColor: '#fff',
-    padding: '12px 32px 5px 32px',
+    padding: '5px 32px 5px 32px',
     boxShadow: '0px 0px 1px 0px #888888',
   },
   rightColHeading: {
@@ -556,7 +556,7 @@ const styles = (theme) => ({
     },
     '& svg': {
       position: 'relative',
-      top: -3,
+      top: 3,
       cursor: 'pointer',
     },
   },

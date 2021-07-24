@@ -72,10 +72,10 @@ const Navigition = (props) => {
   if (pathname === 'statistics') {
     activeTabOnPageLoad = 2;
   }
-  if (pathname === 'setting') {
+  if (pathname === 'profile') {
     activeTabOnPageLoad = 3;
   }
-  if (pathname === 'profile') {
+  if (pathname === 'setting') {
     activeTabOnPageLoad = 4;
   }
   const activeTabFinal = activeTab > 0 ? activeTab : activeTabOnPageLoad;

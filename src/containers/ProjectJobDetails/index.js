@@ -273,26 +273,8 @@ const useStyles = makeStyles(() => ({
   },
   headerWrapper: {
     backgroundColor: '#fff',
-    padding: '12px 32px 5px 32px',
+    padding: '5px 32px 5px 32px',
     boxShadow: '0px 0px 1px 0px #888888',
-  },
-  rightColHeading: {
-    display: 'inline-block',
-    position: 'absolute',
-    right: 28,
-    '& button': {
-      display: 'inline-block',
-      height: 30,
-      fontSize: 13,
-      textTransform: 'none',
-      top: -14,
-      marginRight: 10,
-    },
-    '& svg': {
-      position: 'relative',
-      top: -3,
-      cursor: 'pointer',
-    },
   },
   iconSmall: {
     height: 20,

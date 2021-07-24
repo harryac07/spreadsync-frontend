@@ -27,7 +27,11 @@ const Field = (props) => {
 
   return (
     <div style={style}>
-      {label ? <TopLabel>{label}</TopLabel> : null}
+      {label ? (
+        <TopLabel>
+          {label} {required && <span className="required" />}
+        </TopLabel>
+      ) : null}
       <StyledTextField
         fullWidth={fullWidth}
         required={required}
@@ -75,6 +79,15 @@ const TopLabel = styled.div`
   margin: 0px 0px 5px 0px;
   padding: 0;
   font-size: 16px;
+
+  .required:after {
+    content: ' *';
+    color: red;
+    font-size: 22px;
+    position: absolute;
+    margin-left: 5px;
+    margin-top: -4px;
+  }
 `;
 
 const StyledTextField = styled(TextField)`
