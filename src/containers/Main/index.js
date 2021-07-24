@@ -160,11 +160,8 @@ class Main extends React.Component {
               </MainWrapper>
             )}
           />
-          <Route path="/integrations">Integrations</Route>
-          <Route path="/teams">
-            <MainWrapper>Teams</MainWrapper>
-          </Route>
           <Route path="/profile">Profile and Account</Route>
+          <Route path="/statistics">Account statistics</Route>
           <Route path="/setting">Setting</Route>
         </Switch>
       </WrapperWithNavigation>

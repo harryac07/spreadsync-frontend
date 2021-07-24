@@ -16,10 +16,11 @@ import {
   Hidden,
 } from '@material-ui/core';
 import AssignmentIcon from '@material-ui/icons/Assignment';
-import PeopleIcon from '@material-ui/icons/People';
-import BuildIcon from '@material-ui/icons/Build';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
+import StatisticsIcon from '@material-ui/icons/Equalizer';
+import SettingsIcon from '@material-ui/icons/Settings';
+import ProfileIcon from '@material-ui/icons/Person';
 
 import Search from './Search';
 import TopNavigation from './TopNavigation';
@@ -34,12 +35,16 @@ const routesWithIcons = [
     icon: <AssignmentIcon />,
   },
   {
-    name: 'Teams',
-    icon: <PeopleIcon />,
+    name: 'Statistics',
+    icon: <StatisticsIcon />,
   },
   {
-    name: 'Integrations',
-    icon: <BuildIcon />,
+    name: 'Profile',
+    icon: <ProfileIcon />,
+  },
+  {
+    name: 'Setting',
+    icon: <SettingsIcon />,
   },
 ];
 const Navigition = (props) => {
@@ -60,14 +65,18 @@ const Navigition = (props) => {
 
   const pathname = location.pathname.replace('/', '');
   let activeTabOnPageLoad = 0;
+
   if (pathname === 'projects') {
     activeTabOnPageLoad = 1;
   }
-  if (pathname === 'teams') {
+  if (pathname === 'statistics') {
     activeTabOnPageLoad = 2;
   }
-  if (pathname === 'integrations') {
+  if (pathname === 'setting') {
     activeTabOnPageLoad = 3;
+  }
+  if (pathname === 'profile') {
+    activeTabOnPageLoad = 4;
   }
   const activeTabFinal = activeTab > 0 ? activeTab : activeTabOnPageLoad;
 
@@ -77,12 +86,6 @@ const Navigition = (props) => {
     }
     if (pathname.includes('projects')) {
       return 'Search jobs';
-    }
-    if (pathname.includes('teams')) {
-      return 'Search members';
-    }
-    if (pathname.includes('integrations')) {
-      return 'Search integrations';
     }
     return 'Search';
   };
