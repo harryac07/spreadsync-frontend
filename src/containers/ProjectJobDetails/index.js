@@ -102,7 +102,7 @@ const CreateNewJob = (props) => {
 
   const { id, name } = currentProject || {};
   const projectName = startCase(toLower(name)) || 'Loading...';
-  const truncatedJobName = truncate(currentJob.name);
+  const truncatedJobName = isCreatingNewJob ? 'new' : truncate(currentJob.name);
 
   return (
     <div>
