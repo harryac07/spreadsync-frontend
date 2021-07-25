@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import { Tabs, Tab, Paper } from '@material-ui/core/';
 import { makeStyles } from '@material-ui/core/styles';
 import ProfileForm from './Components/ProfileForm';
 import ChangePasswordForm from './Components/ChangePasswordForm';
@@ -10,6 +11,7 @@ import { updateUserById, updateUserPassword } from './api';
 type Props = {};
 const Profile: React.FC<Props> = () => {
   const classes = useStyles();
+  const [currentTab, setCurrentTab] = useState(0);
   const { currentUser } = useSelector((states: any) => {
     return {
       currentUser: states.app?.currentUser?.[0],
@@ -37,6 +39,10 @@ const Profile: React.FC<Props> = () => {
       toast.error(`Password change failed! ${e.response?.data?.message ?? ''}`);
     }
   };
+  const handleTabChange = (event, newValue) => {
+    event.preventDefault();
+    setCurrentTab(newValue);
+  };
 
   const defaultProfileData = {
     firstname: currentUser?.firstname,
@@ -51,14 +57,25 @@ const Profile: React.FC<Props> = () => {
         <div className={classes.headerText}>Profile</div>
       </div>
       <div className={classes.content}>
-        <ContainerWithHeader headerLeftContent={'Update info'} headerRightContent={null} padding={20} elevation={1}>
-          <ProfileForm handleSubmit={handleProfileUpdate} defaultValue={currentUser ? defaultProfileData : {}} />
-        </ContainerWithHeader>
-      </div>
-      <div className={classes.content} style={{ paddingTop: 0 }}>
-        <ContainerWithHeader headerLeftContent={'Change password'} headerRightContent={null} padding={20} elevation={1}>
-          <ChangePasswordForm handleSubmit={handleUpdateUserPassword} defaultValue={{ email: currentUser?.email }} />
-        </ContainerWithHeader>
+        <Paper square={true}>
+          <Tabs value={currentTab} indicatorColor="primary" textColor="primary" onChange={handleTabChange}>
+            <Tab
+              className={classes.tab}
+              label={<ContainerWithHeader headerRightContent={null} headerLeftContent={'Update info'} />}
+            />
+            <Tab label={<ContainerWithHeader headerRightContent={null} headerLeftContent={'Change Password'} />} />
+          </Tabs>
+        </Paper>
+        {currentTab === 0 && (
+          <ContainerWithHeader padding={20} elevation={1} showHeader={false} square={true}>
+            <ProfileForm handleSubmit={handleProfileUpdate} defaultValue={currentUser ? defaultProfileData : {}} />
+          </ContainerWithHeader>
+        )}
+        {currentTab === 1 && (
+          <ContainerWithHeader padding={20} elevation={1} showHeader={false} square={true}>
+            <ChangePasswordForm handleSubmit={handleUpdateUserPassword} defaultValue={{ email: currentUser?.email }} />
+          </ContainerWithHeader>
+        )}
       </div>
     </div>
   );
@@ -87,6 +104,9 @@ const useStyles = makeStyles((theme) => ({
     padding: 0,
   },
   content: { padding: 32 },
+  tab: {
+    padding: 0,
+  },
 }));
 
 export default Profile;
