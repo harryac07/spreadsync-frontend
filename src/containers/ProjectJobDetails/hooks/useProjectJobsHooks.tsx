@@ -239,7 +239,7 @@ const reducer = (state: State, action: any) => {
 };
 
 export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
-  const [state, dispatch] = useReducer(reducer, { ...initialState });
+  const [state, dispatch] = useReducer(reducer, initialState);
   const {
     currentProject = {},
     job = {},
@@ -251,13 +251,12 @@ export default function useProjectJobsHooks(jobId: string): [State, Dispatch] {
       permissions: getPermissionsForCurrentProject(states),
     };
   });
-  console.log('currentProject ', currentProject);
   const storeDispatch = useDispatch();
 
   useEffect(() => {
     if (jobId) {
       try {
-        if (isEmpty(job)) {
+        if (isEmpty(job) || isEmpty(state.currentJob)) {
           fetchCurrentJob();
         } else {
           dispatch({ type: actions.SET_CURRENT_JOB, payload: job });

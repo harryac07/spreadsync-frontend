@@ -50,18 +50,18 @@ const CreateNewJob = (props) => {
   }, []);
 
   useEffect(() => {
-    const completedStepList = [];
+    const completedStepList = new Set();
     if (!isEmpty(currentJob)) {
-      completedStepList.push(0);
+      completedStepList.add(0);
     }
     if (currentJob?.is_data_source_configured) {
-      completedStepList.push(1);
+      completedStepList.add(1);
     }
     if (currentJob?.is_data_target_configured) {
-      completedStepList.push(2);
+      completedStepList.add(2);
     }
-    if (completedStepList.length > 0) {
-      setCompletedSteps(completedStepList);
+    if (completedStepList.size > 0) {
+      setCompletedSteps(Array.from(completedStepList));
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,6 +82,12 @@ const CreateNewJob = (props) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentManualJobRunning]);
+
+  const addCompletedUniqueSteps = (value) => {
+    const completedStepSet = new Set(completedSteps);
+    completedStepSet.add(value);
+    setCompletedSteps(Array.from(completedStepSet));
+  };
 
   const handleStepChange = (step) => {
     setActiveStep(step);
@@ -164,41 +170,44 @@ const CreateNewJob = (props) => {
 
               <Divider light />
 
-              <div className={classes.content}>
-                <Stepper activeStep={activeStep} style={{ padding: '20px 0px', width: '50%', marginBottom: 10 }}>
-                  {steps.map(({ label, id, createNewJobLabel }, index) => {
-                    const isCompleted = completedSteps.indexOf(id) >= 0;
-                    const maxNumFromCompleted = Math.max(...completedSteps);
-                    const isNavigationClickable = isCompleted || id === maxNumFromCompleted + 1;
-                    return (
-                      <Step
-                        key={label}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (isNavigationClickable) {
-                            handleStepChange(id);
-                          }
-                        }}
-                      >
-                        <StyledStepLabel
-                          style={{ marginLeft: index === 0 ? -8 : 'inherit' }}
-                          {...(isCompleted ? { icon: <CheckCircleIcon className={classes.completedStepLabel} /> } : {})}
-                          StepIconProps={{
-                            classes: { root: classes.remainingSteps },
+              <div className={classes.content} key={currentJob?.data_source + currentJob.data_target}>
+                <ProjectJobContextProvider jobId={jobId}>
+                  <Stepper activeStep={activeStep} style={{ padding: '20px 0px', width: '50%', marginBottom: 10 }}>
+                    {steps.map(({ label, id, createNewJobLabel }, index) => {
+                      const isCompleted = completedSteps.indexOf(id) >= 0;
+                      const maxNumFromCompleted = Math.max(...completedSteps);
+                      const isNavigationClickable =
+                        isCompleted || id === maxNumFromCompleted + 1 || id === maxNumFromCompleted - 1;
+                      return (
+                        <Step
+                          key={label}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (isNavigationClickable) {
+                              handleStepChange(id);
+                            }
                           }}
                         >
-                          <span
-                            style={id === activeStep ? { borderBottom: '2px solid #7ED7DA', paddingBottom: 5 } : {}}
+                          <StyledStepLabel
+                            style={{ marginLeft: index === 0 ? -8 : 'inherit' }}
+                            {...(isCompleted
+                              ? { icon: <CheckCircleIcon className={classes.completedStepLabel} /> }
+                              : {})}
+                            StepIconProps={{
+                              classes: { root: classes.remainingSteps },
+                            }}
                           >
-                            {isCreatingNewJob ? createNewJobLabel : label}
-                          </span>
-                        </StyledStepLabel>
-                      </Step>
-                    );
-                  })}
-                </Stepper>
-                <div style={{ border: '1px solid #eee', padding: 30 }}>
-                  <ProjectJobContextProvider jobId={jobId}>
+                            <span
+                              style={id === activeStep ? { borderBottom: '2px solid #7ED7DA', paddingBottom: 5 } : {}}
+                            >
+                              {isCreatingNewJob ? createNewJobLabel : label}
+                            </span>
+                          </StyledStepLabel>
+                        </Step>
+                      );
+                    })}
+                  </Stepper>
+                  <div style={{ border: '1px solid #eee', padding: 30 }}>
                     {activeStep === 0 && (
                       <CreateNewJobForm
                         projectId={id}
@@ -214,19 +223,17 @@ const CreateNewJob = (props) => {
                         isDisabled={!hasPermission(['job_all', 'job_write'])}
                       />
                     )}
-
-                    {activeStep === 1 && (
-                      <DataSourceConnector markStepCompleted={() => setCompletedSteps([...completedSteps, 1])} />
-                    )}
+                    {activeStep === 1 && <DataSourceConnector markStepCompleted={() => addCompletedUniqueSteps(1)} />}
 
                     {activeStep === 2 && (
                       <DataTargetConnector
-                        targetConfigurationCompleted={() => setCompletedSteps([...completedSteps, 2])}
+                        key={currentJob?.data_target}
+                        targetConfigurationCompleted={() => addCompletedUniqueSteps(2)}
                         dataTargetType={currentJob.data_target}
                       />
                     )}
-                  </ProjectJobContextProvider>
-                </div>
+                  </div>
+                </ProjectJobContextProvider>
               </div>
             </Grid>
           </Grid>

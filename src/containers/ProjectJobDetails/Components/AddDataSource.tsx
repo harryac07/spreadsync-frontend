@@ -13,6 +13,7 @@ const DataConnector: React.FC<Props> = ({ markStepCompleted }) => {
   // const classes = useStyles();
   const [{ currentJob }, { hasPermission }] = useJobConfig() || [];
   const dataSource = currentJob?.data_source;
+
   const { is_data_source_configured } = currentJob || {};
 
   useEffect(() => {
