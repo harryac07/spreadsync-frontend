@@ -51,7 +51,7 @@ const Navigition = (props) => {
   const classes = useStyles();
 
   /* Mobile responsive menu setup */
-  const { window } = props;
+  const { window, isAccountAdmin } = props;
   const theme = useTheme();
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
@@ -89,6 +89,7 @@ const Navigition = (props) => {
     }
     return 'Search';
   };
+  const onlyAccountAdminTabs = ['Setting', 'Profile', 'Statistics'];
 
   const drawer = (
     <div>
@@ -98,6 +99,9 @@ const Navigition = (props) => {
       <Divider />
       <List className={classes.leftNavList}>
         {routesWithIcons.map((each, key) => {
+          if (!isAccountAdmin && onlyAccountAdminTabs?.includes(each.name)) {
+            return null;
+          }
           return (
             <Link
               key={each.name}

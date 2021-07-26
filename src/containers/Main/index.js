@@ -15,6 +15,7 @@ import Projects from 'containers/Projects';
 import ProjectDetail from 'containers/ProjectDetail';
 import JobDetails from 'containers/ProjectJobDetails';
 import Profile from 'containers/Profile';
+import Settings from 'containers/Settings';
 
 import logo from '../../utils/spreadsync_logo_black.png';
 import Background from '../../utils/bgnew.png';
@@ -78,11 +79,21 @@ class Main extends React.Component {
   }
   render() {
     const { classes, app, setSearchKeyword } = this.props;
-    const { accounts = [] } = app;
+    const { accounts = [], isAccountFetchSucceed } = app;
     const selectedAccount = localStorage.getItem('account_id');
 
     /* Render loader? */
     if (!selectedAccount && accounts.length === 0) {
+      if (isAccountFetchSucceed) {
+        return (
+          <div className={classes.accountSwitcherWrapper}>
+            <Paper className={classes.paper} elevation={3}>
+              <div className={classes.header}>You had deleted your account!</div>
+              <LoadingProject>Please create a new one to begin!</LoadingProject>
+            </Paper>
+          </div>
+        );
+      }
       return (
         <div className={classes.accountSwitcherWrapper}>
           <Paper className={classes.paper} elevation={3}>
@@ -127,9 +138,11 @@ class Main extends React.Component {
         </div>
       );
     }
+    const currentAccount = accounts?.find(({ id }) => id === selectedAccount);
+    const isAccountAdmin = currentAccount?.admin === localStorage.getItem('user_id');
 
     return (
-      <WrapperWithNavigation handleMainSearch={(text) => setSearchKeyword(text)}>
+      <WrapperWithNavigation handleMainSearch={(text) => setSearchKeyword(text)} isAccountAdmin={isAccountAdmin}>
         <Switch>
           <Route
             path="/projects/:id/job/new"
@@ -172,7 +185,14 @@ class Main extends React.Component {
             )}
           />
           <Route path="/statistics">Account statistics</Route>
-          <Route path="/setting">Setting</Route>
+          <Route
+            path="/setting"
+            render={(props) => (
+              <MainWrapper nopadding>
+                <Settings {...props} />
+              </MainWrapper>
+            )}
+          />
         </Switch>
       </WrapperWithNavigation>
     );

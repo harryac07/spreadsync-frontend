@@ -12,6 +12,7 @@ const initialState = {
   accounts: [],
   searchKeyword: '',
   currentUser: [],
+  isAccountFetchSucceed: false,
 };
 const appReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -24,6 +25,7 @@ const appReducer = (state = initialState, action) => {
       return {
         ...state,
         fetching: false,
+        isAccountFetchSucceed: true,
         accounts: action.payload,
       };
     case FETCH_ALL_USER_ACCOUNTS_FAILED:
