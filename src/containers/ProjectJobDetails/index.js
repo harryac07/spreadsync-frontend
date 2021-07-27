@@ -115,7 +115,7 @@ const CreateNewJob = (props) => {
       <div className={classes.headerWrapper}>
         <div>
           <div className={classes.jobNavHeader} display="inline-block">
-            <span className={classes.projectClickable} onClick={() => props.history.goBack()}>
+            <span className={classes.projectClickable} onClick={() => props.history.push(`/projects/${id}`)}>
               {projectName}
             </span>
             <span style={{ fontSize: 20 }}>
