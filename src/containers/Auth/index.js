@@ -141,10 +141,19 @@ class Auth extends React.Component {
           <div className="line-with-text-center">
             <span>Or sign up with</span>
           </div>
-          <Button variant="contained" className={classes.buttonSocial}>
-            <GoogleIcon />
-            Google
-          </Button>
+          <GoogleLogin
+            clientId={GOOGLE_CLIENT_ID}
+            buttonText="Google"
+            onSuccess={this.handleLoginWithGoogle}
+            onFailure={(responseGoogle) => console.log('Google auth error: ', responseGoogle)}
+            cookiePolicy={'single_host_origin'}
+            responseType="code"
+            accessType="offline"
+            scope={[
+              'https://www.googleapis.com/auth/userinfo.email',
+              'https://www.googleapis.com/auth/userinfo.profile',
+            ].join(' ')}
+          />
         </SignUpSocialMedia>
         <p className={classes.textCenter}>
           Already have an account? <StyledLink to="/login">log in</StyledLink>
