@@ -185,7 +185,6 @@ class Auth extends React.Component {
             cookiePolicy={'single_host_origin'}
             responseType="code"
             accessType="offline"
-            prompt={'consent'}
             scope={[
               'https://www.googleapis.com/auth/userinfo.email',
               'https://www.googleapis.com/auth/userinfo.profile',
