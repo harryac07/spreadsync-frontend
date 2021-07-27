@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import { Link, withRouter } from 'react-router-dom';
 import styled from 'styled-components';
@@ -66,19 +66,19 @@ const Navigition = (props) => {
   const pathname = location.pathname.replace('/', '');
   let activeTabOnPageLoad = 0;
 
-  if (pathname === 'projects') {
+  if (pathname.includes('projects')) {
     activeTabOnPageLoad = 1;
   }
-  if (pathname === 'statistics') {
+  if (pathname.includes('statistics')) {
     activeTabOnPageLoad = 2;
   }
-  if (pathname === 'profile') {
+  if (pathname.includes('profile')) {
     activeTabOnPageLoad = 3;
   }
-  if (pathname === 'setting') {
+  if (pathname.includes('setting')) {
     activeTabOnPageLoad = 4;
   }
-  const activeTabFinal = activeTab > 0 ? activeTab : activeTabOnPageLoad;
+  const activeTabFinal = activeTab > 0 && activeTab === activeTabOnPageLoad ? activeTab : activeTabOnPageLoad;
 
   const getSearchBarLabel = () => {
     if (pathname === 'projects' || pathname === 'projects/') {
@@ -102,6 +102,7 @@ const Navigition = (props) => {
           if (!isAccountAdmin && onlyAccountAdminTabs?.includes(each.name)) {
             return null;
           }
+          const isSelected = key + 1 === activeTabFinal;
           return (
             <Link
               key={each.name}
@@ -109,12 +110,7 @@ const Navigition = (props) => {
               className={classes.menu_link}
               to={`/${each.name.toLowerCase()}`}
             >
-              <ListItem
-                selected={key + 1 === activeTabFinal || toLower(pathname).includes(toLower(each.name))}
-                button
-                key={each.name}
-                classes={{ selected: classes.active }}
-              >
+              <ListItem selected={isSelected} button key={each.name} classes={{ selected: classes.active }}>
                 <ListItemIcon style={{ color: key + 1 === activeTabFinal ? '#7ED7DA' : '#fff' }}>
                   {each.icon}
                 </ListItemIcon>
