@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import { Switch, Route } from 'react-router-dom';
 import { fetchAllAccountsForUser, fetchCurrentUser, setSearchKeyword, createAccount } from './action';
 
-import { Button, Paper, Divider } from '@material-ui/core/';
+import { Button, Paper, Divider, Fade } from '@material-ui/core/';
 import { withStyles } from '@material-ui/core/styles';
 import { MainWrapper } from 'components/common/MainWrapper';
 import WrapperWithNavigation from 'components/WrapperWithNavigation';
@@ -97,30 +97,32 @@ class Main extends React.Component {
     if (!selectedAccount && accounts.length === 0) {
       if (isAccountFetchSucceed) {
         return (
-          <div className={classes.accountSwitcherWrapper}>
-            <div style={{ position: 'absolute', top: 20, right: 20 }}>
-              <Button
-                fullWidth
-                onClick={() => history.push('/logout')}
-                variant="contained"
-                className={classes.button}
-                color="secondary"
-                size="small"
-              >
-                Logout
-              </Button>
+          <Fade in timeout={{ enter: 800 }}>
+            <div className={classes.accountSwitcherWrapper}>
+              <div style={{ position: 'absolute', top: 20, right: 20 }}>
+                <Button
+                  fullWidth
+                  onClick={() => history.push('/logout')}
+                  variant="contained"
+                  className={classes.button}
+                  color="secondary"
+                  size="small"
+                >
+                  Logout
+                </Button>
+              </div>
+              <div>
+                <Paper className={classes.paper} elevation={3}>
+                  <div className={classes.header}>You do not have an active account!</div>
+                  <LoadingProject>Please create a new one to begin!</LoadingProject>
+                </Paper>
+                <br />
+                <Paper className={classes.paper} elevation={3}>
+                  <SelectAccountForm handleSubmit={this.handleCreateAccount} submitButtonText={'Submit'} />
+                </Paper>
+              </div>
             </div>
-            <div>
-              <Paper className={classes.paper} elevation={3}>
-                <div className={classes.header}>You do not have an active account!</div>
-                <LoadingProject>Please create a new one to begin!</LoadingProject>
-              </Paper>
-              <br />
-              <Paper className={classes.paper} elevation={3}>
-                <SelectAccountForm handleSubmit={this.handleCreateAccount} submitButtonText={'Submit'} />
-              </Paper>
-            </div>
-          </div>
+          </Fade>
         );
       }
       return (

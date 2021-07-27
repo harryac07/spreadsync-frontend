@@ -137,7 +137,8 @@ const InviteUsersWithPermissions = ({
                         <Grid item xs={6}>
                           <MultiSelectDropdown
                             onChange={(permissionList) => {
-                              addUserOrPermission(each, 'permission', permissionList);
+                              const filteredPermission = permissionList?.includes('admin') ? ['admin'] : permissionList;
+                              addUserOrPermission(each, 'permission', filteredPermission);
                             }}
                             options={permissions}
                             fullWidth
