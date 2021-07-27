@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { TextField, Grid } from '@material-ui/core/';
 import { makeStyles } from '@material-ui/core/styles';
@@ -15,6 +16,7 @@ type Props = {};
 const Settings: React.FC<Props> = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const history = useHistory();
   const [openUsernameModal, setOpenUsernameModal] = useState(false);
   const [username, setUsername] = useState('');
 
@@ -71,6 +73,9 @@ const Settings: React.FC<Props> = () => {
         dispatch(fetchAllAccountsForUser(currentAccount?.user));
         toast.success(`Account ${currentAccount?.name} deleted successfully!`);
         setOpenDeleteAccountModal(false);
+        localStorage.removeItem('account_id');
+        localStorage.removeItem('account_name');
+        window.location.replace(`/projects`);
       }
     } catch (e) {
       toast.error(`Account delete failed! ${e.response?.data?.message ?? ''}`);

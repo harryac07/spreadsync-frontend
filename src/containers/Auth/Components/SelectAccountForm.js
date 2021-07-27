@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Field from 'components/common/Field';
 import { API_URL } from 'env';
 
-const LoginForm = ({ handleSubmit }) => {
+const LoginForm = ({ handleSubmit, submitButtonText = 'Next' }) => {
   const classes = useStyles();
   const [inputObj, handleInputChange] = useState({});
   const [error, handleError] = useState({});
@@ -88,7 +88,7 @@ const LoginForm = ({ handleSubmit }) => {
         onClick={submitForm}
         type="submit"
       >
-        Next
+        {submitButtonText}
       </Button>
     </form>
   );

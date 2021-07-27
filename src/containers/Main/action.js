@@ -1,4 +1,10 @@
-import { CHECK_AUTH_REQUEST, FETCH_CURRENT_USER_BY_ID, FETCH_ALL_USER_ACCOUNTS, SET_SEARCH_KEYWORD } from './constant';
+import {
+  CHECK_AUTH_REQUEST,
+  FETCH_CURRENT_USER_BY_ID,
+  FETCH_ALL_USER_ACCOUNTS,
+  SET_SEARCH_KEYWORD,
+  CREATE_ACCOUNT,
+} from './constant';
 
 /**
  * checkUserAuth
@@ -30,6 +36,20 @@ export const fetchCurrentUser = (userId) => {
   return {
     type: FETCH_CURRENT_USER_BY_ID,
     id: userId,
+  };
+};
+
+/**
+ * createAccount
+ * @param {Object}data -  Create account payload
+ * @param {String}name -  Account name
+ * @param {String}admin -  Account admin id(user id)
+ */
+export const createAccount = ({ name, admin }) => {
+  return {
+    type: CREATE_ACCOUNT,
+    data: { name },
+    userId: admin,
   };
 };
 

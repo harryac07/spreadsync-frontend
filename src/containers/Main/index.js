@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { startCase, toLower } from 'lodash';
 import jwt from 'jsonwebtoken';
 import { Switch, Route } from 'react-router-dom';
-import { fetchAllAccountsForUser, fetchCurrentUser, setSearchKeyword } from './action';
+import { fetchAllAccountsForUser, fetchCurrentUser, setSearchKeyword, createAccount } from './action';
 
 import { Button, Paper, Divider } from '@material-ui/core/';
 import { withStyles } from '@material-ui/core/styles';
@@ -16,6 +16,7 @@ import ProjectDetail from 'containers/ProjectDetail';
 import JobDetails from 'containers/ProjectJobDetails';
 import Profile from 'containers/Profile';
 import Settings from 'containers/Settings';
+import SelectAccountForm from 'containers/Auth/Components/SelectAccountForm';
 
 import logo from '../../utils/spreadsync_logo_black.png';
 import Background from '../../utils/bgnew.png';
@@ -69,16 +70,26 @@ class Main extends React.Component {
     this.selectAccount(each);
     this.redirectToProjectPage();
   };
+  handleCreateAccount = ({ account_name }) => {
+    this.props.createAccount({
+      name: account_name,
+      admin: localStorage.getItem('user_id'),
+    });
+  };
   componentDidUpdate(prevProps) {
-    const { accounts } = this.props.app;
-    const { accounts: prevAccounts } = prevProps.app;
+    const { accounts, accountCreated } = this.props.app;
+    const { accounts: prevAccounts, accountCreated: prevAccountCreated } = prevProps.app;
     /* Redirect to /projects if user is engage to only one account */
     if (accounts !== prevAccounts && accounts.length === 1) {
       this.handleSwitchAccount(accounts[0]);
     }
+
+    if (accountCreated !== prevAccountCreated && accountCreated) {
+      this.props.history.push('/projects');
+    }
   }
   render() {
-    const { classes, app, setSearchKeyword } = this.props;
+    const { classes, app, setSearchKeyword, history } = this.props;
     const { accounts = [], isAccountFetchSucceed } = app;
     const selectedAccount = localStorage.getItem('account_id');
 
@@ -87,10 +98,28 @@ class Main extends React.Component {
       if (isAccountFetchSucceed) {
         return (
           <div className={classes.accountSwitcherWrapper}>
-            <Paper className={classes.paper} elevation={3}>
-              <div className={classes.header}>You had deleted your account!</div>
-              <LoadingProject>Please create a new one to begin!</LoadingProject>
-            </Paper>
+            <div style={{ position: 'absolute', top: 20, right: 20 }}>
+              <Button
+                fullWidth
+                onClick={() => history.push('/logout')}
+                variant="contained"
+                className={classes.button}
+                color="secondary"
+                size="small"
+              >
+                Logout
+              </Button>
+            </div>
+            <div>
+              <Paper className={classes.paper} elevation={3}>
+                <div className={classes.header}>You do not have an active account!</div>
+                <LoadingProject>Please create a new one to begin!</LoadingProject>
+              </Paper>
+              <br />
+              <Paper className={classes.paper} elevation={3}>
+                <SelectAccountForm handleSubmit={this.handleCreateAccount} submitButtonText={'Submit'} />
+              </Paper>
+            </div>
           </div>
         );
       }
@@ -260,6 +289,7 @@ export default connect(mapStateToProps, {
   fetchAllAccountsForUser,
   setSearchKeyword,
   fetchCurrentUser,
+  createAccount,
 })(withStyles(styles)(Main));
 
 const LoadingProject = styled.p`

@@ -4,6 +4,9 @@ import {
   FETCH_ALL_USER_ACCOUNTS_FAILED,
   FETCH_CURRENT_USER_BY_ID_SUCCEED,
   SET_SEARCH_KEYWORD,
+  CREATE_ACCOUNT,
+  CREATE_ACCOUNT_SUCCEED,
+  CREATE_ACCOUNT_FAILED,
 } from './constant';
 
 const initialState = {
@@ -13,6 +16,7 @@ const initialState = {
   searchKeyword: '',
   currentUser: [],
   isAccountFetchSucceed: false,
+  accountCreated: false,
 };
 const appReducer = (state = initialState, action) => {
   switch (action.type) {
@@ -43,6 +47,17 @@ const appReducer = (state = initialState, action) => {
       return {
         ...state,
         searchKeyword: action.data,
+      };
+    case CREATE_ACCOUNT_SUCCEED:
+      return {
+        ...state,
+        accountCreated: true,
+      };
+    case CREATE_ACCOUNT:
+    case CREATE_ACCOUNT_FAILED:
+      return {
+        ...state,
+        accountCreated: false,
       };
     default:
       return state;
