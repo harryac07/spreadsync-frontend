@@ -157,6 +157,10 @@ const Settings: React.FC<Props> = () => {
               modalWidth={'50%'}
             >
               <form style={{ padding: '20px 0px 10px 0px' }}>
+                <div style={{ padding: '16px', marginBottom: 20, background: '#eee', color: '#CB2431' }}>
+                  Deleting the account deletes all related entities under the account including Projects, Jobs and all
+                  integrations. Please think again!
+                </div>
                 <Field
                   required={true}
                   size="small"
