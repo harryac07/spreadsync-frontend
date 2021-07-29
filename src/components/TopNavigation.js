@@ -104,7 +104,7 @@ class TopNavigation extends Component {
     }
   }
   renderMenuList = (currentMenuOpen) => {
-    const { classes } = this.props;
+    const { classes, isAccountAdmin } = this.props;
     const { accounts } = this.props.app;
     switch (currentMenuOpen) {
       case 'profile':
@@ -209,6 +209,9 @@ class TopNavigation extends Component {
           </Popper>
         );
       case 'add':
+        if (!isAccountAdmin) {
+          return null;
+        }
         return (
           <Popper
             open={Boolean(this.state.currentMenuOpen)}
@@ -246,17 +249,19 @@ class TopNavigation extends Component {
     }
   };
   render() {
-    const { classes } = this.props;
+    const { classes, isAccountAdmin } = this.props;
     const { currentMenuOpen } = this.state;
     const accountNameRaw = toLower(localStorage.getItem('account_name') || '');
     const accountName = accountNameRaw.charAt(0).toUpperCase() + accountNameRaw.substr(1);
     return (
       <ClickAwayListener onClickAway={this.closeOpenedMenu}>
         <Wrapper>
-          <AddIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'add')} />
+          {isAccountAdmin && <AddIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'add')} />}
           <NotificationsNoneIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'notification')} />
           <InfoIcon className={classes.icon} onClick={(e) => this.openMenu(e, 'info')} />
-          <SettingsIcon className={classes.icon} onClick={(e) => this.closeOpenedMenu(e, 'setting')} />
+          {isAccountAdmin && (
+            <SettingsIcon className={classes.icon} onClick={(e) => this.closeOpenedMenu(e, 'setting')} />
+          )}
           <span className={classes.verticalBar} />
           <div className={classes.accountMenuWrapper}>
             <div onClick={(e) => this.openMenu(e, 'profile')} className={classes.accountMenu}>

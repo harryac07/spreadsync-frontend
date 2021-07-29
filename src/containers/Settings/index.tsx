@@ -29,9 +29,15 @@ const Settings: React.FC<Props> = () => {
     };
   });
 
+  const isAccountAdmin = currentAccount?.admin === localStorage.getItem('user_id');
+
   useEffect(() => {
     if (currentAccount?.name && !username) {
       setUsername(currentAccount?.name);
+    }
+
+    if (currentAccount?.name && !isAccountAdmin) {
+      history.push(`/projects`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAccount]);
