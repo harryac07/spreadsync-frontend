@@ -8,7 +8,7 @@ import ContainerWithHeader from 'components/ContainerWithHeader';
 import Button from 'components/common/Button';
 import Field from 'components/common/Field';
 import Modal from 'components/common/ModalWithButton';
-import { updateAccount, deleteAccount } from './api';
+import { updateAccount, deleteAccount, transferAccount } from './api';
 
 import { fetchAllAccountsForUser } from 'containers/Main/action.js';
 
@@ -19,6 +19,9 @@ const Settings: React.FC<Props> = () => {
   const history = useHistory();
   const [openUsernameModal, setOpenUsernameModal] = useState(false);
   const [username, setUsername] = useState('');
+
+  const [openTransferAccountModal, setOpenTransferAccountModal] = useState(false);
+  const [transferingAccountEmail, setTransferingAccountEmail] = useState('');
 
   const [openDeleteAccountModal, setOpenDeleteAccountModal] = useState(false);
   const [deletingAccountUsername, setDeletingAccountUsername] = useState('');
@@ -61,6 +64,7 @@ const Settings: React.FC<Props> = () => {
         dispatch(fetchAllAccountsForUser(currentAccount?.user));
         toast.success('Account username updated successfully!');
         setOpenUsernameModal(false);
+        localStorage.setItem('account_name', username);
       }
     } catch (e) {
       toast.error(`Username change failed! ${e.response?.data?.message ?? ''}`);
@@ -81,6 +85,27 @@ const Settings: React.FC<Props> = () => {
         setOpenDeleteAccountModal(false);
         localStorage.removeItem('account_id');
         localStorage.removeItem('account_name');
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            resolve('ok');
+          }, 1000);
+        });
+      }
+    } catch (e) {
+      toast.error(`Account delete failed! ${e.response?.data?.message ?? ''}`);
+    }
+  };
+
+  const transferAccountOwnership = async (e) => {
+    e.preventDefault();
+    try {
+      if (transferingAccountEmail) {
+        console.log(`transferingAccountEmail ${transferingAccountEmail}`);
+        await transferAccount(currentAccount?.id, { email: transferingAccountEmail });
+        dispatch(fetchAllAccountsForUser(currentAccount?.user));
+        toast.success(`Account ${currentAccount?.name} transferred successfully!`);
+        setOpenTransferAccountModal(false);
+        setTransferingAccountEmail('');
         window.location.replace(`/projects`);
       }
     } catch (e) {
@@ -88,11 +113,17 @@ const Settings: React.FC<Props> = () => {
     }
   };
 
+  const isValidEmail = (emailToCheck) => {
+    // eslint-disable-next-line no-useless-escape
+    return /[\w\d\.-]+@[\w\d\.-]+\.[\w\d\.-]+/.test(emailToCheck);
+  };
+
   return (
     <div className={classes.projectWrapper}>
       <div className={classes.headerWrapper}>
         <div className={classes.headerText}>Settings</div>
       </div>
+      {/* Change username */}
       <div className={classes.content}>
         <ContainerWithHeader padding={20} elevation={1} square={true} headerLeftContent={'Account username'}>
           <div style={{ display: 'flex' }}>
@@ -143,19 +174,36 @@ const Settings: React.FC<Props> = () => {
           )}
         </ContainerWithHeader>
       </div>
+      {/* Delete account */}
       <div className={classes.content} style={{ paddingTop: 0 }}>
         <ContainerWithHeader padding={20} elevation={1} square={true} headerLeftContent={'Danger zone'}>
           <div>Deleting the account is permanent and there is no going back.</div>
-          <Button
-            rootStyle={{ display: 'block', height: 40, marginTop: 16 }}
-            className={classes.deleteAccountButton}
-            variant="outlined"
-            color="default"
-            onClick={() => setOpenDeleteAccountModal(true)}
-            type="submit"
-          >
-            Delete account
-          </Button>
+          <Grid container spacing={2}>
+            <Grid item xs="auto">
+              <Button
+                rootStyle={{ display: 'block', height: 40, marginTop: 16 }}
+                className={classes.deleteAccountButton}
+                variant="outlined"
+                color="default"
+                onClick={() => setOpenDeleteAccountModal(true)}
+                type="submit"
+              >
+                Delete account
+              </Button>
+            </Grid>
+            <Grid item xs="auto">
+              <Button
+                rootStyle={{ display: 'block', height: 40, marginTop: 16 }}
+                className={classes.transferAccountButton}
+                variant="outlined"
+                color="primary"
+                onClick={() => setOpenTransferAccountModal(true)}
+                type="submit"
+              >
+                Transfer ownership
+              </Button>
+            </Grid>
+          </Grid>
           {openDeleteAccountModal && currentAccount?.id && (
             <Modal
               modalTitle={'Delete account permanently'}
@@ -202,6 +250,48 @@ const Settings: React.FC<Props> = () => {
               </form>
             </Modal>
           )}
+          {openTransferAccountModal && currentAccount?.name && (
+            <Modal
+              modalTitle={'Transfer account ownership'}
+              onClose={() => setOpenTransferAccountModal(false)}
+              modalWidth={'50%'}
+            >
+              <form
+                style={{ padding: '20px 0px 10px 0px' }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                }}
+              >
+                <div style={{ padding: '16px', marginBottom: 20, background: '#eee', color: '#CB2431' }}>
+                  Transferring the account ownership transfers all rights to another user permanently. You will no
+                  longer have full control over the account.
+                </div>
+                <Field
+                  required={true}
+                  size="small"
+                  placeholder="User email"
+                  label={'Email of new account owner'}
+                  onChange={(e) => {
+                    e.preventDefault();
+                    setTransferingAccountEmail(e.target.value);
+                  }}
+                  defaultValue={''}
+                  style={{ marginBottom: 12 }}
+                  type="email"
+                />
+                <Button
+                  className={classes.submitButton}
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  onClick={transferAccountOwnership}
+                  disabled={!transferingAccountEmail || !isValidEmail(transferingAccountEmail)}
+                >
+                  Transfer
+                </Button>
+              </form>
+            </Modal>
+          )}
         </ContainerWithHeader>
       </div>
     </div>
@@ -239,6 +329,10 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: 4,
     backgroundColor: '#fff',
     color: 'red',
+  },
+  transferAccountButton: {
+    minWidth: 100,
+    borderRadius: 4,
   },
   submitButton: {
     margin: '20px auto',

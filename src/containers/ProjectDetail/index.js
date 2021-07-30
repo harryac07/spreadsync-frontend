@@ -160,8 +160,8 @@ class ProjectDetail extends React.Component {
   };
 
   hasPermission = (permissionToCheck) => {
-    const { projectPermissions = '' } = this.props;
-    if (projectPermissions.includes('admin')) {
+    const { projectPermissions = '', isAccountAdmin = false } = this.props;
+    if (isAccountAdmin || projectPermissions.includes('admin')) {
       return true;
     }
 

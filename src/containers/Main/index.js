@@ -3,11 +3,12 @@ import { connect } from 'react-redux';
 import moment from 'moment';
 import styled from 'styled-components';
 import { startCase, toLower } from 'lodash';
+import { toast } from 'react-toastify';
 import jwt from 'jsonwebtoken';
 import { Switch, Route } from 'react-router-dom';
 import { fetchAllAccountsForUser, fetchCurrentUser, setSearchKeyword, createAccount } from './action';
 
-import { Button, Paper, Divider, Fade } from '@material-ui/core/';
+import { Button, Paper, Divider, Fade, Chip } from '@material-ui/core/';
 import { withStyles } from '@material-ui/core/styles';
 import { MainWrapper } from 'components/common/MainWrapper';
 import WrapperWithNavigation from 'components/WrapperWithNavigation';
@@ -27,6 +28,7 @@ class Main extends React.Component {
     this.state = {
       loggedIn: false,
       selectedAccount: '',
+      isCreateNewAccountRequested: false,
     };
   }
   componentDidMount() {
@@ -67,6 +69,7 @@ class Main extends React.Component {
     }
   };
   handleSwitchAccount = (each) => {
+    this.setState({ isCreateNewAccountRequested: false });
     this.selectAccount(each);
     this.redirectToProjectPage();
   };
@@ -78,42 +81,85 @@ class Main extends React.Component {
   };
   componentDidUpdate(prevProps) {
     const { accounts, accountCreated } = this.props.app;
+    const { search } = this.props.location;
+    const { history } = this.props;
+    const { isCreateNewAccountRequested } = this.state;
     const { accounts: prevAccounts, accountCreated: prevAccountCreated } = prevProps.app;
+
+    const isUserHaveOwnAccount = accounts.find(({ admin }) => {
+      return admin === localStorage.getItem('user_id');
+    });
+
     /* Redirect to /projects if user is engage to only one account */
     if (accounts !== prevAccounts && accounts.length === 1) {
       this.handleSwitchAccount(accounts[0]);
     }
 
     if (accountCreated !== prevAccountCreated && accountCreated) {
-      this.props.history.push('/projects');
+      this.setState({ isCreateNewAccountRequested: false });
+      toast.success(`User owned new account has been created successfully!`);
+      localStorage.removeItem('account_id');
+      localStorage.removeItem('account_name');
+      history.push('/');
+    }
+
+    if (search?.includes('?create_new_account=true') && !isUserHaveOwnAccount && !isCreateNewAccountRequested) {
+      this.setState({ isCreateNewAccountRequested: true }, () => {
+        history.push({
+          pathname: '/',
+          search: '',
+        });
+      });
     }
   }
   render() {
+    const { isCreateNewAccountRequested } = this.state;
     const { classes, app, setSearchKeyword, history } = this.props;
     const { accounts = [], isAccountFetchSucceed } = app;
     const selectedAccount = localStorage.getItem('account_id');
+    const isUserHaveOwnAccount = accounts.find(({ admin }) => {
+      return admin === localStorage.getItem('user_id');
+    });
 
     /* Render loader? */
-    if (!selectedAccount && accounts.length === 0) {
+    if ((!selectedAccount && accounts.length === 0) || isCreateNewAccountRequested) {
       if (isAccountFetchSucceed) {
         return (
           <Fade in timeout={{ enter: 800 }}>
             <div className={classes.accountSwitcherWrapper}>
               <div style={{ position: 'absolute', top: 20, right: 20 }}>
-                <Button
-                  fullWidth
-                  onClick={() => history.push('/logout')}
-                  variant="contained"
-                  className={classes.button}
-                  color="secondary"
-                  size="small"
-                >
-                  Logout
-                </Button>
+                {isCreateNewAccountRequested ? (
+                  <Button
+                    fullWidth
+                    onClick={() => {
+                      this.setState({ isCreateNewAccountRequested: false });
+                      if (accounts?.length) {
+                        history.push('/projects');
+                      }
+                    }}
+                    variant="contained"
+                    className={classes.button}
+                    color="secondary"
+                    size="small"
+                  >
+                    Cancel
+                  </Button>
+                ) : (
+                  <Button
+                    fullWidth
+                    onClick={() => history.push('/logout')}
+                    variant="contained"
+                    className={classes.button}
+                    color="secondary"
+                    size="small"
+                  >
+                    Logout
+                  </Button>
+                )}
               </div>
               <div>
                 <Paper className={classes.paper} elevation={3}>
-                  <div className={classes.header}>You do not have an active account!</div>
+                  <div className={classes.header}>You do not have your own active account!</div>
                   <LoadingProject>Please create a new one to begin!</LoadingProject>
                 </Paper>
                 <br />
@@ -150,7 +196,8 @@ class Main extends React.Component {
             <Divider light className={classes.divider} />
             <div>
               {accounts.map((each) => {
-                const accountName = startCase(toLower(each.name));
+                const accountName = each.name;
+                const isOwner = each?.admin === localStorage.getItem('user_id');
                 return (
                   <Button
                     key={each.id}
@@ -160,11 +207,24 @@ class Main extends React.Component {
                     className={classes.button}
                     color="secondary"
                   >
-                    {accountName}
+                    {accountName} {isOwner && <Chip color="secondary" label="Owner" size="small" variant="outlined" />}
                   </Button>
                 );
               })}
             </div>
+            {!isUserHaveOwnAccount && (
+              <div>
+                <p>Or</p>
+                <Button
+                  onClick={() => this.setState({ isCreateNewAccountRequested: true })}
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                >
+                  Create new account
+                </Button>
+              </div>
+            )}
           </Paper>
         </div>
       );
@@ -173,13 +233,17 @@ class Main extends React.Component {
     const isAccountAdmin = currentAccount?.admin === localStorage.getItem('user_id');
 
     return (
-      <WrapperWithNavigation handleMainSearch={(text) => setSearchKeyword(text)} isAccountAdmin={isAccountAdmin}>
+      <WrapperWithNavigation
+        handleMainSearch={(text) => setSearchKeyword(text)}
+        isAccountAdmin={isAccountAdmin}
+        isUserHaveOwnAccount={isUserHaveOwnAccount}
+      >
         <Switch>
           <Route
             path="/projects/:id/job/new"
             render={(props) => (
               <MainWrapper nopadding>
-                <JobDetails {...props} />
+                <JobDetails {...{ ...props, isAccountAdmin }} />
               </MainWrapper>
             )}
           />
@@ -187,7 +251,7 @@ class Main extends React.Component {
             path="/projects/:id/job/:jobid"
             render={(props) => (
               <MainWrapper nopadding>
-                <JobDetails {...props} />
+                <JobDetails {...{ ...props, isAccountAdmin }} />
               </MainWrapper>
             )}
           />
@@ -195,7 +259,7 @@ class Main extends React.Component {
             path="/projects/:id"
             render={(props) => (
               <MainWrapper nopadding>
-                <ProjectDetail {...props} />
+                <ProjectDetail {...{ ...props, isAccountAdmin }} />
               </MainWrapper>
             )}
           />
@@ -203,7 +267,7 @@ class Main extends React.Component {
             path="/projects"
             render={(props) => (
               <MainWrapper>
-                <Projects {...props} />
+                <Projects {...{ ...props, isAccountAdmin }} />
               </MainWrapper>
             )}
           />
@@ -211,7 +275,7 @@ class Main extends React.Component {
             path="/profile"
             render={(props) => (
               <MainWrapper nopadding>
-                <Profile {...props} />
+                <Profile {...{ ...props, isAccountAdmin }} />
               </MainWrapper>
             )}
           />

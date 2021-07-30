@@ -35,7 +35,12 @@ class Auth extends React.Component {
     const query = new URLSearchParams(this.props.location.search);
     const token = query.get('token');
     if (token) {
-      this.setState({ queryToken: token, signupStep: 1 });
+      const tokenPayload = jwt.decode(token) || {};
+      if (tokenPayload?.signupWithoutAccount) {
+        this.setState({ queryToken: token, signupStep: 2 });
+      } else {
+        this.setState({ queryToken: token, signupStep: 1 });
+      }
     }
     const view = toLower(path.replace('/', ''));
     if (view === 'logout') {
@@ -71,7 +76,12 @@ class Auth extends React.Component {
   };
 
   handleLoginWithGoogle = ({ code }) => {
-    this.props.login({ authCode: code, auth: 'google' }, 'google');
+    const { queryToken } = this.state;
+    const tokenPayload = jwt.decode(queryToken) || {};
+    this.props.login(
+      { authCode: code, auth: 'google', signupWithoutAccount: tokenPayload?.signupWithoutAccount },
+      'google'
+    );
   };
 
   componentDidUpdate(prevProps, prevState) {

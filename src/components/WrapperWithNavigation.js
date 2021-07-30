@@ -51,7 +51,7 @@ const Navigition = (props) => {
   const classes = useStyles();
 
   /* Mobile responsive menu setup */
-  const { window, isAccountAdmin } = props;
+  const { window, isAccountAdmin, isUserHaveOwnAccount } = props;
   const theme = useTheme();
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
@@ -151,7 +151,7 @@ const Navigition = (props) => {
             />
           </span>
           <TopRightNav>
-            <TopNavigation {...props} />
+            <TopNavigation {...props} isUserHaveOwnAccount={isUserHaveOwnAccount} />
           </TopRightNav>
         </Toolbar>
       </AppBar>

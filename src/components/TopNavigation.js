@@ -11,6 +11,7 @@ import Grow from '@material-ui/core/Grow';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 import MenuList from '@material-ui/core/MenuList';
+import Button from '@material-ui/core/Button';
 
 import PersonIcon from '@material-ui/icons/Person';
 import AccountCircle from '@material-ui/icons/AccountCircle';
@@ -104,7 +105,7 @@ class TopNavigation extends Component {
     }
   }
   renderMenuList = (currentMenuOpen) => {
-    const { classes, isAccountAdmin } = this.props;
+    const { classes, isAccountAdmin, isUserHaveOwnAccount, history } = this.props;
     const { accounts } = this.props.app;
     switch (currentMenuOpen) {
       case 'profile':
@@ -144,6 +145,23 @@ class TopNavigation extends Component {
                     <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'logout')}>
                       <LogoutIcon fontSize={'small'} className={classes.popperIcon} /> Logout
                     </MenuItem>
+                    {!isUserHaveOwnAccount && (
+                      <div>
+                        <hr />
+                        <Button
+                          onClick={() => history.push('/?create_new_account=true')}
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          style={{
+                            textTransform: 'none',
+                          }}
+                        >
+                          <AddIcon fontSize={'small'} className={classes.popperIcon} />
+                          Create new account
+                        </Button>
+                      </div>
+                    )}
                   </MenuList>
                 </Paper>
               </Grow>
