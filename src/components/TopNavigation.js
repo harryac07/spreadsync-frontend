@@ -142,7 +142,11 @@ class TopNavigation extends Component {
                         <SwapAccountIcon fontSize={'small'} className={classes.popperIcon} /> Switch Account
                       </MenuItem>
                     ) : null}
-                    <MenuItem className={classes.popperMenuItem} onClick={(e) => this.closeOpenedMenu(e, 'logout')}>
+                    <MenuItem
+                      style={{ color: 'red' }}
+                      className={classes.popperMenuItem}
+                      onClick={(e) => this.closeOpenedMenu(e, 'logout')}
+                    >
                       <LogoutIcon fontSize={'small'} className={classes.popperIcon} /> Logout
                     </MenuItem>
                     {!isUserHaveOwnAccount && (
