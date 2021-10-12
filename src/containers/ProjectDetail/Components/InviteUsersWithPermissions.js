@@ -6,10 +6,11 @@ import Grid from '@material-ui/core/Grid';
 import Modal from 'components/common/ModalWithButton';
 import Button from 'components/common/Button';
 import Field from 'components/common/Field';
+import Select from 'components/common/Select';
 import MultiSelectDropdown from './MultiSelectDropdown';
 
 import GroupAddIcon from '@material-ui/icons/GroupAdd';
-import { permissions } from 'utils/permissions';
+import { permissions, roles, roleBasedDefaultPermissions } from 'utils/permissions';
 
 const InviteUsersWithPermissions = ({
   onSubmit,
@@ -23,10 +24,12 @@ const InviteUsersWithPermissions = ({
   const classes = useStyles();
 
   const [modelOpen, setModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('');
   const [inviteCount, handleInviteMoreCount] = useState(1); // counting number of users to render Input element
   const [invitedUsers, handleAddInvitationUserChange] = useState({}); // Collecting users to be invited
   const [selectedCount, handleSelectedCount] = useState(0); // Counting users to be invited
   const [isSubmitDisabled, setIsSubmitDisabled] = useState(false);
+  const [currentFocusInput, setCurrentFocusInput] = useState('');
 
   useEffect(() => {
     if (forceClose && modelOpen) {
@@ -43,6 +46,19 @@ const InviteUsersWithPermissions = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValue]);
+
+  useEffect(() => {
+    if (invitedUsers?.[0]?.role && selectedRole) {
+      addUserOrPermission(
+        0,
+        'permission',
+        roleBasedDefaultPermissions?.find((each) => {
+          return each?.role === selectedRole;
+        })?.permissions ?? defaultValue?.permission
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRole, invitedUsers?.[0]?.role]);
 
   const addUserOrPermission = (index, key, value) => {
     let userObj = {};
@@ -64,6 +80,7 @@ const InviteUsersWithPermissions = ({
           {
             ...defaultValue,
             permission: invitedUsers['0']?.permission?.filter((each) => each),
+            role: invitedUsers['0']?.role ?? 'Developer',
           },
         ]
       : Object.values(invitedUsers)?.filter(({ email }) => email);
@@ -116,9 +133,12 @@ const InviteUsersWithPermissions = ({
                     <p className={classes.header} />
                   )}
                   {Array.from(Array(inviteCount).keys()).map((each) => {
+                    const permissionsDefault = defaultValue?.permission?.length
+                      ? defaultValue?.permission
+                      : invitedUsers?.[each]?.permission ?? [];
                     return (
                       <Grid container spacing={2} key={each}>
-                        <Grid item xs={6}>
+                        <Grid item xs={12}>
                           <Field
                             required={false}
                             size="small"
@@ -134,7 +154,48 @@ const InviteUsersWithPermissions = ({
                             disabled={!!defaultValue?.email}
                           />
                         </Grid>
-                        <Grid item xs={6}>
+                        <Grid
+                          item
+                          xs={6}
+                          onMouseEnter={() => {
+                            setCurrentFocusInput('role');
+                          }}
+                          onMouseLeave={() => {
+                            setCurrentFocusInput('');
+                          }}
+                        >
+                          <Select
+                            name="role"
+                            label="Role"
+                            options={roles}
+                            onChange={(e) => {
+                              const role = e.target.value;
+                              addUserOrPermission(each, 'role', role);
+                              if (!defaultValue?.permission?.length) {
+                                setSelectedRole(role);
+                              }
+                            }}
+                            fullWidth={true}
+                            value={invitedUsers?.[each]?.role}
+                            className={classes.select}
+                          />
+                        </Grid>
+                        <Grid
+                          item
+                          xs={6}
+                          key={`${
+                            selectedRole
+                              ? selectedRole +
+                                `${currentFocusInput === 'role' ? permissionsDefault?.join('') : selectedRole}`
+                              : ''
+                          }`}
+                          onMouseEnter={() => {
+                            setCurrentFocusInput('permission');
+                          }}
+                          onMouseLeave={() => {
+                            setCurrentFocusInput('');
+                          }}
+                        >
                           <MultiSelectDropdown
                             onChange={(permissionList) => {
                               const filteredPermission = permissionList?.includes('admin') ? ['admin'] : permissionList;
@@ -143,7 +204,7 @@ const InviteUsersWithPermissions = ({
                             options={permissions}
                             fullWidth
                             defaultLabel="Permissions"
-                            defaultSelectedValues={defaultValue?.permission ?? []}
+                            defaultSelectedValues={permissionsDefault}
                           />
                         </Grid>
                       </Grid>
@@ -197,6 +258,11 @@ const useStyles = makeStyles((theme) => ({
   },
   inviteMoreField: {
     marginBottom: 10,
+  },
+  select: {
+    '& fieldset': {
+      height: 50,
+    },
   },
   submitButton: {
     margin: '20px auto',

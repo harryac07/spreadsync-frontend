@@ -37,10 +37,11 @@ import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CloneIcon from '@material-ui/icons/FileCopy';
 import EditIcon from '@material-ui/icons/Edit';
+import WarningIcon from '@material-ui/icons/Warning';
 
 import Tooltip from '../../components/common/Tooltip';
 import InviteUsersWithPermissions from './Components/InviteUsersWithPermissions';
-import { permissions } from '../../utils/permissions';
+import { permissions, roleBasedDefaultPermissions } from '../../utils/permissions';
 import { getPermissionsForCurrentProject } from 'store/selectors';
 
 class ProjectDetail extends React.Component {
@@ -150,10 +151,11 @@ class ProjectDetail extends React.Component {
   };
   updateProjectMemberPermission = (userInvolvementId, data) => {
     const projectId = this.props?.match?.params?.id;
-    const { permission } = data[0];
+    const { permission, role } = data[0];
 
     const payload = {
       permission,
+      role,
       projectId,
     };
     this.props.updateProjectMember(userInvolvementId, payload);
@@ -185,7 +187,7 @@ class ProjectDetail extends React.Component {
       return true;
     });
 
-    if (!this.hasPermission(['job_all', 'job_read'])) {
+    if (!this.hasPermission(['project_all', 'project_read'])) {
       return (
         <div className={classes.noJobWrapper}>
           <div>
@@ -328,7 +330,6 @@ class ProjectDetail extends React.Component {
     const isCurrentUserProjectAdmin = teamMembers.some(({ user, project_permission }) => {
       return toLower(project_permission).includes('admin') && user === localStorage.getItem('user_id');
     });
-    const defaultPermissionToNewUser = ['project_read', 'job_read', 'user_read'];
     return (
       <Paper elevation={3} className={classes.contentWrapper}>
         <HeaderText className={classes.HeaderText} padding="20px" fontsize={'18px'}>
@@ -341,7 +342,8 @@ class ProjectDetail extends React.Component {
                 forceClose={this.props.projectDetail.isUserInvited}
                 defaultValue={{
                   email: '',
-                  permission: defaultPermissionToNewUser,
+                  role: '',
+                  permission: [],
                 }}
               />
             </div>
@@ -350,28 +352,43 @@ class ProjectDetail extends React.Component {
         <Divider light className={classes.dividers} />
 
         <div className={classes.content}>
-          {this.hasPermission(['user_all', 'user_write', 'user_read']) ? (
+          {this.hasPermission(['project_all', 'project_read']) ? (
             <div>
               <Table className={classes.table} aria-label="simple table">
                 <TableHead>
                   <TableRow>
                     <TableCell>User</TableCell>
                     <TableCell>Is project admin?</TableCell>
+                    <TableCell>Role</TableCell>
                     {isCurrentUserProjectAdmin && <TableCell>Permissions</TableCell>}
                     <TableCell></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {teamMembers.map((row) => {
-                    // permissions
                     const isAdmin = toLower(row.project_permission).includes('admin');
-                    const projectPermissions = row.project_permission?.split(',');
+                    const projectPermissions = row.project_permission ? row.project_permission?.split(',') : [];
+                    const projectRole = row.project_role ?? '';
                     return (
                       <TableRow hover key={row.id}>
                         <TableCell component="th" scope="row">
                           {row.email}
                         </TableCell>
                         <TableCell>{isAdmin ? 'Yes' : 'No'}</TableCell>
+                        <TableCell>
+                          {projectRole}
+                          {isCustomizedPermission(projectRole, projectPermissions) && (
+                            <Tooltip
+                              arrow
+                              placement="top"
+                              title={
+                                'Role is not into action. Permission is customized for the user. To use role based permission, unselect all permissions, save the changes and try to change to the correct Role.'
+                              }
+                            >
+                              <WarningIcon fontSize="small" className={classes.permissionWarning} />
+                            </Tooltip>
+                          )}
+                        </TableCell>
                         {isCurrentUserProjectAdmin && (
                           <TableCell>
                             {projectPermissions?.map((each) => {
@@ -421,6 +438,7 @@ class ProjectDetail extends React.Component {
                               defaultValue={{
                                 email: row.email,
                                 permission: projectPermissions,
+                                role: projectRole,
                               }}
                               ctaButton={<EditIcon fontSize="small" className={classes.teamCtaIcon} />}
                               style={{ display: 'inline-block' }}
@@ -619,6 +637,15 @@ const styles = (theme) => ({
     },
   },
   teamCtaIcon: { fontSize: 18, cursor: 'pointer' },
+  permissionWarning: {
+    position: 'absolute',
+    padding: 5,
+    color: '#ffc107',
+    margin: '-1px -3px',
+    '&:hover': {
+      color: theme.palette.primary.main,
+    },
+  },
 });
 
 export default connect(mapStateToProps, {
@@ -631,6 +658,11 @@ export default connect(mapStateToProps, {
   removeProjectMember,
   updateProjectMember,
 })(withStyles(styles)(ProjectDetail));
+
+const isCustomizedPermission = (userRole, userPermissions = []) => {
+  const neededPermissions = roleBasedDefaultPermissions?.find(({ role }) => role === userRole)?.permissions;
+  return intersection(neededPermissions, userPermissions)?.length !== userPermissions?.length;
+};
 
 export const HeaderText = styled.div`
   font-weight: bold;

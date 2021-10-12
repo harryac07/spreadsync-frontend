@@ -1,5 +1,10 @@
 export const permissions = [
   {
+    label: 'Project Admin',
+    value: 'admin',
+    description: 'Admin of the project. Has all rights under the project.'
+  },
+  {
     label: 'Project read',
     value: 'project_read',
     description: 'Read project including all jobs. This permission must be provided for the user to be able to view the project.'
@@ -54,23 +59,18 @@ export const permissions = [
     value: 'user_all',
     description: 'All permissions related to team members inside the project.'
   },
-  {
-    label: 'Project Admin',
-    value: 'admin',
-    description: 'Admin of the project. Has all rights under the project.'
-  },
 ]
 
 /*  Need to re-think about the roles later. Just a placeholder for now. */
 export const roles = [
   {
     label: 'Admin',
-    value: 'admin',
+    value: 'Admin',
     description: 'Admin'
   },
   {
     label: 'Developer',
-    value: 'developer',
+    value: 'Developer',
     description: 'Developer'
   },
   {
@@ -82,5 +82,24 @@ export const roles = [
     label: 'Guest',
     value: 'Guest',
     description: 'Guest'
+  },
+];
+
+export const roleBasedDefaultPermissions = [
+  {
+    role: 'Admin',
+    permissions: ['admin'],
+  },
+  {
+    role: 'Developer',
+    permissions: ['project_read', 'project_write', 'job_all', 'user_all'],
+  },
+  {
+    role: 'Sales',
+    permissions: ['project_read', 'job_read', 'user_all']
+  },
+  {
+    role: 'Guest',
+    permissions: ['project_read'],
   },
 ]
