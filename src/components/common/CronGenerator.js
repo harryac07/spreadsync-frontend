@@ -8,12 +8,12 @@ import Tab from '@material-ui/core/Tab';
 import Field from 'components/common/Field';
 import Select from 'components/common/Select';
 
-const CronGenerator = props => {
-  const { onChange, defaultUnit = '', defaultValue = 0 } = props;
+const CronGenerator = (props) => {
+  const { onChange, defaultUnit = '', defaultValue = 1 } = props;
   const classes = useStyles();
   const [inputObj, handleInputChange] = useState({
     unit: defaultUnit, // 'hours',
-    value: Number(defaultValue)
+    value: Number(defaultValue),
   });
   const [error, handleError] = useState({});
   const [frequencyOption, setFrequencyOption] = React.useState(0);
@@ -21,15 +21,15 @@ const CronGenerator = props => {
   const handleTabChange = (event, newValue) => {
     setFrequencyOption(newValue);
   };
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     handleInputChange({
       ...inputObj,
-      [name]: value
+      [name]: value,
     });
     handleError({
       ...error,
-      [name]: !value ? `${startCase(toLower(name))} is required` : null
+      [name]: !value ? `${startCase(toLower(name))} is required` : null,
     });
     onChange(e);
   };
@@ -63,10 +63,10 @@ const CronGenerator = props => {
                 error={!!error.unit}
                 placeholder="Unit"
                 options={[
-                  { key: 'Minutes', value: 'minutes', label: 'Minutes' },
+                  // { key: 'Minutes', value: 'minutes', label: 'Minutes' },
                   { key: 'Hours', value: 'hours', label: 'Hours' },
                   { key: 'Days', value: 'days', label: 'Days' },
-                  { key: 'Months', value: 'months', label: 'Months' }
+                  { key: 'Months', value: 'months', label: 'Months' },
                 ]}
                 onChange={handleChange}
                 size="small"
@@ -98,43 +98,43 @@ const CronGenerator = props => {
   );
 };
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   formWrapper: {
-    margin: '10px auto'
+    margin: '10px auto',
   },
   text: {
     position: 'relative',
-    top: 5
+    top: 5,
   },
   label: {
     margin: '0px 0px 5px 0px',
     padding: 0,
-    fontSize: 16
+    fontSize: 16,
   },
   frequencyWrapper: {
     border: '1px solid #bbb',
-    padding: 20
+    padding: 20,
   },
   tabTitle: {
     display: 'block !important',
     '& span': {
       display: 'block !important',
-      fontSize: 16
-    }
+      fontSize: 16,
+    },
   },
   tabTitleButton: {
     paddingLeft: '0px',
     paddingRight: '0px',
     textAlign: 'left',
     textTransform: 'none',
-    marginRight: 10
-  }
+    marginRight: 10,
+  },
 }));
 
 CronGenerator.propTypes = {
   onChange: PropTypes.func.isRequired,
   defaultUnit: PropTypes.string,
-  defaultValue: PropTypes.any
+  defaultValue: PropTypes.any,
 };
 
 export default CronGenerator;

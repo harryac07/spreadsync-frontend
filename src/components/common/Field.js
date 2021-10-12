@@ -49,6 +49,7 @@ const Field = (props) => {
         error={error}
         disabled={disabled}
         extrasmall={extrasmall.toString()}
+        InputProps={{ inputProps: { ...(type === 'number' ? { min: 0 } : {}) } }}
       />
     </div>
   );
