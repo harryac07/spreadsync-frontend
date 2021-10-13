@@ -289,7 +289,7 @@ const useStyles = makeStyles(() => ({
   userCount: {
     verticalAlign: 'middle',
     position: 'relative',
-    top: -8,
+    top: -6,
     paddingLeft: 5,
     fontWeight: 500,
   },
