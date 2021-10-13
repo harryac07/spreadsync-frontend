@@ -17,6 +17,7 @@ import {
   TableRow,
   TableHead,
   Chip,
+  Grid,
 } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import {
@@ -41,6 +42,7 @@ import WarningIcon from '@material-ui/icons/Warning';
 
 import Tooltip from '../../components/common/Tooltip';
 import InviteUsersWithPermissions from './Components/InviteUsersWithPermissions';
+import ProjectSetting from './Components/ProjectSetting';
 import { permissions, roleBasedDefaultPermissions } from '../../utils/permissions';
 import { getPermissionsForCurrentProject } from 'store/selectors';
 
@@ -308,22 +310,7 @@ class ProjectDetail extends React.Component {
       </div>
     );
   };
-  renderProjectSetting = () => {
-    const { classes } = this.props;
-    return (
-      <div>
-        Project setting view.
-        <Divider className={classes.divider} light />
-        <p>Initial ideas: </p>
-        <ul>
-          <li>update and delete projects</li>
-          <li>Invite members to the projects</li>
-          <li>Delete project members</li>
-          <li>Update role of each member of the project</li>
-        </ul>
-      </div>
-    );
-  };
+
   renderProjectMembers = () => {
     const { classes, projectDetail } = this.props;
     const { teamMembers = [] } = projectDetail || {};
@@ -489,7 +476,11 @@ class ProjectDetail extends React.Component {
         </div>
 
         {/* Setting view */}
-        {currentView === 'setting' ? <div>{this.renderProjectSetting()}</div> : null}
+        {currentView === 'setting' && (
+          <div>
+            <ProjectSetting project={project?.[0]} />
+          </div>
+        )}
 
         {/* Job list view */}
         {currentView === 'job' ? (
