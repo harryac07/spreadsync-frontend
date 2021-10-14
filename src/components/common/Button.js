@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import { makeStyles } from '@material-ui/core/styles';
 import { Button as MuiButton } from '@material-ui/core/';
 
 const Button = (props) => {
@@ -19,13 +18,11 @@ const Button = (props) => {
     disabled = false,
   } = props;
 
-  const classes = useStyles();
-
   return (
     <ButtonWrapper float={float} style={rootStyle}>
       <StyledButton
         onClick={onClick}
-        className={classes.classes}
+        className={className}
         color={color}
         variant={variant}
         size={size}
@@ -49,20 +46,6 @@ const StyledButton = styled(MuiButton)`
   text-transform: ${(props) => (props.capital ? 'uppercase' : 'none')};
   line-height: ${(props) => (props.size === 'xs' ? '10px' : 'inherit')};
 `;
-
-const useStyles = makeStyles((theme) => {
-  console.log('theme ', theme);
-  return {
-    projectWrapper: {
-      border: 0,
-      borderRadius: 3,
-      color: '#000',
-      margin: '0 auto',
-      position: 'relative',
-      marginBottom: 0,
-    },
-  };
-});
 
 const ButtonWrapper = styled.div`
   display: block;

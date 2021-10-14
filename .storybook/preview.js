@@ -5,7 +5,11 @@ import { ThemeProvider } from '@material-ui/core/styles';
 
 import theme from '../src/theme/muiTheme';
 
-addDecorator((story) => <ThemeProvider theme={theme}>{story()}</ThemeProvider>);
+addDecorator((story) => (
+  <ThemeProvider theme={theme}>
+    <div style={{ padding: 20 }}>{story()}</div>
+  </ThemeProvider>
+));
 
 export const parameters = {
   actions: { argTypesRegex: '^on[A-Z].*' },

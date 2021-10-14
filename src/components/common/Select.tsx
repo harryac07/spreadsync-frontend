@@ -5,9 +5,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-const Proptypes = require('prop-types');
 
-interface Props {
+export interface Props {
   fullWidth?: boolean;
   required?: boolean;
   size?: 'small' | 'medium' | 'large';
@@ -31,7 +30,7 @@ interface Props {
     label: string;
   }[];
 }
-const Select: React.FC<Props> = props => {
+const Select: React.FC<Props> = (props) => {
   const {
     fullWidth = true,
     required = false,
@@ -51,7 +50,7 @@ const Select: React.FC<Props> = props => {
 
     disabled = false,
     autoWidth = false,
-    options = []
+    options = [],
   } = props;
 
   return (
@@ -75,7 +74,7 @@ const Select: React.FC<Props> = props => {
           extrasmall={extrasmall.toString()}
           input={<StyledOutlinedInput />}
         >
-          {options.map(option => {
+          {options.map((option) => {
             return (
               <MenuItem key={option.label} value={option.value}>
                 {option.label}
@@ -108,9 +107,9 @@ const TopLabel = styled.div`
 `;
 
 const StyledSelect = styled(MuiSelect)`
-  height: ${props => (props.extrasmall === 'true' ? '40px' : 'inherit')};
+  height: ${(props) => (props.extrasmall === 'true' ? '40px' : 'inherit')};
 `;
 
 const StyledOutlinedInput = styled(OutlinedInput)`
-  font-size: ${props => (props.extrasmall === 'true' ? '18px !important' : 'none')};
+  font-size: ${(props) => (props.extrasmall === 'true' ? '18px !important' : 'none')};
 `;

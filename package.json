@@ -48,11 +48,21 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "storybook": "start-storybook -p 9009 -s public",
+    "storybook": "start-storybook -p 6006 -s public",
     "build-storybook": "build-storybook -s public"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "overrides": [
+      {
+        "files": [
+          "**/*.stories.*"
+        ],
+        "rules": {
+          "import/no-anonymous-default-export": "off"
+        }
+      }
+    ]
   },
   "browserslist": {
     "production": [
@@ -67,12 +77,13 @@
     ]
   },
   "devDependencies": {
-    "@storybook/addon-actions": "^6.2.2",
-    "@storybook/addon-essentials": "^6.3.11",
-    "@storybook/addon-links": "^6.2.2",
+    "@storybook/addon-actions": "^6.3.12",
+    "@storybook/addon-essentials": "^6.3.12",
+    "@storybook/addon-links": "^6.3.12",
     "@storybook/addons": "^6.2.2",
-    "@storybook/preset-create-react-app": "^3.1.7",
-    "@storybook/react": "^6.2.2",
+    "@storybook/node-logger": "^6.3.12",
+    "@storybook/preset-create-react-app": "^3.2.0",
+    "@storybook/react": "^6.3.12",
     "@types/lodash": "^4.14.168",
     "redux-devtools-extension": "^2.13.9"
   }
