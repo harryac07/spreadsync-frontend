@@ -17,7 +17,6 @@ const Button = (props) => {
     rootStyle,
     disabled = false,
   } = props;
-
   return (
     <ButtonWrapper float={float} style={rootStyle}>
       <StyledButton
@@ -45,6 +44,7 @@ const StyledButton = styled(MuiButton)`
   font-size: ${(props) => (props.size === 'xs' ? '14px' : 'inherit')};
   text-transform: ${(props) => (props.capital ? 'uppercase' : 'none')};
   line-height: ${(props) => (props.size === 'xs' ? '10px' : 'inherit')};
+  background: ${(props) => (props.disabled ? '#ccc' : 'auto')};
 `;
 
 const ButtonWrapper = styled.div`

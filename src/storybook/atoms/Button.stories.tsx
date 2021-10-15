@@ -5,7 +5,7 @@ import Button from '../../components/common/Button';
 
 export type ButtonColorProps = 'primary' | 'secondary' | 'white' | 'error';
 export type SizeProps = 'large' | 'medium' | 'small' | 'xs';
-interface Props {
+export interface Props {
   color?: ButtonColorProps;
   size?: SizeProps;
   disabled?: boolean;

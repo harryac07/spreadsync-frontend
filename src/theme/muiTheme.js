@@ -69,9 +69,21 @@ const theme = createMuiTheme({
         fontSize: 16,
         fontWeight: 500,
         borderRadius: 'none',
+        '&.MuiButton-outlinedError': {
+          color: colors.error,
+        },
       },
       containedSecondary: {
         color: '#fff',
+      },
+      outlinedPrimary: {
+        color: colors.primary,
+      },
+      outlinedSecondary: {
+        color: colors.secondary,
+      },
+      outlinedError: {
+        color: colors.error,
       },
     },
     MuiFormHelperText: {

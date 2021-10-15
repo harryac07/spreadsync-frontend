@@ -8,6 +8,7 @@ import ContainerWithHeader from 'components/ContainerWithHeader';
 import Button from 'components/common/Button';
 import Field from 'components/common/Field';
 import Modal from 'components/common/ModalWithButton';
+import DialogWithConfirmation from 'components/common/InputConfirmationDialog';
 import { updateAccount, deleteAccount, transferAccount } from './api';
 
 import { fetchAllAccountsForUser } from 'containers/Main/action.js';
@@ -20,12 +21,6 @@ const Settings: React.FC<Props> = () => {
   const [openUsernameModal, setOpenUsernameModal] = useState(false);
   const [username, setUsername] = useState('');
 
-  const [openTransferAccountModal, setOpenTransferAccountModal] = useState(false);
-  const [transferingAccountEmail, setTransferingAccountEmail] = useState('');
-
-  const [openDeleteAccountModal, setOpenDeleteAccountModal] = useState(false);
-  const [deletingAccountUsername, setDeletingAccountUsername] = useState('');
-  const [verifyDeletingText, setVerifyDeletingText] = useState('');
   const { currentAccount } = useSelector((states: any) => {
     return {
       currentAccount: states.app.accounts?.find(({ id }) => id === localStorage.getItem('account_id')),
@@ -71,51 +66,38 @@ const Settings: React.FC<Props> = () => {
     }
   };
 
-  const deleteAccountPermanently = async (e) => {
-    e.preventDefault();
+  const deleteAccountPermanently = async (accountName) => {
     try {
-      if (
-        deletingAccountUsername &&
-        deletingAccountUsername === currentAccount?.name &&
-        deletingAccountUsername === verifyDeletingText
-      ) {
+      if (accountName && accountName === currentAccount?.name) {
         await deleteAccount(currentAccount?.id);
         dispatch(fetchAllAccountsForUser(currentAccount?.user));
         toast.success(`Account ${currentAccount?.name} deleted successfully!`);
-        setOpenDeleteAccountModal(false);
         localStorage.removeItem('account_id');
         localStorage.removeItem('account_name');
         await new Promise((resolve) => {
           setTimeout(() => {
             resolve('ok');
-          }, 1000);
+          }, 300);
         });
+        history.push(`/projects`);
       }
     } catch (e) {
       toast.error(`Account delete failed! ${e.response?.data?.message ?? ''}`);
     }
   };
 
-  const transferAccountOwnership = async (e) => {
-    e.preventDefault();
+  const transferAccountOwnership = async (email) => {
     try {
-      if (transferingAccountEmail) {
-        console.log(`transferingAccountEmail ${transferingAccountEmail}`);
-        await transferAccount(currentAccount?.id, { email: transferingAccountEmail });
+      if (email) {
+        console.log(`Transfering account to: ${email}`);
+        await transferAccount(currentAccount?.id, { email: email });
         dispatch(fetchAllAccountsForUser(currentAccount?.user));
         toast.success(`Account ${currentAccount?.name} transferred successfully!`);
-        setOpenTransferAccountModal(false);
-        setTransferingAccountEmail('');
         window.location.replace(`/projects`);
       }
     } catch (e) {
       toast.error(`Account delete failed! ${e.response?.data?.message ?? ''}`);
     }
-  };
-
-  const isValidEmail = (emailToCheck) => {
-    // eslint-disable-next-line no-useless-escape
-    return /[\w\d\.-]+@[\w\d\.-]+\.[\w\d\.-]+/.test(emailToCheck);
   };
 
   return (
@@ -174,124 +156,51 @@ const Settings: React.FC<Props> = () => {
           )}
         </ContainerWithHeader>
       </div>
-      {/* Delete account */}
       <div className={classes.content} style={{ paddingTop: 0 }}>
         <ContainerWithHeader padding={20} elevation={1} square={true} headerLeftContent={'Danger zone'}>
           <div>Deleting the account is permanent and there is no going back.</div>
           <Grid container spacing={2}>
+            {/* Delete account */}
             <Grid item xs="auto">
-              <Button
-                rootStyle={{ display: 'block', height: 40, marginTop: 16 }}
-                className={classes.deleteAccountButton}
-                variant="outlined"
-                color="default"
-                onClick={() => setOpenDeleteAccountModal(true)}
-                type="submit"
-              >
-                Delete account
-              </Button>
+              <DialogWithConfirmation
+                buttonProps={{
+                  rootStyle: { display: 'block', height: 40, marginTop: 16 },
+                  variant: 'outlined',
+                  color: 'error',
+                }}
+                title={'Delete account permanently'}
+                alertMessage={
+                  'Deleting the account deletes all related entities under the account including Projects, Jobs and all integrations. Please think again!'
+                }
+                label={'Account name'}
+                placeholder={'Type account name'}
+                valueToCheck={currentAccount?.name}
+                ctaButtonText="Delete account"
+                confirmText={'Delete'}
+                onConfirm={(accountName) => deleteAccountPermanently(accountName)}
+              />
             </Grid>
+            {/* Transfer ownership */}
             <Grid item xs="auto">
-              <Button
-                rootStyle={{ display: 'block', height: 40, marginTop: 16 }}
-                className={classes.transferAccountButton}
-                variant="outlined"
-                color="primary"
-                onClick={() => setOpenTransferAccountModal(true)}
-                type="submit"
-              >
-                Transfer ownership
-              </Button>
+              <DialogWithConfirmation
+                buttonProps={{
+                  rootStyle: { display: 'block', height: 40, marginTop: 16 },
+                  variant: 'outlined',
+                  color: 'primary',
+                }}
+                title={'Transfer account ownership'}
+                alertMessage={
+                  'Transferring the account ownership transfers all rights to another user permanently. You will no longer have full control over the account.'
+                }
+                label={'Email of new account owner'}
+                placeholder={'Owner email'}
+                type="email"
+                ctaButtonText="Transfer ownership"
+                confirmText={'Transfer'}
+                onConfirm={(email) => transferAccountOwnership(email)}
+              />
             </Grid>
           </Grid>
-          {openDeleteAccountModal && currentAccount?.id && (
-            <Modal
-              modalTitle={'Delete account permanently'}
-              onClose={() => setOpenDeleteAccountModal(false)}
-              modalWidth={'50%'}
-            >
-              <form style={{ padding: '20px 0px 10px 0px' }}>
-                <div style={{ padding: '16px', marginBottom: 20, background: '#eee', color: '#CB2431' }}>
-                  Deleting the account deletes all related entities under the account including Projects, Jobs and all
-                  integrations. Please think again!
-                </div>
-                <Field
-                  required={true}
-                  size="small"
-                  placeholder="Type username"
-                  label={'Account name'}
-                  onChange={(e) => setDeletingAccountUsername(e.target.value)}
-                  defaultValue={''}
-                  style={{ marginBottom: 12 }}
-                />
-                <Field
-                  required={true}
-                  size="small"
-                  placeholder="Type account name again"
-                  label={'Repeat account name'}
-                  onChange={(e) => setVerifyDeletingText(e.target.value)}
-                  defaultValue={''}
-                  style={{ marginBottom: 12 }}
-                />
-                <Button
-                  className={classes.submitButton}
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  onClick={deleteAccountPermanently}
-                  disabled={
-                    !deletingAccountUsername ||
-                    deletingAccountUsername !== currentAccount?.name ||
-                    deletingAccountUsername !== verifyDeletingText
-                  }
-                >
-                  Delete
-                </Button>
-              </form>
-            </Modal>
-          )}
-          {openTransferAccountModal && currentAccount?.name && (
-            <Modal
-              modalTitle={'Transfer account ownership'}
-              onClose={() => setOpenTransferAccountModal(false)}
-              modalWidth={'50%'}
-            >
-              <form
-                style={{ padding: '20px 0px 10px 0px' }}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                <div style={{ padding: '16px', marginBottom: 20, background: '#eee', color: '#CB2431' }}>
-                  Transferring the account ownership transfers all rights to another user permanently. You will no
-                  longer have full control over the account.
-                </div>
-                <Field
-                  required={true}
-                  size="small"
-                  placeholder="User email"
-                  label={'Email of new account owner'}
-                  onChange={(e) => {
-                    e.preventDefault();
-                    setTransferingAccountEmail(e.target.value);
-                  }}
-                  defaultValue={''}
-                  style={{ marginBottom: 12 }}
-                  type="email"
-                />
-                <Button
-                  className={classes.submitButton}
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  onClick={transferAccountOwnership}
-                  disabled={!transferingAccountEmail || !isValidEmail(transferingAccountEmail)}
-                >
-                  Transfer
-                </Button>
-              </form>
-            </Modal>
-          )}
         </ContainerWithHeader>
       </div>
     </div>
