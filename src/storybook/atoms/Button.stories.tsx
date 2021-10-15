@@ -51,7 +51,7 @@ const argTypes = {
 };
 
 export default {
-  title: 'Components/Button',
+  title: 'Components/Atoms/Button',
   component: Button,
   argTypes: argTypes,
 } as Meta<Props>;

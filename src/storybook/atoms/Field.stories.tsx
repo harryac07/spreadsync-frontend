@@ -41,7 +41,7 @@ const argTypes = {
 };
 
 export default {
-  title: 'Components/Field',
+  title: 'Components/Atoms/Field',
   component: Field,
   argTypes: argTypes,
 } as Meta<Props>;

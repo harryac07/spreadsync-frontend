@@ -30,7 +30,7 @@ const options = [
 ];
 
 export default {
-  title: 'Components/Select',
+  title: 'Components/Atoms/Select',
   component: Select,
   argTypes: argTypes,
 } as Meta<Props>;
