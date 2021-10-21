@@ -16,6 +16,7 @@ import Projects from 'containers/Projects';
 import ProjectDetail from 'containers/ProjectDetail';
 import JobDetails from 'containers/ProjectJobDetails';
 import Profile from 'containers/Profile';
+import Workflow from 'containers/Workflow';
 import Settings from 'containers/Settings';
 import SelectAccountForm from 'containers/Auth/Components/SelectAccountForm';
 
@@ -268,6 +269,14 @@ class Main extends React.Component {
             render={(props) => (
               <MainWrapper>
                 <Projects {...{ ...props, isAccountAdmin }} />
+              </MainWrapper>
+            )}
+          />
+          <Route
+            path="/workflow"
+            render={(props) => (
+              <MainWrapper>
+                <Workflow {...{ ...props, isAccountAdmin }} />
               </MainWrapper>
             )}
           />
