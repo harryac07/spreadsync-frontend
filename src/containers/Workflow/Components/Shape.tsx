@@ -4,44 +4,50 @@ import { Tooltip, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import AddCircle from '@material-ui/icons/AddCircle';
 
+type BlockTypes = 'series' | 'parallel' | 'end';
 type Props = {
   type: 'rectangle' | 'oval' | 'circle';
   isDottedBorder?: boolean;
   content?: React.ReactNode;
-  onBlockSelect?: (block: 'series' | 'parallel' | 'end') => void;
+  onBlockSelect?: (block: BlockTypes) => void;
+  blocks: BlockTypes[];
   isEndBlock?: boolean;
   withPlusIcon?: boolean;
+  label?: string;
+  onDelete?: () => void;
 };
-
-const BLOCKS = ['Series', 'Parallel', 'End'];
 
 const Shape: React.FC<Props> = ({
   type,
   isDottedBorder = false,
   content = '',
   onBlockSelect,
+  onDelete,
+  blocks = [],
   isEndBlock,
   withPlusIcon = true,
+  label,
 }) => {
   return (
     <>
       <Container showStem={!isEndBlock}>
-        {type === 'oval' && (
-          <Oval isDottedBorder={isDottedBorder}>
-            <div>{content}</div>
-          </Oval>
-        )}
-        {type === 'rectangle' && (
-          <Rectangle isDottedBorder={isDottedBorder}>
-            <div>{content}</div>
-            {/* <Stem isDottedBorder={isDottedBorder}>
-            {withPlusIcon && <ActionWithTooltip onBlockSelect={onBlockSelect} />}
-          </Stem> */}
-          </Rectangle>
-        )}
+        <div style={{ position: 'relative' }}>
+          {label && <Label>{label}</Label>}
+          {onDelete ? <Delete onClick={() => onDelete()}>x</Delete> : null}
+          {type === 'oval' && (
+            <Oval isDottedBorder={isDottedBorder}>
+              <div>{content}</div>
+            </Oval>
+          )}
+          {type === 'rectangle' && (
+            <Rectangle isDottedBorder={isDottedBorder}>
+              <div>{content}</div>
+            </Rectangle>
+          )}
+        </div>
         {!isEndBlock && (
           <Stem isDottedBorder={isDottedBorder}>
-            {withPlusIcon && <ActionWithTooltip onBlockSelect={onBlockSelect} />}
+            {withPlusIcon && <ActionWithTooltip onBlockSelect={onBlockSelect} blocks={blocks} />}
           </Stem>
         )}
       </Container>
@@ -51,7 +57,7 @@ const Shape: React.FC<Props> = ({
 
 export default Shape;
 
-const ActionWithTooltip = ({ onBlockSelect }) => {
+const ActionWithTooltip = ({ onBlockSelect, blocks }) => {
   const classes = useStyles();
   const [showDialog, setShowDialog] = useState(false);
   return (
@@ -63,7 +69,7 @@ const ActionWithTooltip = ({ onBlockSelect }) => {
       title={
         <div className={classes.tooltipTitle}>
           <div>Add block</div>
-          {BLOCKS.map((each) => {
+          {blocks?.map((each) => {
             return (
               <Button
                 size="small"
@@ -143,7 +149,7 @@ const Container = styled.div`
 
 const Stem = styled.div`
   position: absolute;
-  bottom: calc(0px - 50px);
+  bottom: calc(0px - 45px);
   margin-left: 20px;
   z-index: 1;
 `;
@@ -179,5 +185,19 @@ const StyledAddCircle = styled(AddCircle)`
   background: #0a0a0a;
   border-radius: 25px;
   cursor: pointer;
-  margin: -22px;
+  margin: 0px -22px;
+`;
+
+const Label = styled.span`
+  position: absolute;
+  top: -14px;
+  left: 0px;
+  font-size: 11px;
+`;
+
+const Delete = styled.span`
+  position: absolute;
+  top: -9px;
+  right: -3px;
+  font-size: 13px;
 `;

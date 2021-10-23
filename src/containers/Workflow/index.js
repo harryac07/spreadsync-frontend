@@ -49,12 +49,20 @@ const initialJobs = [
   },
 ];
 
+const starterBlock = {
+  [String(0)]: {
+    step: '0',
+    block: 'start',
+    values: [],
+  },
+};
+
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       allJobs: initialJobs,
-      workflow: {},
+      workflow: starterBlock,
     };
   }
   onDragStart = (start) => {};
@@ -75,7 +83,6 @@ class App extends React.Component {
       if (sourceStep === destinationStep) {
         return;
       }
-
       // Remove job id from source step
       const sourceWorkflow = this.state.workflow?.[sourceStep] ?? {};
       const sourceValues = sourceWorkflow?.values?.filter((each) => each !== draggableId) ?? [];
@@ -136,6 +143,47 @@ class App extends React.Component {
       }),
     });
   };
+  handleStepSelect = (block) => {
+    const { workflow } = this.state;
+    const availableSteps = Object.keys(this.state.workflow);
+    const highestKey = Math.max(...(availableSteps || [0]));
+    const setupBlocks = Object.values(workflow)?.map(({ block }) => block) ?? [];
+
+    if (setupBlocks?.includes('end')) {
+      // push end block to the end
+      this.setState({
+        workflow: {
+          ...workflow,
+          [String(highestKey)]: {
+            step: String(highestKey),
+            block: block,
+          },
+          [String(highestKey + 1)]: {
+            step: String(highestKey + 1),
+            block: 'end',
+          },
+        },
+      });
+    } else {
+      this.setState({
+        workflow: {
+          ...workflow,
+          [String(highestKey + 1)]: {
+            step: String(highestKey + 1),
+            block: block,
+          },
+        },
+      });
+    }
+  };
+  handleStepDelete = (step) => {
+    const { [step]: objsToRemoveFromWorkflow, ...restObj } = this.state.workflow;
+    const jobIds = objsToRemoveFromWorkflow?.values ?? [];
+    this.setState({
+      workflow: restObj,
+      allJobs: [...this.state.allJobs, ...initialJobs.filter(({ id }) => jobIds.includes(id))],
+    });
+  };
   render() {
     const { allJobs, workflow } = this.state;
     const formattedWorkflow = Object.keys(workflow).map((step) => {
@@ -152,10 +200,15 @@ class App extends React.Component {
       <DragDropContext onDragEnd={this.onDragEnd} onDragStart={this.onDragStart}>
         <Grid container spacing={2}>
           <Grid item xs={9}>
-            <Workflow isDropDisabled={false} workflow={keyBy(formattedWorkflow, 'step')} />
+            <Workflow
+              isDropDisabled={false}
+              handleStepDelete={this.handleStepDelete}
+              handleStepSelect={this.handleStepSelect}
+              workflow={keyBy(formattedWorkflow, 'step')}
+            />
           </Grid>
           <Grid item xs={3}>
-            <ColumnJobs isDropDisabled={true} jobs={allJobs} />;
+            <ColumnJobs isDropDisabled={true} jobs={allJobs} />
           </Grid>
         </Grid>
       </DragDropContext>
