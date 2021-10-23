@@ -35,10 +35,6 @@ const routesWithIcons = [
     icon: <AssignmentIcon />,
   },
   {
-    name: 'Workflow',
-    icon: <AssignmentIcon />,
-  },
-  {
     name: 'Statistics',
     icon: <StatisticsIcon />,
   },
@@ -73,17 +69,14 @@ const Navigition = (props) => {
   if (pathname.includes('projects')) {
     activeTabOnPageLoad = 1;
   }
-  if (pathname.includes('workflow')) {
+  if (pathname.includes('statistics')) {
     activeTabOnPageLoad = 2;
   }
-  if (pathname.includes('statistics')) {
+  if (pathname.includes('profile')) {
     activeTabOnPageLoad = 3;
   }
-  if (pathname.includes('profile')) {
-    activeTabOnPageLoad = 4;
-  }
   if (pathname.includes('setting')) {
-    activeTabOnPageLoad = 5;
+    activeTabOnPageLoad = 4;
   }
   const activeTabFinal = activeTab > 0 && activeTab === activeTabOnPageLoad ? activeTab : activeTabOnPageLoad;
 

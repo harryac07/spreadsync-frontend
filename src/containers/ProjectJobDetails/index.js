@@ -15,6 +15,7 @@ import ExportIcon from '@material-ui/icons/FlashOn';
 import useProjectJobsHooks from './hooks/useProjectJobsHooks';
 import Button from 'components/common/Button';
 import ConfirmDialog from 'components/common/ConfirmDialog';
+import SubNavWithBreadcrumb from 'components/common/SubNavWithBreadcrumb';
 
 import { ProjectJobContextProvider } from './context';
 import DataSourceConnector from './Components/AddDataSource';
@@ -112,19 +113,12 @@ const CreateNewJob = (props) => {
 
   return (
     <div>
-      <div className={classes.headerWrapper}>
-        <div>
-          <div className={classes.jobNavHeader} display="inline-block">
-            <span className={classes.projectClickable} onClick={() => props.history.push(`/projects/${id}`)}>
-              {projectName}
-            </span>
-            <span style={{ fontSize: 20 }}>
-              {' '}
-              {'>'} job {'>'} {truncatedJobName}
-            </span>
-          </div>{' '}
-        </div>
-      </div>
+      <SubNavWithBreadcrumb
+        mainTitle={projectName}
+        onTitleClick={() => props.history.push(`/projects/${id}`)}
+        subPage="job"
+        subPageName={truncatedJobName}
+      />
 
       {/* Add new job form and summary */}
       <div>

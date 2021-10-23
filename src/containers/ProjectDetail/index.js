@@ -18,6 +18,8 @@ import {
   TableHead,
   Chip,
   Grid,
+  Tabs,
+  Tab,
 } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import {
@@ -43,8 +45,10 @@ import WarningIcon from '@material-ui/icons/Warning';
 import Tooltip from '../../components/common/Tooltip';
 import InviteUsersWithPermissions from './Components/InviteUsersWithPermissions';
 import ProjectSetting from './Components/ProjectSetting';
+import Workflow from './Components/Workflow';
 import { permissions, roleBasedDefaultPermissions } from '../../utils/permissions';
 import { getPermissionsForCurrentProject } from 'store/selectors';
+import ContainerWithHeader from 'components/ContainerWithHeader';
 
 class ProjectDetail extends React.Component {
   constructor(props) {
@@ -54,6 +58,7 @@ class ProjectDetail extends React.Component {
       newJobInput: {},
       page: 0,
       rowsPerPage: 10,
+      currentTab: 0,
     };
   }
   componentDidMount() {
@@ -445,13 +450,17 @@ class ProjectDetail extends React.Component {
       </Paper>
     );
   };
+  handleTabChange = (event, newValue) => {
+    event.preventDefault();
+    this.setState({ currentTab: newValue });
+  };
   render() {
     const { classes, projectDetail, history } = this.props;
 
     const { project, jobs = [] } = projectDetail;
-    const { currentView } = this.state;
+    const { currentView, currentTab } = this.state;
 
-    const { name, total_members } = project[0] || {};
+    const { id, name, total_members } = project[0] || {};
     const projectName = startCase(toLower(name));
 
     return (
@@ -481,41 +490,77 @@ class ProjectDetail extends React.Component {
             <ProjectSetting project={project?.[0]} />
           </div>
         )}
-
-        {/* Job list view */}
-        {currentView === 'job' ? (
-          <React.Fragment>
-            {/* Jobs view */}
-            <Paper elevation={3} className={classes.contentWrapper}>
-              <HeaderText className={classes.HeaderText} fontsize={'18px'} padding="20px" display="inline-block">
-                Jobs ({jobs.length})
-                {this.hasPermission(['job_all', 'job_write']) && (
-                  <div style={{ textAlign: 'right', display: 'inline-block', position: 'absolute', right: 52 }}>
-                    <Button
-                      startIcon={<AddIcon className={classes.iconSmall} />}
-                      size="xs"
-                      onClick={() => {
-                        localStorage.setItem('current_project', this.props.match.params.id);
-                        localStorage.removeItem('new_job_object');
-                        history.push(`job/new`);
-                      }}
-                    >
-                      Create job
-                    </Button>
-                  </div>
-                )}
-              </HeaderText>
-              <Divider light className={classes.dividers} />
-
-              <div className={classes.content}>
-                <div>{this.renderJobs()}</div>
-              </div>
-            </Paper>
-
-            {/* Team members view */}
-            {this.renderProjectMembers()}
-          </React.Fragment>
-        ) : null}
+        <div className={classes.contentWrapper}>
+          {/* Job list view */}
+          {currentView === 'job' ? (
+            <React.Fragment>
+              <Paper square={true} style={{ marginBottom: 8 }}>
+                <Tabs value={currentTab} indicatorColor="primary" textColor="primary" onChange={this.handleTabChange}>
+                  <Tab
+                    className={classes.tab}
+                    label={<ContainerWithHeader headerRightContent={null} headerLeftContent={<>Jobs</>} />}
+                  />
+                  <Tab label={<ContainerWithHeader headerRightContent={null} headerLeftContent={<>Workflow</>} />} />
+                </Tabs>
+              </Paper>
+              {currentTab === 0 && (
+                <ContainerWithHeader
+                  padding={20}
+                  elevation={1}
+                  headerLeftContent={<>Total jobs ({jobs.length})</>}
+                  headerRightContent={
+                    <>
+                      {this.hasPermission(['job_all', 'job_write']) && (
+                        <Button
+                          startIcon={<AddIcon className={classes.iconSmall} />}
+                          size="xs"
+                          onClick={() => {
+                            localStorage.setItem('current_project', this.props.match.params.id);
+                            localStorage.removeItem('new_job_object');
+                            history.push(`job/new`);
+                          }}
+                        >
+                          Create job
+                        </Button>
+                      )}
+                    </>
+                  }
+                  square={true}
+                >
+                  {/* Jobs view */}
+                  {this.renderJobs()}
+                </ContainerWithHeader>
+              )}
+              {currentTab === 1 && (
+                <ContainerWithHeader
+                  padding={20}
+                  elevation={1}
+                  headerLeftContent={<>Workflow({[].length})</>}
+                  headerRightContent={
+                    <>
+                      {this.hasPermission(['job_all', 'job_write']) && (
+                        <Button
+                          startIcon={<AddIcon className={classes.iconSmall} />}
+                          size="xs"
+                          onClick={() => {
+                            history.push(`/projects/${id}/workflow/new`);
+                          }}
+                        >
+                          Create workflow
+                        </Button>
+                      )}
+                    </>
+                  }
+                  square={true}
+                >
+                  {/* Workflow table view */}
+                </ContainerWithHeader>
+              )}
+            </React.Fragment>
+          ) : null}
+        </div>
+        {/* Team members view */}
+        {currentView === 'job' && this.renderProjectMembers()}
       </div>
     );
   }
