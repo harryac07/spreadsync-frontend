@@ -51,7 +51,7 @@ const App = (props) => {
     if (projectId && !jobs?.length) {
       dispatch(fetchAllJobsForProject(projectId));
     }
-    if (projectId && !project?.length) {
+    if (!workflowId && projectId && !project?.length) {
       dispatch(fetchProjectById(projectId));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,19 +66,20 @@ const App = (props) => {
   // Update the default values
   useEffect(() => {
     if (currentWorkflow?.length) {
+      const { workflow: workflowFromBE, name } = currentWorkflow?.[0] ?? {};
       setWorkflow({
         0: starterBlock['0'],
-        ...keyBy(currentWorkflow, 'step'),
+        ...keyBy(workflowFromBE, 'step'),
 
-        [String(currentWorkflow?.length + 1)]: {
+        [String(workflowFromBE?.length + 1)]: {
           ...starterBlock['1'],
-          step: String(currentWorkflow?.length + 1),
+          step: String(workflowFromBE?.length + 1),
         },
       });
-      setWorkflowName(currentWorkflow?.[0]?.workflow_name ?? '');
+      setWorkflowName(name);
 
-      if (jobs.length && currentWorkflow?.length) {
-        const setValues = currentWorkflow?.reduce((prev, currentWorkflow) => {
+      if (jobs.length) {
+        const setValues = workflowFromBE?.reduce((prev, currentWorkflow) => {
           return [...prev, ...currentWorkflow?.values];
         }, []);
         setAvailableJobs(
@@ -235,9 +236,10 @@ const App = (props) => {
   });
 
   const { history } = props;
+  const { name } = project[0] || {};
+  const projectNameFromWorkflowPayload = currentWorkflow?.[0]?.project_name;
 
-  const { id, name } = project[0] || {};
-  const projectName = startCase(toLower(name));
+  const projectName = startCase(toLower(name || projectNameFromWorkflowPayload));
   const setupBlocks = getSetupStepBlocks();
   const emptyBlocksCount = getEmptySteps()?.length;
   const isButtonDisabled = !(
@@ -251,7 +253,7 @@ const App = (props) => {
     <div className={classes.wrapper}>
       <SubNavWithBreadcrumb
         mainTitle={projectName}
-        onTitleClick={() => history.push(`/projects/${id}`)}
+        onTitleClick={() => history.push(`/projects/${projectId}`)}
         subPage="workflow"
         subPageName={workflowId ? workflowName : 'new'}
       />

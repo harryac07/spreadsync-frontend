@@ -495,7 +495,7 @@ class ProjectDetail extends React.Component {
                 <ContainerWithHeader
                   padding={20}
                   elevation={1}
-                  headerLeftContent={<>Total Workflows ({[].length})</>}
+                  headerLeftContent={<>Total Workflows ({workflows.length})</>}
                   headerRightContent={
                     <>
                       {this.hasPermission(['job_all', 'job_write']) && (
@@ -516,22 +516,20 @@ class ProjectDetail extends React.Component {
                   {/* Workflow table view */}
                   <TableWithPagination
                     primaryKey="id"
-                    headers={['Name', 'Jobs count']}
-                    options={workflows?.map(({ project, workflow }) => {
+                    headers={['Name', 'Jobs Count', 'Created By']}
+                    options={workflows?.map(({ id, name, project, workflow, created_by }) => {
                       const totalJobsInWorkflows = workflow?.reduce((prev, currentWorkflow) => {
                         return [...prev, ...currentWorkflow?.values];
                       }, []);
                       return {
-                        id: workflow?.[0]?.workflow_id,
+                        id: id,
                         name: (
-                          <Link
-                            to={`/projects/${project}/workflow/${workflow?.[0]?.workflow_id}`}
-                            className={classes.jobName}
-                          >
-                            {workflow?.[0]?.workflow_name}
+                          <Link to={`/projects/${project}/workflow/${id}`} className={classes.jobName}>
+                            {name}
                           </Link>
                         ),
                         count: totalJobsInWorkflows?.length,
+                        created_by: created_by,
                       };
                     })}
                   />
