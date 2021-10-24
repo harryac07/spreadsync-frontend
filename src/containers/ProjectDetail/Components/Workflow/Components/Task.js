@@ -26,7 +26,6 @@ const Container = styled.div`
   border: 1px solid #ccc;
   border-radius: 2px;
   padding: 8px;
-  margin-bottom: 8px;
   background-color: ${(props) => (props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'lightgreen' : '#fff')};
   color: ${(props) => (props.isDragDisabled ? '#aaa' : 'inherit')};
 `;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Droppable } from 'react-beautiful-dnd';
-import { Tooltip, Button } from '@material-ui/core';
+import { Tooltip, Grid } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import Job from './Task';
 
@@ -32,7 +32,11 @@ const InnerList = React.memo(({ jobs }) => {
   return (
     <>
       {jobs.map((job, index) => {
-        return <Job key={job.id} job={job} index={index} />;
+        return (
+          <div style={{ minWidth: 120, marginBottom: 8 }}>
+            <Job key={job.id} job={job} index={index} />
+          </div>
+        );
       })}
     </>
   );
@@ -43,6 +47,9 @@ const Container = styled.div`
   border: 1px solid #ccc;
   border-radius: 2px;
   background: #f5f5f5;
+  min-height: 97%;
+  display: flex;
+  flex-direction: column;
 `;
 const Title = styled.h3`
   text-align: center;
@@ -52,6 +59,5 @@ const TaskList = styled.div`
   transition: background-color 0.2s ease;
   background-color: ${(props) => (props.isDraggingOver ? 'lightgrey' : 'inherit')};
   flex-grow: 1;
-  min-height: 300px;
   text-align: center;
 `;

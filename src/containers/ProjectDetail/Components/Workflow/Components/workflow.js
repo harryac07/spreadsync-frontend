@@ -36,7 +36,7 @@ const Column = ({ workflow = {}, handleStepDelete, handleStepSelect }) => {
                     <Droppable
                       droppableId={block + '-' + step}
                       isDropDisabled={isBlockDisabled}
-                      direction="horizontal" // default
+                      direction="horizontal" // default - vertical
                     >
                       {(provided, snapshot) => (
                         <TaskList
@@ -75,7 +75,7 @@ const InnerList = React.memo(({ jobs }) => {
     <Grid container spacing={1}>
       {jobs?.map((job, index) => {
         return (
-          <Grid key={job.id} item sm={12 / jobs.length} style={{ minWidth: 150 }}>
+          <Grid key={job.id} item sm={jobs.length > 1 ? 6 : 12} style={{ minWidth: 150 }}>
             <Job job={job} index={index} />
           </Grid>
         );

@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Tooltip, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import AddCircle from '@material-ui/icons/AddCircle';
+import colors from 'theme/colors.js';
 
 type BlockTypes = 'series' | 'parallel' | 'end';
 type Props = {
@@ -173,16 +174,17 @@ const Default = styled.div`
   border-width: 1px;
   display: flex;
   align-items: center;
-  min-height: 50px;
+  min-height: 70px;
   justify-content: center;
 `;
 const Oval = styled(Default)`
-  width: 100px;
+  width: 150px;
   background: transparent;
-  -moz-border-radius: 100px / 50px;
-  -webkit-border-radius: 100px / 50px;
-  border-radius: 100px / 50px;
+  -moz-border-radius: 150px / 70px;
+  -webkit-border-radius: 150px / 70px;
+  border-radius: 150px / 70px;
   text-align: center;
+  border-color: ${colors.primary};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,6 +193,7 @@ const Rectangle = styled(Default)`
   min-width: 150px;
   padding: 12px;
   background-color: transparent;
+  border-color: ${colors.secondary};
 `;
 const StyledAddCircle = styled(AddCircle)`
   color: #fff;
