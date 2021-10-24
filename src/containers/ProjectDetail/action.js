@@ -8,6 +8,7 @@ import {
   REMOVE_TEAM_MEMBER,
   UPDATE_TEAM_MEMBER,
   FETCH_WORKFLOW_BY_ID,
+  FETCH_WORKFLOW_BY_PROJECT,
 } from './constant';
 
 /**
@@ -79,6 +80,16 @@ export const fetchWorkflowById = (projectId, workflowId) => {
     type: FETCH_WORKFLOW_BY_ID,
     projectId: projectId,
     workflowId: workflowId,
+  };
+};
+/**
+ * fetchWorkflowByProject
+ * @param {String}projectId - project id
+ */
+export const fetchWorkflowByProject = (projectId) => {
+  return {
+    type: FETCH_WORKFLOW_BY_PROJECT,
+    projectId: projectId,
   };
 };
 /**

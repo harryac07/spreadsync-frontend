@@ -33,6 +33,9 @@ import {
   FETCH_WORKFLOW_BY_ID,
   FETCH_WORKFLOW_BY_ID_SUCCEED,
   FETCH_WORKFLOW_BY_ID_FAILED,
+  FETCH_WORKFLOW_BY_PROJECT,
+  FETCH_WORKFLOW_BY_PROJECT_SUCCEED,
+  FETCH_WORKFLOW_BY_PROJECT_FAILED,
 } from './constant';
 
 const fetchProject = (projectId) => {
@@ -239,6 +242,64 @@ export function* fetchWorkflowByIdSaga(action) {
     });
   }
 }
+
+const fetchWorkflowByProject = ({ projectId }) => {
+  return [
+    {
+      project: '5e19d1a3-20e9-4cdd-860f-0f502e8cfec6',
+      workflow: [
+        {
+          workflow_id: '12345',
+          workflow_name: 'Tester',
+          block: 'series',
+          step: 1,
+          values: ['14d95767-70cd-4598-a7f1-fa0111cd7f4d'],
+        },
+        {
+          workflow_id: '12345',
+          workflow_name: 'Tester',
+          block: 'parallel',
+          step: 2,
+          values: ['8c6b6b39-5cb1-4b13-b1c9-a87cd7776b77'],
+        },
+      ],
+    },
+    {
+      project: '5e19d1a3-20e9-4cdd-860f-0f502e8cfec6',
+      workflow: [
+        {
+          workflow_id: '12345',
+          workflow_name: 'Tester',
+          block: 'parallel',
+          step: 1,
+          values: ['14d95767-70cd-4598-a7f1-fa0111cd7f4d', '8c6b6b39-5cb1-4b13-b1c9-a87cd7776b77'],
+        },
+      ],
+    },
+  ];
+  return axios
+    .get(`${API_URL}/projects/${projectId}/workflow/`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      return response.data;
+    });
+};
+export function* fetchWorkflowByProjectSaga(action) {
+  try {
+    const data = yield call(fetchWorkflowByProject, action);
+    yield put({
+      type: FETCH_WORKFLOW_BY_PROJECT_SUCCEED,
+      payload: data,
+    });
+  } catch (error) {
+    console.error(error);
+    yield put({
+      type: FETCH_WORKFLOW_BY_PROJECT_FAILED,
+      error: error.response ? error.response.data : 'Something went wrong!',
+    });
+  }
+}
 const inviteProjectMembers = (payload) => {
   return axios
     .post(`${API_URL}/projects/${payload.projectId}/teams`, payload, {
@@ -339,4 +400,5 @@ export const projectDetailSaga = [
   takeEvery(REMOVE_TEAM_MEMBER, removeProjectMemberSaga),
   takeEvery(UPDATE_TEAM_MEMBER, updateProjectMemberSaga),
   takeEvery(FETCH_WORKFLOW_BY_ID, fetchWorkflowByIdSaga),
+  takeEvery(FETCH_WORKFLOW_BY_PROJECT, fetchWorkflowByProjectSaga),
 ];

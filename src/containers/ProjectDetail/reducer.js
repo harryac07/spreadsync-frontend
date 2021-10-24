@@ -18,6 +18,8 @@ import {
   UPDATE_TEAM_MEMBER_SUCCEED,
   UPDATE_TEAM_MEMBER_FAILED,
   FETCH_WORKFLOW_BY_ID,
+  FETCH_WORKFLOW_BY_PROJECT,
+  FETCH_WORKFLOW_BY_PROJECT_SUCCEED,
   FETCH_WORKFLOW_BY_ID_SUCCEED,
   FETCH_WORKFLOW_BY_ID_FAILED,
 } from './constant';
@@ -99,6 +101,11 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         currentWorkflow: action.payload,
+      };
+    case FETCH_WORKFLOW_BY_PROJECT_SUCCEED:
+      return {
+        ...state,
+        workflows: action.payload,
       };
     case INVITE_TEAM_MEMBERS:
       return {

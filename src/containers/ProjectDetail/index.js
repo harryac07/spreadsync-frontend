@@ -28,6 +28,7 @@ import {
   cloneJobById,
   deleteAJobByJobId,
   fetchAllProjectMembers,
+  fetchWorkflowByProject,
   inviteProjectMembers,
   removeProjectMember,
   updateProjectMember,
@@ -49,6 +50,7 @@ import Workflow from './Components/Workflow';
 import { permissions, roleBasedDefaultPermissions } from '../../utils/permissions';
 import { getPermissionsForCurrentProject } from 'store/selectors';
 import ContainerWithHeader from 'components/ContainerWithHeader';
+import TableWithPagination from 'components/common/TableWithPagination';
 
 class ProjectDetail extends React.Component {
   constructor(props) {
@@ -56,8 +58,6 @@ class ProjectDetail extends React.Component {
     this.state = {
       currentView: 'job', // job or setting or newjob
       newJobInput: {},
-      page: 0,
-      rowsPerPage: 10,
       currentTab: 0,
     };
   }
@@ -66,6 +66,7 @@ class ProjectDetail extends React.Component {
     this.props.fetchProjectById(id);
     this.props.fetchAllJobsForProject(id);
     this.props.fetchAllProjectMembers(id);
+    this.props.fetchWorkflowByProject(id);
   }
   componentDidUpdate(prevProps, prevState) {
     const store = this.props.projectDetail;
@@ -185,7 +186,6 @@ class ProjectDetail extends React.Component {
     const { classes, searchKeyword, projectDetail, deleteAJobByJobId, cloneJobById } = this.props;
     const { jobs } = projectDetail;
     const projectId = this.props?.match?.params?.id ?? '';
-    const { rowsPerPage, page } = this.state;
 
     const filteredJobs = jobs.filter(({ name, description }) => {
       if (searchKeyword) {
@@ -214,105 +214,65 @@ class ProjectDetail extends React.Component {
       );
     }
     return (
-      <div>
-        <TableContainer>
-          <Table className={classes.table} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Job Name</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Created By</TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {(rowsPerPage > 0
-                ? filteredJobs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                : filteredJobs
-              ).map((row) => (
-                <TableRow hover key={row.id}>
-                  <TableCell component="th" scope="row">
-                    <Link to={`/projects/${projectId}/job/${row.id}`} className={classes.jobName}>
-                      {row.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{row.description}</TableCell>
-                  <TableCell>{row.type}</TableCell>
-                  <TableCell>{row.user_email}</TableCell>
-                  <TableCell>
-                    {this.hasPermission(['job_all', 'job_write']) && (
-                      <ConfirmDialog
-                        ctaToOpenModal={
-                          <CloneIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'black' }} />
-                        }
-                        header={
-                          <span>
-                            Clone the job: <u>{row.name}</u>?
-                          </span>
-                        }
-                        bodyContent={
-                          'Cloning the job makes exact replica of the selected job coyping the configuration and data source aand target setups. This feature helps you to save time creating similar job that exists already. '
-                        }
-                        cancelText="Cancel"
-                        cancelCallback={() => null}
-                        confirmText="Clone"
-                        confirmCallback={() => cloneJobById(row.id, projectId)}
-                      />
-                    )}
-                    {this.hasPermission(['job_all', 'job_delete']) && (
-                      <ConfirmDialog
-                        ctaToOpenModal={
-                          <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
-                        }
-                        header={
-                          <span>
-                            Confirm deleting the job: <u>{row.name}</u>?
-                          </span>
-                        }
-                        bodyContent={
-                          'Deleting the job deletes everything connected to the job and you can not undone this later. This action deletes the job history, configured data source and target'
-                        }
-                        cancelText="Cancel"
-                        cancelCallback={() => null}
-                        confirmText="Confirm"
-                        confirmCallback={() => deleteAJobByJobId(row.id, projectId)}
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        {filteredJobs.length > rowsPerPage && (
-          <TablePagination
-            rowsPerPageOptions={[10, 20, filteredJobs.length]}
-            component="div"
-            count={filteredJobs.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onChangePage={(e, page) => this.setState({ page })}
-            onChangeRowsPerPage={(e) => {
-              const selectedRowsPerPage = parseInt(e.target.value);
-              if (filteredJobs.length >= selectedRowsPerPage * page) {
-                this.setState({ rowsPerPage: selectedRowsPerPage });
-              }
-            }}
-            classes={{
-              caption: classes.caption,
-              selectIcon: classes.paginationSelectIcon,
-              select: classes.paginationSelect,
-            }}
-            backIconButtonProps={{
-              size: 'small',
-            }}
-            nextIconButtonProps={{
-              size: 'small',
-            }}
-          />
-        )}
-      </div>
+      <TableWithPagination
+        primaryKey="id"
+        headers={['Job Name', 'Description', 'Type', 'Created By', '']}
+        options={filteredJobs?.map((each) => {
+          return {
+            id: each.id,
+            name: (
+              <Link to={`/projects/${projectId}/job/${each.id}`} className={classes.jobName}>
+                {each.name}
+              </Link>
+            ),
+            description: each.description,
+            type: each.type,
+            user_email: each.user_email,
+            '': (
+              <>
+                {this.hasPermission(['job_all', 'job_write']) && (
+                  <ConfirmDialog
+                    ctaToOpenModal={
+                      <CloneIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'black' }} />
+                    }
+                    header={
+                      <span>
+                        Clone the job: <u>{each.name}</u>?
+                      </span>
+                    }
+                    bodyContent={
+                      'Cloning the job makes exact replica of the selected job coyping the configuration and data source aand target setups. This feature helps you to save time creating similar job that exists already. '
+                    }
+                    cancelText="Cancel"
+                    cancelCallback={() => null}
+                    confirmText="Clone"
+                    confirmCallback={() => cloneJobById(each.id, projectId)}
+                  />
+                )}
+                {this.hasPermission(['job_all', 'job_delete']) && (
+                  <ConfirmDialog
+                    ctaToOpenModal={
+                      <DeleteIcon fontSize="small" style={{ fontSize: 18, cursor: 'pointer', color: 'red' }} />
+                    }
+                    header={
+                      <span>
+                        Confirm deleting the job: <u>{each.name}</u>?
+                      </span>
+                    }
+                    bodyContent={
+                      'Deleting the job deletes everything connected to the job and you can not undone this later. This action deletes the job history, configured data source and target'
+                    }
+                    cancelText="Cancel"
+                    cancelCallback={() => null}
+                    confirmText="Confirm"
+                    confirmCallback={() => deleteAJobByJobId(each.id, projectId)}
+                  />
+                )}
+              </>
+            ),
+          };
+        })}
+      />
     );
   };
 
@@ -457,7 +417,7 @@ class ProjectDetail extends React.Component {
   render() {
     const { classes, projectDetail, history } = this.props;
 
-    const { project, jobs = [] } = projectDetail;
+    const { project, jobs = [], workflows = [] } = projectDetail;
     const { currentView, currentTab } = this.state;
 
     const { id, name, total_members } = project[0] || {};
@@ -554,7 +514,24 @@ class ProjectDetail extends React.Component {
                   square={true}
                 >
                   {/* Workflow table view */}
-                  Workflow not found.
+                  <TableWithPagination
+                    primaryKey="id"
+                    headers={['Name', 'Jobs count']}
+                    options={workflows?.map(({ project, workflow }) => {
+                      return {
+                        id: workflow?.[0]?.workflow_id,
+                        name: (
+                          <Link
+                            to={`/projects/${project}/workflow/${workflow?.[0]?.workflow_id}`}
+                            className={classes.jobName}
+                          >
+                            {workflow?.[0]?.workflow_name}
+                          </Link>
+                        ),
+                        count: workflow?.[0]?.values?.length,
+                      };
+                    })}
+                  />
                 </ContainerWithHeader>
               )}
             </React.Fragment>
@@ -654,17 +631,6 @@ const styles = (theme) => ({
     border: '1px solid #eee',
   },
   jobName: { fontSize: 16, textDecoration: 'none', color: '#3A3C67', fontWeight: 500 },
-  caption: {
-    color: '#000',
-    padding: 8,
-    fontSize: 14,
-  },
-  paginationSelectIcon: {
-    marginTop: -5,
-  },
-  paginationSelect: {
-    fontSize: 14,
-  },
   chipLabel: {
     fontSize: 11,
     marginRight: 5,
@@ -691,6 +657,7 @@ export default connect(mapStateToProps, {
   deleteAJobByJobId,
   cloneJobById,
   fetchAllProjectMembers,
+  fetchWorkflowByProject,
   inviteProjectMembers,
   removeProjectMember,
   updateProjectMember,
