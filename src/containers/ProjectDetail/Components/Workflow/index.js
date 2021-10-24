@@ -34,6 +34,8 @@ const App = (props) => {
   const [workflow, setWorkflow] = useState(starterBlock);
   const [workflowName, setWorkflowName] = useState('');
   const [isTextFieldFocus, setIsTextFieldFocus] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false);
+
   const { project_id: projectId, workflow_id: workflowId } = props?.match?.params ?? {};
 
   const { project, jobs, currentWorkflow } = useSelector((states) => {
@@ -124,6 +126,7 @@ const App = (props) => {
           values: sourceValues,
         },
       });
+      setIsUpdated(true);
       return;
     }
     /* Move job id from workflow to jobs section */
@@ -140,6 +143,7 @@ const App = (props) => {
         },
       });
       setAvailableJobs([...availableJobs, jobs?.find((each) => each.id === draggableId)]);
+      setIsUpdated(true);
       return;
     }
     /* Move job id from available section to workflow */
@@ -159,6 +163,7 @@ const App = (props) => {
         return each.id !== draggableId;
       })
     );
+    setIsUpdated(true);
   };
   const handleStepSelect = (block) => {
     const availableSteps = Object.keys(workflow);
@@ -187,12 +192,14 @@ const App = (props) => {
         },
       });
     }
+    setIsUpdated(true);
   };
   const handleStepDelete = (step) => {
     const { [step]: objsToRemoveFromWorkflow, ...restObj } = workflow;
     const jobIds = objsToRemoveFromWorkflow?.values ?? [];
     setWorkflow(restObj);
     setAvailableJobs([...availableJobs, ...jobs.filter(({ id }) => jobIds.includes(id))]);
+    setIsUpdated(true);
   };
 
   const saveWorkflow = () => {
@@ -212,6 +219,7 @@ const App = (props) => {
         }),
     };
     console.log('workflow ', payload);
+    setIsUpdated(false);
   };
 
   const getSetupStepBlocks = () => {
@@ -271,7 +279,10 @@ const App = (props) => {
                   required={true}
                   placeholder="Worflow name"
                   name="name"
-                  onChange={(e) => setWorkflowName(e.target.value)}
+                  onChange={(e) => {
+                    setIsUpdated(true);
+                    setWorkflowName(e.target.value);
+                  }}
                   extrasmall
                   className={classes.input}
                   error={!workflowName}
@@ -280,8 +291,8 @@ const App = (props) => {
             }
             headerRightContent={
               emptyBlocksCount === 0 ? (
-                <Button disabled={isButtonDisabled} onClick={() => saveWorkflow()}>
-                  Save workflow
+                <Button disabled={workflowId ? !isUpdated : isButtonDisabled} onClick={() => saveWorkflow()}>
+                  {workflowId ? 'Update workflow' : 'Save workflow'}
                 </Button>
               ) : (
                 <ConfirmDialog
