@@ -257,7 +257,7 @@ class Main extends React.Component {
             )}
           />
           <Route
-            path="/projects/:id/workflow/new"
+            path="/projects/:project_id/workflow/new"
             render={(props) => (
               <MainWrapper nopadding>
                 <Workflow {...{ ...props, isAccountAdmin }} />
@@ -265,8 +265,12 @@ class Main extends React.Component {
             )}
           />
           <Route
-            path="/projects/:id/workflow/:id"
-            render={(props) => <MainWrapper nopadding>Workflow detail view</MainWrapper>}
+            path="/projects/:project_id/workflow/:workflow_id"
+            render={(props) => (
+              <MainWrapper nopadding>
+                <Workflow {...{ ...props, isAccountAdmin }} />
+              </MainWrapper>
+            )}
           />
           <Route
             path="/projects/:id"

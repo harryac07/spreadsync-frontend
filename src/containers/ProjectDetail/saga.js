@@ -202,23 +202,46 @@ export function* fetchProjectMembersSaga(action) {
   }
 }
 
+const workflowExample = [
+  {
+    project: '5e19d1a3-20e9-4cdd-860f-0f502e8cfec6',
+    workflow: [
+      {
+        workflow_id: '123456',
+        workflow_name: 'Tester',
+        block: 'series',
+        step: 1,
+        values: ['14d95767-70cd-4598-a7f1-fa0111cd7f4d'],
+      },
+      {
+        workflow_id: '123456',
+        workflow_name: 'Tester',
+        block: 'parallel',
+        step: 2,
+        values: ['8c6b6b39-5cb1-4b13-b1c9-a87cd7776b77'],
+      },
+    ],
+  },
+  {
+    project: '5e19d1a3-20e9-4cdd-860f-0f502e8cfec6',
+    workflow: [
+      {
+        workflow_id: '1234',
+        workflow_name: 'Hello',
+        block: 'parallel',
+        step: 1,
+        values: ['14d95767-70cd-4598-a7f1-fa0111cd7f4d', '8c6b6b39-5cb1-4b13-b1c9-a87cd7776b77'],
+      },
+    ],
+  },
+];
+
 const fetchWorkflowById = ({ projectId, workflowId }) => {
-  return [
-    {
-      workflow_id: '12345',
-      workflow_name: 'Tester',
-      block: 'series',
-      step: 1,
-      values: ['14d95767-70cd-4598-a7f1-fa0111cd7f4d'],
-    },
-    {
-      workflow_id: '12345',
-      workflow_name: 'Tester',
-      block: 'parallel',
-      step: 2,
-      values: ['8c6b6b39-5cb1-4b13-b1c9-a87cd7776b77'],
-    },
-  ];
+  return (
+    workflowExample.find((each) => {
+      return each.project === projectId && each.workflow?.[0]?.workflow_id === workflowId;
+    })?.workflow ?? []
+  );
   return axios
     .get(`${API_URL}/projects/${projectId}/workflow/${workflowId}`, {
       headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
@@ -244,39 +267,7 @@ export function* fetchWorkflowByIdSaga(action) {
 }
 
 const fetchWorkflowByProject = ({ projectId }) => {
-  return [
-    {
-      project: '5e19d1a3-20e9-4cdd-860f-0f502e8cfec6',
-      workflow: [
-        {
-          workflow_id: '12345',
-          workflow_name: 'Tester',
-          block: 'series',
-          step: 1,
-          values: ['14d95767-70cd-4598-a7f1-fa0111cd7f4d'],
-        },
-        {
-          workflow_id: '12345',
-          workflow_name: 'Tester',
-          block: 'parallel',
-          step: 2,
-          values: ['8c6b6b39-5cb1-4b13-b1c9-a87cd7776b77'],
-        },
-      ],
-    },
-    {
-      project: '5e19d1a3-20e9-4cdd-860f-0f502e8cfec6',
-      workflow: [
-        {
-          workflow_id: '12345',
-          workflow_name: 'Tester',
-          block: 'parallel',
-          step: 1,
-          values: ['14d95767-70cd-4598-a7f1-fa0111cd7f4d', '8c6b6b39-5cb1-4b13-b1c9-a87cd7776b77'],
-        },
-      ],
-    },
-  ];
+  return workflowExample;
   return axios
     .get(`${API_URL}/projects/${projectId}/workflow/`, {
       headers: { Authorization: `bearer ${localStorage.getItem('token')}` },

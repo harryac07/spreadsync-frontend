@@ -33,27 +33,34 @@ const App = (props) => {
   const [availableJobs, setAvailableJobs] = useState([]);
   const [workflow, setWorkflow] = useState(starterBlock);
   const [workflowName, setWorkflowName] = useState('');
-  const projectId = props?.match?.params?.id;
+  const [isTextFieldFocus, setIsTextFieldFocus] = useState(false);
+  const { project_id: projectId, workflow_id: workflowId } = props?.match?.params ?? {};
 
   const { project, jobs, currentWorkflow } = useSelector((states) => {
     return {
       project: states.projectDetail?.project ?? [],
       jobs: states.projectDetail?.jobs ?? [],
-      currentWorkflow: states.projectDetail.currentWorkflow || [],
+      currentWorkflow: workflowId ? states.projectDetail.currentWorkflow : [],
     };
   });
+
   useEffect(() => {
     if (jobs?.length && !availableJobs.length) {
       setAvailableJobs(jobs);
-    } else if (projectId) {
-      dispatch(fetchProjectById(projectId));
+    }
+    if (projectId && !jobs?.length) {
       dispatch(fetchAllJobsForProject(projectId));
+    }
+    if (projectId && !project?.length) {
+      dispatch(fetchProjectById(projectId));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs]);
 
   useEffect(() => {
-    dispatch(fetchWorkflowById(projectId, '12345'));
+    if (workflowId) {
+      dispatch(fetchWorkflowById(projectId, workflowId));
+    }
   }, []);
 
   // Update the default values
@@ -246,7 +253,7 @@ const App = (props) => {
         mainTitle={projectName}
         onTitleClick={() => history.push(`/projects/${id}`)}
         subPage="workflow"
-        subPageName={'new'}
+        subPageName={workflowId ? workflowName : 'new'}
       />
       <div className={classes.workflowWrapper}>
         <DragDropContext onDragEnd={onDragEnd}>
@@ -255,17 +262,19 @@ const App = (props) => {
             padding={20}
             elevation={1}
             headerLeftContent={
-              <Field
-                key={workflowName}
-                defaultValue={workflowName}
-                required={true}
-                placeholder="Worflow name"
-                name="name"
-                onChange={(e) => setWorkflowName(e.target.value)}
-                extrasmall
-                className={classes.input}
-                error={!workflowName}
-              />
+              <div onMouseEnter={() => setIsTextFieldFocus(true)} onMouseLeave={() => setIsTextFieldFocus(false)}>
+                <Field
+                  key={isTextFieldFocus ? 'workflow-name' : workflowName}
+                  defaultValue={workflowName}
+                  required={true}
+                  placeholder="Worflow name"
+                  name="name"
+                  onChange={(e) => setWorkflowName(e.target.value)}
+                  extrasmall
+                  className={classes.input}
+                  error={!workflowName}
+                />
+              </div>
             }
             headerRightContent={
               emptyBlocksCount === 0 ? (

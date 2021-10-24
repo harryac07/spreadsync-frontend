@@ -518,6 +518,9 @@ class ProjectDetail extends React.Component {
                     primaryKey="id"
                     headers={['Name', 'Jobs count']}
                     options={workflows?.map(({ project, workflow }) => {
+                      const totalJobsInWorkflows = workflow?.reduce((prev, currentWorkflow) => {
+                        return [...prev, ...currentWorkflow?.values];
+                      }, []);
                       return {
                         id: workflow?.[0]?.workflow_id,
                         name: (
@@ -528,7 +531,7 @@ class ProjectDetail extends React.Component {
                             {workflow?.[0]?.workflow_name}
                           </Link>
                         ),
-                        count: workflow?.[0]?.values?.length,
+                        count: totalJobsInWorkflows?.length,
                       };
                     })}
                   />
