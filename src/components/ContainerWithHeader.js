@@ -9,9 +9,10 @@ const ContainerWithHeader = ({
   elevation = 0,
   square = false,
   padding = null,
+  headerPadding = null,
   showHeader = true,
 }) => {
-  const classes = useStyles({ bodyPadding: padding });
+  const classes = useStyles({ bodyPadding: padding, headerPadding: headerPadding });
 
   return (
     <Paper elevation={elevation} square={square}>
@@ -51,7 +52,7 @@ const useStyles = makeStyles((theme) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       textTransform: 'none',
-      padding: (props) => props.bodyPadding,
+      padding: (props) => (props.headerPadding ? props.headerPadding : props.bodyPadding),
     },
     content: {
       padding: (props) => props.bodyPadding,

@@ -500,7 +500,7 @@ class ProjectDetail extends React.Component {
                     className={classes.tab}
                     label={<ContainerWithHeader headerRightContent={null} headerLeftContent={<>Jobs</>} />}
                   />
-                  <Tab label={<ContainerWithHeader headerRightContent={null} headerLeftContent={<>Workflow</>} />} />
+                  <Tab label={<ContainerWithHeader headerRightContent={null} headerLeftContent={<>Workflows</>} />} />
                 </Tabs>
               </Paper>
               {currentTab === 0 && (
@@ -535,7 +535,7 @@ class ProjectDetail extends React.Component {
                 <ContainerWithHeader
                   padding={20}
                   elevation={1}
-                  headerLeftContent={<>Workflow({[].length})</>}
+                  headerLeftContent={<>Total Workflows ({[].length})</>}
                   headerRightContent={
                     <>
                       {this.hasPermission(['job_all', 'job_write']) && (
@@ -554,6 +554,7 @@ class ProjectDetail extends React.Component {
                   square={true}
                 >
                   {/* Workflow table view */}
+                  Workflow not found.
                 </ContainerWithHeader>
               )}
             </React.Fragment>

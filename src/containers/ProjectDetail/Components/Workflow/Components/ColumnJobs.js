@@ -9,7 +9,7 @@ const Column = (props) => {
   const isDropDisabled = false; //props.isDropDisabled;
   return (
     <Container>
-      <Title>Jobs</Title>
+      <Title>Available Jobs</Title>
       <Droppable
         droppableId={'droppable-jobs'}
         isDropDisabled={false}
@@ -39,20 +39,19 @@ const InnerList = React.memo(({ jobs }) => {
 });
 
 const Container = styled.div`
-  margin: 8px;
-  border: 1px solid lightgrey;
+  margin: 8px 0px;
+  border: 1px solid #ccc;
   border-radius: 2px;
+  background: #f5f5f5;
 `;
 const Title = styled.h3`
-  padding: 8px;
   text-align: center;
-  background: #fff;
 `;
 const TaskList = styled.div`
   padding: 8px;
   transition: background-color 0.2s ease;
   background-color: ${(props) => (props.isDraggingOver ? 'lightgrey' : 'inherit')};
   flex-grow: 1;
-  min-height: 100px;
+  min-height: 300px;
   text-align: center;
 `;

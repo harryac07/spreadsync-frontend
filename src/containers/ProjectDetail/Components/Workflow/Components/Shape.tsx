@@ -68,7 +68,12 @@ const ActionWithTooltip = ({ onBlockSelect, blocks }) => {
       enterNextDelay={200}
       title={
         <div className={classes.tooltipTitle}>
-          <div>Add block</div>
+          <div>
+            Add block
+            <span onClick={() => setShowDialog(false)} className={classes.cancel}>
+              x
+            </span>
+          </div>
           {blocks?.map((each) => {
             return (
               <Button
@@ -120,6 +125,13 @@ const useStyles = makeStyles(() => ({
       paddingBottom: 8,
       fontWeight: 'bold',
     },
+  },
+  cancel: {
+    color: '#0A0A0A',
+    fontWeight: 400,
+    fontSize: 12,
+    float: 'right',
+    cursor: 'pointer',
   },
   button: {
     margin: 4,
@@ -176,7 +188,7 @@ const Oval = styled(Default)`
   justify-content: center;
 `;
 const Rectangle = styled(Default)`
-  min-width: 100px;
+  min-width: 150px;
   padding: 12px;
   background-color: transparent;
 `;

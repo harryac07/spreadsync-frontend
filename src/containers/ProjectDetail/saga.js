@@ -30,6 +30,9 @@ import {
   CLONE_JOB,
   CLONE_JOB_SUCCEED,
   CLONE_JOB_FAILED,
+  FETCH_WORKFLOW_BY_ID,
+  FETCH_WORKFLOW_BY_ID_SUCCEED,
+  FETCH_WORKFLOW_BY_ID_FAILED,
 } from './constant';
 
 const fetchProject = (projectId) => {
@@ -196,6 +199,46 @@ export function* fetchProjectMembersSaga(action) {
   }
 }
 
+const fetchWorkflowById = ({ projectId, workflowId }) => {
+  return [
+    {
+      workflow_id: '12345',
+      workflow_name: 'Tester',
+      block: 'series',
+      step: 1,
+      values: ['14d95767-70cd-4598-a7f1-fa0111cd7f4d'],
+    },
+    {
+      workflow_id: '12345',
+      workflow_name: 'Tester',
+      block: 'parallel',
+      step: 2,
+      values: ['8c6b6b39-5cb1-4b13-b1c9-a87cd7776b77'],
+    },
+  ];
+  return axios
+    .get(`${API_URL}/projects/${projectId}/workflow/${workflowId}`, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      return response.data;
+    });
+};
+export function* fetchWorkflowByIdSaga(action) {
+  try {
+    const data = yield call(fetchWorkflowById, action);
+    yield put({
+      type: FETCH_WORKFLOW_BY_ID_SUCCEED,
+      payload: data,
+    });
+  } catch (error) {
+    console.error(error);
+    yield put({
+      type: FETCH_WORKFLOW_BY_ID_FAILED,
+      error: error.response ? error.response.data : 'Something went wrong!',
+    });
+  }
+}
 const inviteProjectMembers = (payload) => {
   return axios
     .post(`${API_URL}/projects/${payload.projectId}/teams`, payload, {
@@ -295,4 +338,5 @@ export const projectDetailSaga = [
   takeEvery(INVITE_TEAM_MEMBERS, inviteProjectMembersSaga),
   takeEvery(REMOVE_TEAM_MEMBER, removeProjectMemberSaga),
   takeEvery(UPDATE_TEAM_MEMBER, updateProjectMemberSaga),
+  takeEvery(FETCH_WORKFLOW_BY_ID, fetchWorkflowByIdSaga),
 ];

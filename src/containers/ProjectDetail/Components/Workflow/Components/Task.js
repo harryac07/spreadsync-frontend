@@ -5,7 +5,7 @@ import { Draggable } from 'react-beautiful-dnd';
 const Job = ({ job, index }) => {
   const isDragDisabled = false;
   return (
-    <Draggable draggableId={job.id} index={index} isDragDisabled={isDragDisabled}>
+    <Draggable key={job.id} draggableId={job.id} index={index} isDragDisabled={isDragDisabled}>
       {(provided, snapshot) => (
         <Container
           {...provided.draggableProps}
@@ -23,10 +23,10 @@ const Job = ({ job, index }) => {
 export default Job;
 
 const Container = styled.div`
-  border: 1px solid lightgrey;
+  border: 1px solid #ccc;
   border-radius: 2px;
   padding: 8px;
   margin-bottom: 8px;
-  background-color: ${(props) => (props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'lightgreen' : 'white')};
+  background-color: ${(props) => (props.isDragDisabled ? 'lightgrey' : props.isDragging ? 'lightgreen' : '#fff')};
   color: ${(props) => (props.isDragDisabled ? '#aaa' : 'inherit')};
 `;

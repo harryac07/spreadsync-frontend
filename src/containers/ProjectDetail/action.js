@@ -7,6 +7,7 @@ import {
   INVITE_TEAM_MEMBERS,
   REMOVE_TEAM_MEMBER,
   UPDATE_TEAM_MEMBER,
+  FETCH_WORKFLOW_BY_ID,
 } from './constant';
 
 /**
@@ -66,6 +67,18 @@ export const fetchAllProjectMembers = (projectId) => {
   return {
     type: FETCH_ALL_TEAM_MEMBERS,
     id: projectId,
+  };
+};
+/**
+ * fetchWorkflowById
+ * @param {String}projectId - project id
+ * @param {String}workflowId - workflow id
+ */
+export const fetchWorkflowById = (projectId, workflowId) => {
+  return {
+    type: FETCH_WORKFLOW_BY_ID,
+    projectId: projectId,
+    workflowId: workflowId,
   };
 };
 /**
