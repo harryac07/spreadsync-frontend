@@ -36,6 +36,9 @@ import {
   FETCH_WORKFLOW_BY_PROJECT,
   FETCH_WORKFLOW_BY_PROJECT_SUCCEED,
   FETCH_WORKFLOW_BY_PROJECT_FAILED,
+  CREATE_WORKFLOW_FOR_PROJECT,
+  CREATE_WORKFLOW_FOR_PROJECT_SUCCEED,
+  CREATE_WORKFLOW_FOR_PROJECT_FAILED,
 } from './constant';
 
 const fetchProject = (projectId) => {
@@ -251,6 +254,40 @@ export function* fetchWorkflowByProjectSaga(action) {
     });
   }
 }
+const createWorkflowForProject = ({ data }) => {
+  return axios
+    .post(`${API_URL}/workflows/project/${data.project}/workflow`, data, {
+      headers: { Authorization: `bearer ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      return response.data;
+    });
+};
+export function* createWorkflowForProjectSaga(action) {
+  try {
+    const data = yield call(createWorkflowForProject, action);
+    yield put({
+      type: CREATE_WORKFLOW_FOR_PROJECT_SUCCEED,
+      payload: data,
+    });
+    toast.info(`Workflow ${action.data?.name} created successfully.`);
+    // fetch workflow for the project
+    yield put({
+      type: FETCH_WORKFLOW_BY_PROJECT,
+      projectId: action.data.project,
+    });
+    if (action?.history) {
+      action.history.push(`/projects/${action.data.project}/workflow/${data?.[0]?.id}`);
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error(`Workflow create failed! ${error?.response?.data?.message}`);
+    yield put({
+      type: CREATE_WORKFLOW_FOR_PROJECT_FAILED,
+      error: error.response ? error.response.data : 'Something went wrong!',
+    });
+  }
+}
 const inviteProjectMembers = (payload) => {
   return axios
     .post(`${API_URL}/projects/${payload.projectId}/teams`, payload, {
@@ -352,4 +389,5 @@ export const projectDetailSaga = [
   takeEvery(UPDATE_TEAM_MEMBER, updateProjectMemberSaga),
   takeEvery(FETCH_WORKFLOW_BY_ID, fetchWorkflowByIdSaga),
   takeEvery(FETCH_WORKFLOW_BY_PROJECT, fetchWorkflowByProjectSaga),
+  takeEvery(CREATE_WORKFLOW_FOR_PROJECT, createWorkflowForProjectSaga),
 ];

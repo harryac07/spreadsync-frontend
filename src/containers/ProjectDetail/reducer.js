@@ -22,6 +22,9 @@ import {
   FETCH_WORKFLOW_BY_PROJECT_SUCCEED,
   FETCH_WORKFLOW_BY_ID_SUCCEED,
   FETCH_WORKFLOW_BY_ID_FAILED,
+  CREATE_WORKFLOW_FOR_PROJECT,
+  CREATE_WORKFLOW_FOR_PROJECT_SUCCEED,
+  CREATE_WORKFLOW_FOR_PROJECT_FAILED,
 } from './constant';
 
 const initialState = {
@@ -36,6 +39,7 @@ const initialState = {
   isUserInvited: false,
   isUserRemoved: false,
   isUserUpdated: false,
+  isWorkflowCreated: false,
 };
 const reducer = (state = initialState, action) => {
   switch (action.type) {
@@ -106,6 +110,29 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         workflows: action.payload,
+      };
+    case CREATE_WORKFLOW_FOR_PROJECT:
+      return {
+        ...state,
+        isWorkflowCreated: false,
+        error: {
+          ...state.error,
+          CREATE_WORKFLOW_FOR_PROJECT: null,
+        },
+      };
+    case CREATE_WORKFLOW_FOR_PROJECT_SUCCEED:
+      return {
+        ...state,
+        isWorkflowCreated: true,
+      };
+    case CREATE_WORKFLOW_FOR_PROJECT_FAILED:
+      return {
+        ...state,
+        isWorkflowCreated: false,
+        error: {
+          ...state.error,
+          CREATE_WORKFLOW_FOR_PROJECT: action.error,
+        },
       };
     case INVITE_TEAM_MEMBERS:
       return {

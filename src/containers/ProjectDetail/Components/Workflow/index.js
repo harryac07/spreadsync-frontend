@@ -12,7 +12,7 @@ import Button from 'components/common/Button';
 import ConfirmDialog from 'components/common/ConfirmDialog';
 
 import ContainerWithHeader from 'components/ContainerWithHeader';
-import { fetchProjectById, fetchAllJobsForProject, fetchWorkflowById } from '../../action';
+import { fetchProjectById, fetchAllJobsForProject, fetchWorkflowById, createWorkflowForProject } from '../../action';
 
 const starterBlock = {
   [String(0)]: {
@@ -38,11 +38,12 @@ const App = (props) => {
 
   const { project_id: projectId, workflow_id: workflowId } = props?.match?.params ?? {};
 
-  const { project, jobs, currentWorkflow } = useSelector((states) => {
+  const { project, jobs, currentWorkflow, error } = useSelector((states) => {
     return {
       project: states.projectDetail?.project ?? [],
       jobs: states.projectDetail?.jobs ?? [],
       currentWorkflow: workflowId ? states.projectDetail.currentWorkflow : [],
+      error: states.projectDetail?.error?.CREATE_WORKFLOW_FOR_PROJECT ?? '',
     };
   });
 
@@ -206,19 +207,22 @@ const App = (props) => {
     const payload = {
       name: workflowName,
       project: projectId,
-      workflow: Object.values(workflow)
-        ?.filter(({ values = [] }) => {
-          return values?.length;
-        })
-        .map((each, i) => {
-          return {
-            ...each,
-            step: i + 1,
-            values: each?.values ?? [],
-          };
-        }),
+      workflow: JSON.stringify(
+        Object.values(workflow)
+          ?.filter(({ values = [] }) => {
+            return values?.length;
+          })
+          .map((each, i) => {
+            return {
+              ...each,
+              step: i + 1,
+              values: each?.values ?? [],
+            };
+          })
+      ),
     };
     console.log('workflow ', payload);
+    dispatch(createWorkflowForProject(payload, history));
     setIsUpdated(false);
   };
 

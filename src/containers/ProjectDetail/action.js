@@ -9,6 +9,7 @@ import {
   UPDATE_TEAM_MEMBER,
   FETCH_WORKFLOW_BY_ID,
   FETCH_WORKFLOW_BY_PROJECT,
+  CREATE_WORKFLOW_FOR_PROJECT,
 } from './constant';
 
 /**
@@ -90,6 +91,18 @@ export const fetchWorkflowByProject = (projectId) => {
   return {
     type: FETCH_WORKFLOW_BY_PROJECT,
     projectId: projectId,
+  };
+};
+/**
+ * createWorkflowForProject
+ * @param {Object}payload - payload to create workflow for project
+ * @param {Object}history - browser history object to navigate
+ */
+export const createWorkflowForProject = (payload, history) => {
+  return {
+    type: CREATE_WORKFLOW_FOR_PROJECT,
+    data: payload,
+    history: history,
   };
 };
 /**
